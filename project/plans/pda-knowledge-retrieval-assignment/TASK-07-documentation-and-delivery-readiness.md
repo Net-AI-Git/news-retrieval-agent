@@ -16,6 +16,7 @@ Produce a reproducible, review-ready assignment package with complete setup inst
 - Dependency installation is defined through `requirements.txt` or `pyproject.toml`.
 - The README explains the selected inputs, retrieval representation, tool surface, agent loop, refusal behavior, and index rebuild process.
 - The README documents known failure modes, operation at 100-times larger scale, and the work that would be done with two additional days.
+- The README records the cost-aware LLM usage strategy: where tokens are spent, where they are not, and how the work stays within the assignment budget.
 - A reviewer can run the system end to end using environment-provided credentials without discovering undocumented steps.
 
 ## Research Before Implementation
@@ -25,6 +26,7 @@ Produce a reproducible, review-ready assignment package with complete setup inst
 - Analyze which current design assumptions break at roughly 100-times the supplied corpus size and what would replace them.
 - Consolidate the developer decisions and trade-offs recorded in TASKS 01–06.
 - Identify honest failure modes and the highest-value two-day follow-up plan.
+- Record a cost-aware LLM strategy (indexing vs agent loops vs repeated full runs) that stays within the assignment budget. This was deferred from TASK 01.
 
 ## Implementation Autonomy
 
@@ -35,7 +37,7 @@ The developer chooses documentation structure, dependency format, commands, and 
 **In:**
 
 - Root README and dependency manifest.
-- Setup, configuration, rebuild, run, evaluation, and troubleshooting instructions.
+- Setup, configuration, rebuild, run, evaluation, troubleshooting, and cost-aware LLM-budget instructions.
 - Final package validation and secret scanning.
 
 **Out:**
@@ -60,6 +62,7 @@ The developer chooses documentation structure, dependency format, commands, and 
 - [ ] The 100-times-scale design discussion identifies concrete bottlenecks and changes.
 - [ ] The two-more-days section prioritizes specific follow-up work.
 - [ ] Index rebuild instructions and environment variables are documented.
+- [ ] The cost-aware LLM budget strategy is documented in the README.
 - [ ] Dependencies are complete, minimal, and installable on Python 3.11+.
 - [ ] Required deliverables and schemas pass a final end-to-end check.
 - [ ] Repository-wide secret scanning finds no committed credentials.

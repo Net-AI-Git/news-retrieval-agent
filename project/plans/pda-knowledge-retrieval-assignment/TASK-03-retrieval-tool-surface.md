@@ -13,7 +13,7 @@ Expose the retrieval capability through a small, typed, LLM-usable tool surface 
 ## Product Requirements
 
 - Tools have clear typed signatures and docstrings written for an LLM consumer.
-- The tool set is small enough for reliable selection but expressive enough for the question intents from TASK 01.
+- The tool set is small enough for reliable selection but expressive enough for the question intents from TASK 02.
 - Tool results are bounded, structured, and source-traceable.
 - The agent can discover what evidence exists, narrow a search, and follow up across entities, dates, or related articles when needed.
 - All answer-time knowledge access can be routed through these tools.

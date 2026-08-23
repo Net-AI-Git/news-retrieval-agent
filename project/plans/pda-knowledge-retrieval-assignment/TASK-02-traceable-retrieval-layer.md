@@ -13,13 +13,15 @@ Build the knowledge retrieval capability used by `build_index` so relevant evide
 ## Product Requirements
 
 - `build_index(data_dir)` produces an opaque, reusable handle from the supplied data.
-- Retrieval supports the intent classes identified in TASK 01, including cross-article and temporal evidence needs.
-- Every retrievable result retains its article title and the exact supporting text needed for a citation.
+- The eleven questions are classified by product need, including entity lookup, temporal reasoning, cross-article reasoning, yes/no answers, and potentially unanswerable questions. This is a retrieval-design input, not a submitted ground-truth or `answers.json` artifact.
+- Retrieval supports those intent classes, including cross-article and temporal evidence needs.
+- Every retrievable result retains `article_title`, `snippet`, and optional `url` / `published_at` as recorded in TASK 01, so citations can be produced without reopening raw source files at answer time.
 - Results can be kept small and ranked or filtered so they remain useful inside an LLM context window.
 - Index construction is reproducible and does not require production-grade infrastructure.
 
 ## Research Before Implementation
 
+- Determine which query intents the eleven questions require and how many evidence sources each intent may need.
 - Evaluate lexical, semantic, hybrid, metadata-filtered, entity-aware, temporal, and graph-assisted retrieval against the actual question intents.
 - Decide the retrieval unit: supplied fact, article passage, article-level record, derived relation, or a justified combination.
 - Determine which query operations are required, such as free-text search, entity search, date filtering, source lookup, related-evidence expansion, or exact item retrieval.
@@ -35,6 +37,7 @@ The developer chooses the representation, algorithms, persistence format, librar
 **In:**
 
 - Developer-selected indexing, retrieval, storage, and test files.
+- A documented intent and evidence-needs classification for the eleven questions, used to shape retrieval.
 - The `build_index` behavior required by the assignment.
 - Retrieval metadata needed for evidence ranking and citation traceability.
 
@@ -57,7 +60,8 @@ The developer chooses the representation, algorithms, persistence format, librar
 - [ ] `build_index` returns a usable opaque handle for valid supplied data.
 - [ ] Each retrievable item preserves article title and supporting text.
 - [ ] Query results are bounded and suitable for an LLM context window.
-- [ ] Retrieval behavior is tested against every intent class from TASK 01.
+- [ ] The eleven questions have a documented intent and evidence-needs classification.
+- [ ] Retrieval behavior is tested against every intent class from that classification.
 - [ ] Empty and low-confidence result cases are represented without fabricating evidence.
 - [ ] Rebuilding the index is documented or a committed prebuilt artifact has a documented rebuild path.
 - [ ] Architecture, library, and model choices are recorded as developer decisions.
