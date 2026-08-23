@@ -1,6 +1,6 @@
 # TASK 03 — Retrieval Tool Surface
 
-**Status:** Draft  
+**Status:** Done  
 **Author:** N/A  
 **Created:** 2026-08-23  
 **Target Completion:** TBD  
@@ -54,14 +54,16 @@ The developer chooses tool names, count, schemas, runtime framework, and interna
 
 ## Definition of Done
 
-- [ ] A small set of typed retrieval tools is implemented.
-- [ ] Every tool has an LLM-facing docstring that explains purpose, parameters, and output.
-- [ ] Tool outputs are structured, bounded, and citation-ready.
-- [ ] Empty, ambiguous, and no-match responses are explicit and machine-readable.
-- [ ] Tests cover valid calls, invalid inputs, empty results, limits, and source traceability.
-- [ ] A check proves answer-time knowledge access can occur only through the tool surface.
-- [ ] The tool design and trade-offs are recorded for the README.
-- [ ] The branch is independently reviewable and ready to merge.
+- [x] A small set of typed retrieval tools is implemented.
+- [x] Every tool has an LLM-facing docstring that explains purpose, parameters, and output.
+- [x] Tool outputs are structured, bounded, and citation-ready.
+- [x] Empty, ambiguous, and no-match responses are explicit and machine-readable.
+- [x] Tests cover valid calls, invalid inputs, empty results, limits, and source traceability.
+- [x] A check proves answer-time knowledge access can occur only through the tool surface.
+- [x] The tool design and trade-offs are recorded for the README.
+- [x] The branch is independently reviewable and ready to merge.
+
+Empty and no-match are `empty`. Bad tool calls are `invalid`. Ambiguity is not a tool status; TASK 04 decides sufficiency and conflict.
 
 ## Final Deliverable
 

@@ -78,7 +78,7 @@ Optional inclusive `published_from` and `published_to` values are applied as num
 
 The baseline intentionally performs no lexical reranking, query decomposition, per-article cap or answer generation. Multiple articles may appear naturally in either top-ten list, and temporal comparison remains possible because every result preserves `published_at`.
 
-The retrieval entry point is currently an internal service rather than an agent-facing tool. TASK 02 deliberately leaves tool definitions and agent planning out of scope. A later typed tool can expose the question, result limit and date filters while delegating to this service; chronological sorting must be implemented before such a tool advertises it.
+The agent-facing retrieval surface is two typed tools in `src/tools/retrieval_tools.py`: `search_facts` (first look at curated facts) and `search_corpus` (follow-up passages). LLM arguments are `question` plus optional inclusive `published_from` / `published_to`. There is no third article-by-title tool, no MCP, and no extra filters (`limit`, source, category, entity, pagination). Each call returns `status`, the query, and a bounded citation-ready `results` list. Status values are `ok`, `low_confidence`, `empty`, and `invalid` (bad arguments only). LangGraph binds `RetrievalTools.as_langchain_tools()`, which wraps the instance methods as `StructuredTool` objects so Chroma paths, `task_data`, and `flow_id` never enter the LLM schema. At answer time, knowledge is reached only through these tools: they call `run_retrieval` and do not read `corpus.json` or `facts.json`. Chronological sorting is still not implemented and is not advertised. Agent planning remains TASK 04.
 
 ### Retrieval evaluation
 
