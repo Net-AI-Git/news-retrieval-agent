@@ -84,7 +84,7 @@ def run_feature(task_data, flow_id):
     OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     response_text = ""
     try:
-        response = GptFeatureNameRepository.client.chat.completions.create(model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), seed=151, top_p=1, messages=[...])
+        response = GptFeatureNameRepository.client.chat.completions.create(model=os.getenv("OPENAI_MODEL"), seed=151, top_p=1, messages=[...])
         response_text = response.choices[0].message.content
     except Exception as err:
         OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
