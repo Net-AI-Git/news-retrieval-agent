@@ -1,0 +1,65 @@
+bin
+obj
+csx
+.vs
+edge
+Publish
+.DS_Store
+
+*.user
+*.suo
+*.cscfg
+*.Cache
+project.lock.json
+
+/packages
+/TestResults
+
+/tools/NuGet.exe
+/App_Data
+/secrets
+.secrets
+appsettings.json
+local.settings.json
+
+node_modules
+dist
+
+# Local python packages
+.python_packages/
+
+# Python Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Certificates / secrets — never commit private keys or client certs
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+certificates/*
+!certificates/.gitkeep
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Azurite artifacts
+__blobstorage__
+__queuestorage__
+__azurite_db*__.json
+
+# Python lock files from other tools
+poetry.lock
+Pipfile.lock
+
+# opensearch_audit — local pulled logs, keep the folder only
+opensearch_audit/audit_log/*
+!opensearch_audit/audit_log/.gitkeep

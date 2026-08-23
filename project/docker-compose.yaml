@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    platform: linux/amd64
+    env_file:
+      - .env
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 3100:8000
