@@ -1,0 +1,7 @@
+{
+  "id": "Q09",
+  "question": "Considering the information from a BBC News article detailing the latest advancements in space technology by Forerunner and a Forbes article discussing the financial growth and market expansion of Forerunner, which CEO, known for leading the innovative charge in space exploration and also recognized for significant company valuation increase, has been featured in both publications?",
+  "intents": ["entity", "cross-article", "unanswerable"],
+  "corpus": [],
+  "facts": []
+}

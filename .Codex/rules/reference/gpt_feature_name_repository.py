@@ -12,7 +12,7 @@ from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
-from openai import AzureOpenAI
+from openai import OpenAI
 
 from template_service.repositories.opensearch_repository import OpenSearchRepository
 
@@ -21,7 +21,7 @@ load_dotenv()
 
 class GptFeatureNameRepository:
 
-    client = AzureOpenAI(api_key=os.getenv("AZURE_OPENAI_API_KEY"), api_version=os.getenv("AZURE_OPENAI_API_VERSION"), azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"), http_client=httpx.Client(verify=False))
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"), http_client=httpx.Client(verify=False))
 
     @staticmethod
     def run_feature(items_list_text, source_text, flow_id):
@@ -30,7 +30,7 @@ class GptFeatureNameRepository:
         try:
             prompt_text = (Path(__file__).resolve().parents[3] / "project" / "src" / "prompts" / "gpt_feature_name_repository.md").read_text(encoding="utf-8")
             response = GptFeatureNameRepository.client.chat.completions.create(
-                model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+                model=os.getenv("OPENAI_MODEL"),
                 seed=151,
                 top_p=1,
                 messages=[

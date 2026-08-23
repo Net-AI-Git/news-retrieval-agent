@@ -23,14 +23,14 @@ If a feature needs Oracle + CRM + GPT, the **service** coordinates between them 
 
 ## SECTION B — GPT (`gpt_<feature_name>_repository.py`)
 - One file per feature. Class name: `Gpt<FeatureName>Repository`.
-- `AzureOpenAI` client as a class-level attribute. No factory, no dataclass, no `lru_cache`.
+- `OpenAI` client as a class-level attribute. No factory, no dataclass, no `lru_cache`.
 - All methods `@staticmethod`. Each method accepts `task_data` (and extracts what it needs internally) + `flow_id`.
 - The active production prompt lives under [`../prompts/`](../prompts/). Repository code loads its fixed file and contains no authored prompt text.
 - Model params (`seed`, `top_p`, `temperature`) passed **directly** in the API call. No `MODEL_PARAMS` constants. Deployment name via `os.getenv()` inline.
 - `json.loads()` happens **in the same method**, immediately after `response.choices[0].message.content`. Parsing is part of the GPT contract, never offloaded to the service.
 - Plain-text responses: return `response.choices[0].message.content` as-is, no parsing.
 - Header comment at the very top of the file describing input/output examples — **the only comment exception** in the codebase.
-- Imports: `os`, `json`, `re`, `Path`, `httpx`, `AzureOpenAI`, `dotenv`, `OpenSearchRepository`.
+- Imports: `os`, `json`, `re`, `Path`, `httpx`, `OpenAI`, `dotenv`, `OpenSearchRepository`.
 
 ## SECTION C — CRM (`crm_repository.py`)
 - Single class `CrmRepository` with session/cert as class-level mechanism.
