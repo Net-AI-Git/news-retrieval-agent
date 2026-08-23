@@ -1,4 +1,4 @@
-OTEL_SERVICE_NAME = "<FILL_ME>"
+OTEL_SERVICE_NAME = "news-retrieval-agent"
 
 
 OPENAI_EMBEDDING_TIMEOUT_SECONDS = 60
@@ -21,6 +21,9 @@ CORPUS_PREVIOUS_COLLECTION = "corpus_previous"
 RETRIEVAL_TOP_K = 10
 RETRIEVAL_MIN_SIMILARITY = 0.3
 RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY = 0.4
+RETRIEVAL_EVIDENCE_STORE_FACTS = "facts"
+RETRIEVAL_EVIDENCE_STORE_CORPUS = "corpus"
+RETRIEVAL_TOOL_STATUS_INVALID = "invalid"
 FACTS_REQUIRED_FIELDS = {"fact", "article_title", "source", "category", "published_at", "url"}
 CORPUS_REQUIRED_FIELDS = {"title", "author", "source", "published_at", "category", "url", "body"}
 FACTS_EXPECTED_RECORD_COUNT = 251
