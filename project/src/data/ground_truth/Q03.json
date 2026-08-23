@@ -1,6 +1,7 @@
 {
   "id": "Q03",
   "question": "Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts, alleged to have committed fraud for personal gain, and also persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?",
+  "intents": ["entity", "cross-article"],
   "corpus": [
     {
       "title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",

@@ -1,6 +1,7 @@
 {
   "id": "Q06",
   "question": "Does the article from The Age suggest that 'People with an Aboriginal ancestor' have the same process to identify with their Aboriginal heritage compared to the stance of 'Indigenous people' on cultural identity as presented by The Guardian?",
+  "intents": ["yes-no", "cross-article"],
   "corpus": [
     {
       "title": "Author Melissa Lucashenko on playing with black and white binaries",

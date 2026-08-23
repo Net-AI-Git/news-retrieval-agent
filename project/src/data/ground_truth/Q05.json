@@ -1,6 +1,7 @@
 {
   "id": "Q05",
   "question": "Which company is at the center of concerns from news publishers for anticompetitive practices, has been compared to OpenAI's GPT-3.5 in terms of product performance, and is also suspected by the public of potential foul play according to a report by 'The Age'?",
+  "intents": ["entity", "cross-article"],
   "corpus": [
     {
       "title": "News publisher files class action antitrust suit against Google, citing AI’s harms to their bottom line",

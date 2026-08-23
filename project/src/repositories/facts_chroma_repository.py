@@ -1,6 +1,6 @@
 import chromadb
 
-from ..conts import FACTS_ACTIVE_COLLECTION, FACTS_PREVIOUS_COLLECTION, FACTS_STAGING_COLLECTION
+from ..conts import CHROMA_DISTANCE_METRIC, FACTS_ACTIVE_COLLECTION, FACTS_PREVIOUS_COLLECTION, FACTS_STAGING_COLLECTION
 from .opensearch_repository import OpenSearchRepository
 
 
@@ -11,7 +11,9 @@ class FactsChromaRepository:
         OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         prepared = False
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_or_create_collection(FACTS_STAGING_COLLECTION, embedding_function=None)
+            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_or_create_collection(FACTS_STAGING_COLLECTION, configuration={"hnsw": {"space": CHROMA_DISTANCE_METRIC}}, embedding_function=None)
+            if collection.configuration["hnsw"]["space"] != CHROMA_DISTANCE_METRIC:
+                raise ValueError("Facts staging collection must use cosine distance")
             stored_count = collection.count()
             if stored_count:
                 collection.delete(ids=collection.get(limit=stored_count)["ids"])
@@ -71,3 +73,21 @@ class FactsChromaRepository:
             OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
         OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return promoted
+
+    @staticmethod
+    def query_records(task_data, flow_id):
+        OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        query_result = None
+        try:
+            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(FACTS_ACTIVE_COLLECTION, embedding_function=None)
+            if collection.configuration["hnsw"]["space"] != CHROMA_DISTANCE_METRIC:
+                raise ValueError("Facts collection must use cosine distance")
+            query_result = collection.query(query_embeddings=[task_data["query_embedding"]], n_results=task_data["top_k"], where=task_data.get("where"), include=["documents", "metadatas", "distances"])
+            if len(query_result["documents"]) != 1 or len(query_result["metadatas"]) != 1 or len(query_result["distances"]) != 1:
+                raise ValueError("Facts query returned an invalid query count")
+            if len({len(query_result[field][0]) for field in ["documents", "metadatas", "distances"]}) != 1:
+                raise ValueError("Facts query returned misaligned results")
+        except Exception as err:
+            OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        return query_result

@@ -1,6 +1,7 @@
 {
   "id": "Q07",
   "question": "What is the name of the general-purpose chatbot developed by OpenAI, featured in TechCrunch and Engadget articles, that can generate text, debug code, and even compose music, and has celebrated its first anniversary since its release?",
+  "intents": ["entity", "cross-article"],
   "corpus": [
     {
       "title": "ChatGPT: Everything you need to know about the AI-powered chatbot",

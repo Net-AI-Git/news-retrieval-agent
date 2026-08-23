@@ -1,6 +1,7 @@
 {
   "id": "Q11",
   "question": "Did TechCrunch report on DeepMind's expected release of a next-generation chatbot named Gemini after TechCrunch reported that Google released only a \"lite\" version of the Gemini model known as Gemini Pro?",
+  "intents": ["yes-no", "temporal", "cross-article"],
   "corpus": [
     {
       "title": "One year later, ChatGPT is still alive and kicking",
