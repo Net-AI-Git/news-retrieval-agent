@@ -66,3 +66,6 @@ Pipfile.lock
 # opensearch_audit — local pulled logs, keep the folder only
 project/opensearch_audit/audit_log/*
 !project/opensearch_audit/audit_log/.gitkeep
+
+# Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
+project/vector_stores/
