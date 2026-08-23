@@ -22,6 +22,7 @@ dependencies = [
     "chromadb>=1.5.9",
     "pysbd>=0.3.4",
     "tiktoken>=0.14.0",
+    "langchain-core>=0.3.0",
 ]
 
 [dependency-groups]
