@@ -35,4 +35,4 @@ Both stores receive the same question embedding, each result list is limited to 
 
 ## Status
 
-Active — 2026-08-23
+Passing — 2026-08-23
