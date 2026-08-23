@@ -1,6 +1,6 @@
 # TASK 03 — Decision Log
 
-**Status:** In Progress  
+**Status:** Done  
 **Scope:** Retrieval tool surface only. Agent loop stays in TASK 04.
 
 Closed decisions stay here with the trade-off that justified them. Open items stay listed until chosen.

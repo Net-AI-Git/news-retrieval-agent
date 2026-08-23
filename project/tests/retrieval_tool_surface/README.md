@@ -22,7 +22,7 @@ No files in `inputs/`. Tests construct in-memory question payloads and mocked re
 
 ## Expected outcome
 
-`search_facts` queries only Facts and returns a `results` list. `search_corpus` queries only Corpus. Invalid tool arguments return `status=invalid` with an empty result list. Dual-store retrieval without `evidence_store` still queries both stores. LangGraph wrappers expose only `question` and optional dates. The tools module calls `run_retrieval` and does not read source JSON files.
+`search_facts` queries only Facts and returns a `results` list. `search_corpus` queries only Corpus. Invalid tool arguments return `status=invalid` with an empty result list. An empty retrieval result is returned as `status=empty`. Citation fields stay on each result. Facts queries use `RETRIEVAL_TOP_K` and stay within that bound. Dual-store retrieval without `evidence_store` still queries both stores. LangGraph wrappers expose only `question` and optional dates. The tools module calls `run_retrieval` and does not read source JSON files.
 
 ## Status
 

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_TOOL_STATUS_INVALID
+from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_TOOL_STATUS_INVALID, RETRIEVAL_TOP_K
 from src.services.retrieval_service import run_retrieval
 from src.tools import retrieval_tools as retrieval_tools_module
 from src.tools.retrieval_tools import RetrievalTools
@@ -42,6 +42,19 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts(None)
         self.assertEqual({"status": RETRIEVAL_TOOL_STATUS_INVALID, "question": "", "results": []}, result)
 
+    @patch("src.tools.retrieval_tools.run_retrieval")
+    def test_search_facts_empty_status_is_machine_readable(self, run_retrieval_mock):
+        run_retrieval_mock.return_value = {"status": "empty", "question": "Who won?", "facts": [], "corpus": []}
+        result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts("Who won?")
+        self.assertEqual("empty", result["status"])
+        self.assertEqual([], result["results"])
+
+    @patch("src.tools.retrieval_tools.run_retrieval")
+    def test_search_facts_results_include_citation_fields(self, run_retrieval_mock):
+        run_retrieval_mock.return_value = {"status": "ok", "question": "Who won?", "facts": [FACT_ITEM], "corpus": []}
+        result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts("Who won?")
+        self.assertEqual({"article_title", "snippet", "url", "published_at", "match_percentage"}, set(result["results"][0]))
+
     @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
     @patch("src.services.retrieval_service.FactsChromaRepository.query_records")
     @patch("src.services.retrieval_service.CorpusChromaRepository.query_records")
@@ -53,6 +66,8 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         corpus_query.assert_not_called()
         self.assertEqual("ok", result["status"])
         self.assertEqual([], result["corpus"])
+        self.assertEqual(RETRIEVAL_TOP_K, facts_query.call_args[0][0]["top_k"])
+        self.assertLessEqual(len(result["facts"]), RETRIEVAL_TOP_K)
 
     @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
     @patch("src.services.retrieval_service.FactsChromaRepository.query_records")
