@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from ..conts import OPENAI_EMBEDDING_MAX_RETRIES, OPENAI_EMBEDDING_TIMEOUT_SECONDS
 from .opensearch_repository import OpenSearchRepository
 
 load_dotenv()
@@ -10,7 +11,7 @@ load_dotenv()
 
 class OpenAIEmbeddingsRepository:
 
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"), timeout=60, max_retries=3)
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"), timeout=OPENAI_EMBEDDING_TIMEOUT_SECONDS, max_retries=OPENAI_EMBEDDING_MAX_RETRIES)
     model_name = os.getenv("OPENAI_EMBEDDING_MODEL")
 
     @staticmethod

@@ -6,14 +6,19 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from dotenv import load_dotenv
 
-from src.conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS
-from src.repositories.embeddings_repository import OpenAIEmbeddingsRepository
-from src.repositories.facts_chroma_repository import FactsChromaRepository
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS
+from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
+from ..repositories.facts_chroma_repository import FactsChromaRepository
+from ..repositories.opensearch_repository import OpenSearchRepository
 
 
-def load_json(path):
-    with path.open(encoding="utf-8") as source_file:
-        return json.load(source_file)
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
+
+def load_facts_sources(task_data):
+    data_dir = Path(task_data["data_dir"])
+    with (data_dir / "facts.json").open(encoding="utf-8") as facts_file, (data_dir / "corpus.json").open(encoding="utf-8") as corpus_file:
+        return json.load(facts_file), json.load(corpus_file)
 
 
 def validate_sources(facts, corpus):
@@ -48,11 +53,9 @@ def validate_record_manifest(records):
         raise ValueError("Facts records do not match the approved Chroma DB manifest")
 
 
-def validate_embedding_dimensions(embeddings, expected_dimensions):
-    embedding_dimensions = {len(embedding) for embedding in embeddings}
-    if len(embedding_dimensions) != 1 or expected_dimensions and expected_dimensions not in embedding_dimensions:
-        raise ValueError("Embedding dimensions are inconsistent across facts batches")
-    return len(embeddings[0])
+def prepare_facts_collection(task_data, flow_id):
+    if not FactsChromaRepository.prepare_collection(task_data, flow_id):
+        raise ValueError("Facts staging collection preparation failed")
 
 
 def embed_records(records, task_data, flow_id):
@@ -62,9 +65,11 @@ def embed_records(records, task_data, flow_id):
         embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [record["document"] for record in batch]}, flow_id)
         if not embeddings:
             raise ValueError("Facts embedding generation failed")
-        validated_dimensions = validate_embedding_dimensions(embeddings, embedding_dimensions)
+        embedding_sizes = {len(embedding) for embedding in embeddings}
+        if len(embedding_sizes) != 1 or embedding_dimensions and embedding_dimensions not in embedding_sizes:
+            raise ValueError("Embedding dimensions are inconsistent across facts batches")
         if embedding_dimensions is None:
-            embedding_dimensions = validated_dimensions
+            embedding_dimensions = len(embeddings[0])
         if not FactsChromaRepository.upsert_records({**task_data, "records": batch, "embeddings": embeddings}, flow_id):
             raise ValueError("Facts batch storage failed")
         print(f"Indexed facts: {min(start + len(batch), len(records))}/{len(records)}")
@@ -88,23 +93,31 @@ def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
                 raise ValueError(f"Stored fact embedding dimensions are invalid: {record['id']}")
 
 
-def build_facts_chroma_index():
-    project_root = Path(__file__).resolve().parent
-    load_dotenv(project_root / ".env")
-    task_data = {"chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "index_name": "facts"}
-    flow_id = str(uuid4())
-    facts = load_json(project_root / "src" / "data" / "facts.json")
-    validate_sources(facts, load_json(project_root / "src" / "data" / "corpus.json"))
-    records = build_records(facts)
-    validate_record_manifest(records)
-    if not FactsChromaRepository.prepare_collection(task_data, flow_id):
-        raise ValueError("Facts staging collection preparation failed")
-    embedding_dimensions = embed_records(records, task_data, flow_id)
-    validate_stored_records(records, embedding_dimensions, task_data, flow_id)
+def promote_facts_collection(records, embedding_dimensions, task_data, flow_id):
     if not FactsChromaRepository.promote_collection({**task_data, "record_count": len(records), "metadata": {"embedding_model": OpenAIEmbeddingsRepository.model_name, "embedding_dimensions": embedding_dimensions, "schema_version": CHROMA_SCHEMA_VERSION, "record_type": "fact"}}, flow_id):
         raise ValueError("Facts collection promotion failed")
     print(f"Facts collection rebuilt with {len(records)} records using {OpenAIEmbeddingsRepository.model_name}")
+    return task_data["chroma_path"]
+
+
+def run_facts_chroma_index(task_data, flow_id):
+    OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    chroma_path = None
+    try:
+        facts, corpus = load_facts_sources(task_data)
+        validate_sources(facts, corpus)
+        records = build_records(facts)
+        validate_record_manifest(records)
+        prepare_facts_collection(task_data, flow_id)
+        embedding_dimensions = embed_records(records, task_data, flow_id)
+        validate_stored_records(records, embedding_dimensions, task_data, flow_id)
+        chroma_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
+    except Exception as err:
+        OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+    return chroma_path
 
 
 if __name__ == "__main__":
-    build_facts_chroma_index()
+    project_root = Path(__file__).resolve().parents[2]
+    run_facts_chroma_index({"data_dir": str(Path(__file__).resolve().parents[1] / "data"), "chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "index_name": "facts"}, str(uuid4()))

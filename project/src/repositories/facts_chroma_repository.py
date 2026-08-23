@@ -1,6 +1,6 @@
 import chromadb
 
-from ..conts import FACTS_ACTIVE_COLLECTION, FACTS_STAGING_COLLECTION
+from ..conts import FACTS_ACTIVE_COLLECTION, FACTS_PREVIOUS_COLLECTION, FACTS_STAGING_COLLECTION
 from .opensearch_repository import OpenSearchRepository
 
 
@@ -11,11 +11,10 @@ class FactsChromaRepository:
         OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         prepared = False
         try:
-            chroma_client = chromadb.PersistentClient(path=task_data["chroma_path"])
-            collection_names = {collection.name for collection in chroma_client.list_collections()}
-            if FACTS_STAGING_COLLECTION in collection_names:
-                chroma_client.delete_collection(FACTS_STAGING_COLLECTION)
-            chroma_client.create_collection(FACTS_STAGING_COLLECTION, embedding_function=None)
+            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_or_create_collection(FACTS_STAGING_COLLECTION, embedding_function=None)
+            stored_count = collection.count()
+            if stored_count:
+                collection.delete(ids=collection.get(limit=stored_count)["ids"])
             prepared = True
         except Exception as err:
             OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
@@ -59,9 +58,14 @@ class FactsChromaRepository:
             collection.modify(metadata=task_data["metadata"])
             if collection.metadata != task_data["metadata"]:
                 raise ValueError("Staging facts collection metadata is invalid")
-            if FACTS_ACTIVE_COLLECTION in {item.name for item in chroma_client.list_collections()}:
-                chroma_client.delete_collection(FACTS_ACTIVE_COLLECTION)
+            collection_names = {item.name for item in chroma_client.list_collections()}
+            if FACTS_PREVIOUS_COLLECTION in collection_names:
+                chroma_client.delete_collection(FACTS_PREVIOUS_COLLECTION)
+            if FACTS_ACTIVE_COLLECTION in collection_names:
+                chroma_client.get_collection(FACTS_ACTIVE_COLLECTION, embedding_function=None).modify(name=FACTS_PREVIOUS_COLLECTION)
             collection.modify(name=FACTS_ACTIVE_COLLECTION)
+            if FACTS_PREVIOUS_COLLECTION in {item.name for item in chroma_client.list_collections()}:
+                chroma_client.delete_collection(FACTS_PREVIOUS_COLLECTION)
             promoted = True
         except Exception as err:
             OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
