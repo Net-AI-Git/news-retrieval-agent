@@ -56,5 +56,20 @@
       "published_at": "2023-10-22T18:00:00+00:00",
       "url": "https://www.theage.com.au/technology/is-google-search-better-than-the-rest-and-is-that-fair-20231012-p5ebsk.html?ref=rss&utm_medium=rss&utm_source=rss_technology"
     }
+  ],
+  "answer": "Google",
+  "citations": [
+    {
+      "article_title": "News publisher files class action antitrust suit against Google, citing AI’s harms to their bottom line",
+      "snippet": "The case, filed by Arkansas-based publisher Helena World Chronicle, argues that Google “siphons off” news publishers’ content, their readers and ad revenue through anticompetitive means."
+    },
+    {
+      "article_title": "Early impressions of Google’s Gemini aren’t great",
+      "snippet": "Google compared the performance of Gemini Pro to GPT-4’s predecessor, GPT-3.5, a model that’s around a year old."
+    },
+    {
+      "article_title": "Is Google Search better than the rest? And is that fair?",
+      "snippet": "Wired removed the article for not meeting its standards, but the degree to which it was shared on social media and boosted in write-ups at other outlets shows just how willing people are to accept foul play on Google’s part."
+    }
   ]
 }

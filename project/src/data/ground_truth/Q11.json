@@ -39,5 +39,16 @@
       "published_at": "2023-12-09T21:16:17+00:00",
       "url": "https://techcrunch.com/2023/12/09/google-fakes-an-ai-demo-grand-theft-auto-vi-goes-viral-and-spotify-cuts-jobs/"
     }
+  ],
+  "answer": "No",
+  "citations": [
+    {
+      "article_title": "One year later, ChatGPT is still alive and kicking",
+      "snippet": "DeepMind, Google’s premier AI research lab, is expected to debut a next-gen chatbot, Gemini, before the end of the year."
+    },
+    {
+      "article_title": "Google fakes an AI demo, Grand Theft Auto VI goes viral and Spotify cuts jobs",
+      "snippet": "But it didn’t release the full model, Gemini Ultra — only a “lite” version called Gemini Pro."
+    }
   ]
 }

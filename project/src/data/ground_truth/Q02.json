@@ -39,5 +39,16 @@
       "published_at": "2023-12-19T13:00:00+00:00",
       "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub"
     }
+  ],
+  "answer": "Yes",
+  "citations": [
+    {
+      "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+      "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added."
+    },
+    {
+      "article_title": "2023 in social media: the case for the fediverse",
+      "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL."
+    }
   ]
 }

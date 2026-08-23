@@ -56,5 +56,20 @@
       "published_at": "2023-11-30T14:00:50+00:00",
       "url": "https://www.engadget.com/how-openais-chatgpt-has-changed-the-world-in-just-a-year-140050053.html?src=rss"
     }
+  ],
+  "answer": "ChatGPT",
+  "citations": [
+    {
+      "article_title": "ChatGPT: Everything you need to know about the AI-powered chatbot",
+      "snippet": "ChatGPT is a general-purpose chatbot that uses artificial intelligence to generate text after a user enters a prompt, developed by tech startup OpenAI."
+    },
+    {
+      "article_title": "One year later, ChatGPT is still alive and kicking",
+      "snippet": "ChatGPT can complete and debug code, compose music and essays, answer test questions, generate business ideas, write poetry and song lyrics, translate and summarize text and even emulate a computer running Linux."
+    },
+    {
+      "article_title": "How OpenAI's ChatGPT has changed the world in just a year",
+      "snippet": "On the first anniversary of its release, let’s take a look back on the year of ChatGPT that brought us here."
+    }
   ]
 }

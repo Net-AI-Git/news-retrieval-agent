@@ -39,5 +39,16 @@
       "published_at": "2023-12-09T18:30:00+00:00",
       "url": "https://www.theage.com.au/business/entrepreneurship/how-ego-and-fear-fuelled-the-rise-of-artificial-intelligence-20231205-p5ep7j.html?ref=rss&utm_medium=rss&utm_source=rss_business"
     }
+  ],
+  "answer": "No",
+  "citations": [
+    {
+      "article_title": "ChatGPT: Everything you need to know about the AI-powered chatbot",
+      "snippet": "The size of Microsoft’s investment is believed to be around $10 billion, a figure we confirmed with our source."
+    },
+    {
+      "article_title": "How ego and fear fuelled the rise of artificial intelligence",
+      "snippet": "OpenAI was founded in late 2015, just a few months after he met with Altman at the Rosewood hotel in Silicon Valley."
+    }
   ]
 }

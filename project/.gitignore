@@ -66,3 +66,6 @@ opensearch_audit/audit_log/*
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
 vector_stores/
+
+# Local experiment notes
+EXP.txt
