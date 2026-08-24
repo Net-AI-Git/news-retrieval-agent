@@ -78,7 +78,17 @@ Optional inclusive `published_from` and `published_to` values are applied as num
 
 The baseline intentionally performs no lexical reranking, query decomposition, per-article cap or answer generation. Multiple articles may appear naturally in either top-ten list, and temporal comparison remains possible because every result preserves `published_at`.
 
-The agent-facing retrieval surface is two typed tools in `src/tools/retrieval_tools.py`: `search_facts` (first look at curated facts) and `search_corpus` (follow-up passages). LLM arguments are `question` plus optional inclusive `published_from` / `published_to`. There is no third article-by-title tool, no MCP, and no extra filters (`limit`, source, category, entity, pagination). Each call returns `status`, the query, and a bounded citation-ready `results` list. Status values are `ok`, `low_confidence`, `empty`, and `invalid` (bad arguments only). LangGraph binds `RetrievalTools.as_langchain_tools()`, which wraps the instance methods as `StructuredTool` objects so Chroma paths, `task_data`, and `flow_id` never enter the LLM schema. At answer time, knowledge is reached only through these tools: they call `run_retrieval` and do not read `corpus.json` or `facts.json`. Chronological sorting is still not implemented and is not advertised. Agent planning remains TASK 04.
+The agent-facing retrieval surface is two typed tools in `src/tools/retrieval_tools.py`: `search_facts` (first look at curated facts) and `search_corpus` (follow-up passages). LLM arguments are `question` plus optional inclusive `published_from` / `published_to`. There is no third article-by-title tool, no MCP, and no extra filters (`limit`, source, category, entity, pagination). Each call returns `status`, the query, and a bounded citation-ready `results` list. Status values are `ok`, `low_confidence`, `empty`, and `invalid` (bad arguments only). LangGraph binds `RetrievalTools.as_langchain_tools()`, which wraps the instance methods as `StructuredTool` objects so Chroma paths, `task_data`, and `flow_id` never enter the LLM schema. At answer time, knowledge is reached only through these tools: they call `run_retrieval` and do not read `corpus.json` or `facts.json`. Chronological sorting is still not implemented and is not advertised.
+
+## Agentic grounded answering
+
+Answering is a LangGraph loop, not a single LLM call over pre-fetched hits. `src/orchestration/grounded_answering_workflow.py` owns budgets and stop conditions. `src/agents/gather_agent.py` has the two retrieval tools and native `bind_tools`. `src/agents/answer_agent.py` has no tools and emits structured `answered` / `refused` output.
+
+Chat and embeddings stay on OpenRouter. The chat model is `openai/gpt-4o-mini` via `OPENAI_MODEL`, separate from `OPENAI_EMBEDDING_MODEL`. Both agents construct `ChatOpenAI` from env as runtime, not through a GPT repository.
+
+State keeps the gather message thread plus an `evidence` list of `RetrievedItem` dicts. Answer sees only the question and that list. Gather stops when it emits no `tool_calls`, or when orchestration hits 6 gather LLM turns or 8 tool calls, then Answer runs. Empty evidence refuses in code. Citations must match evidence `url`, or exact `article_title` when url is missing; otherwise the run is coerced to `refused`.
+
+Prompts live in `src/prompts/gather_agent.md` and `src/prompts/answer_agent.md`. Gather searches and must not answer. Answer claims or refuses and must not search. Raw `facts.json` / `corpus.json` are never placed in the answer-time prompt.
 
 ### Retrieval evaluation
 
