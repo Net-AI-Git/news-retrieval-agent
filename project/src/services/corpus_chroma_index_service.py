@@ -9,7 +9,7 @@ import pysbd
 import tiktoken
 from dotenv import load_dotenv
 
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_CHROMA_PATH, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS, DATA_DIR
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.opensearch_repository import OpenSearchRepository
@@ -180,5 +180,4 @@ def run_corpus_chroma_index(task_data, flow_id):
 
 
 if __name__ == "__main__":
-    project_root = Path(__file__).resolve().parents[2]
-    run_corpus_chroma_index({"data_dir": str(Path(__file__).resolve().parents[1] / "data"), "chroma_path": str(project_root / "vector_stores" / "corpus_chroma"), "index_name": "corpus"}, str(uuid4()))
+    run_corpus_chroma_index({"data_dir": DATA_DIR, "chroma_path": CORPUS_CHROMA_PATH}, str(uuid4()))

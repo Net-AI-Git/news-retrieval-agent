@@ -32,4 +32,4 @@ A hit is a returned chunk whose URL belongs to that question's GT `corpus` artic
 
 ## Status
 
-Active — last run 2026-08-24. 9 answerable questions: Success@5 0.5556, macro Recall@5 0.7778, macro Precision@5 0.8000. Q04 returned 0 chunks; Q09 returned 3 false positives.
+Active — last run 2026-08-24 (raw index, n=3 identical to original A). 9 answerable questions: Success@5 0.5556, macro Recall@5 0.7778, macro Precision@5 0.8000. Q04 returned 0 chunks; Q09 returned 3 false positives.

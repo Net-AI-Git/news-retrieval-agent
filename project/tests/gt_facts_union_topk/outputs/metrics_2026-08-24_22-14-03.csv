@@ -1,0 +1,12 @@
+question_id,unanswerable,gold_article_count,returned_chunk_count,hit_chunk_count,false_positives,precision_at_5,recall_at_5,success_at_5,matched_url_count,missing_urls
+Q01,0,2,2,2,0,1.0,1.0,1,2,
+Q02,0,2,2,2,0,1.0,1.0,1,2,
+Q03,0,3,5,3,2,0.6,1.0,1,3,
+Q04,1,0,0,0,0,,,,0,
+Q05,0,3,5,3,2,0.6,0.6667,0,2,https://www.theage.com.au/technology/is-google-search-better-than-the-rest-and-is-that-fair-20231012-p5ebsk.html?ref=rss&utm_medium=rss&utm_source=rss_technology
+Q06,0,2,2,2,0,1.0,1.0,1,2,
+Q07,0,3,5,5,0,1.0,1.0,1,3,
+Q08,0,2,1,1,0,1.0,0.5,0,1,https://www.independent.co.uk/travel/skiing/best-ski-holidays-canada-b2432416.html
+Q09,1,0,2,0,2,,,,0,
+Q10,0,2,5,3,2,0.6,1.0,1,2,
+Q11,0,2,5,2,3,0.4,1.0,1,2,

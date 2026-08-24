@@ -32,4 +32,4 @@ A hit is a returned fact whose URL belongs to that question's GT `facts` entries
 
 ## Status
 
-Active — last run 2026-08-24. 9 answerable questions: Success@5 0.7778, macro Recall@5 0.9074, macro Precision@5 0.8222. Q04 and Q09 returned 0 facts. Q05 and Q08 missed a gold URL.
+Active — last run 2026-08-24 (raw index, n=3 identical to original A). 9 answerable questions: Success@5 0.7778, macro Recall@5 0.9074, macro Precision@5 0.8222. Q04 and Q09 returned 0 facts. Q05 and Q08 missed a gold URL.

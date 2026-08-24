@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 OTEL_SERVICE_NAME = "news-retrieval-agent"
 
 
@@ -18,6 +21,9 @@ FACTS_PREVIOUS_COLLECTION = "facts_previous"
 CORPUS_ACTIVE_COLLECTION = "corpus"
 CORPUS_STAGING_COLLECTION = "corpus_staging"
 CORPUS_PREVIOUS_COLLECTION = "corpus_previous"
+DATA_DIR = str(Path(__file__).resolve().parent / "data")
+CORPUS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "corpus_chroma")
+FACTS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "facts_chroma")
 RETRIEVAL_TOP_K = 10
 RETRIEVAL_MIN_SIMILARITY = 0.3
 RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY = 0.4
