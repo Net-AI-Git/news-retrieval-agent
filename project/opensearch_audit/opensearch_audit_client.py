@@ -6,7 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from opensearchpy import OpenSearch
 
-load_dotenv(Path(__file__).parent / ".env")
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 OPENSEARCH_CLIENT = OpenSearch(hosts=[{"host": os.getenv("OPENSEARCH_HOST"), "port": int(os.getenv("OPENSEARCH_PORT"))}], http_auth=(os.getenv("OPENSEARCH_USER"), os.getenv("OPENSEARCH_PASSWORD")), use_ssl=os.getenv("OPENSEARCH_USE_SSL").lower() == "true", verify_certs=os.getenv("OPENSEARCH_VERIFY_CERTS").lower() == "true", ssl_assert_hostname=False, ssl_show_warn=False, http_compress=True, max_retries=3, retry_on_timeout=True)
 AUDIT_LOG_DIR = Path(__file__).parent / "audit_log"

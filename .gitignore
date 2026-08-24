@@ -30,6 +30,10 @@ dist
 
 # Python Environments
 .env
+**/.env
+project/.env
+!.env.example
+!**/.env.example
 .venv
 env/
 venv/

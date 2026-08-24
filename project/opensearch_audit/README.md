@@ -4,7 +4,7 @@ Standalone tool for running PPL against OpenSearch and saving the results as tim
 
 ## Setup
 
-Copy `.env.example` to `.env` and fill the OpenSearch connection values, `OPENSEARCH_LOG_INDEX_PATTERN`, and `OTEL_SERVICE_NAME`.
+Fill the OpenSearch connection values, `OPENSEARCH_LOG_INDEX_PATTERN`, and `OTEL_SERVICE_NAME` in `project/.env` (see `project/.env.example`).
 
 ## Usage
 

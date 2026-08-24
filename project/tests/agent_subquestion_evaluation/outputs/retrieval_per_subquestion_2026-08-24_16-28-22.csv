@@ -1,0 +1,40 @@
+question_id,agent_call_index,agent_question,unanswerable,returned_url_count,false_positives,document_precision_at_10,document_recall_at_10,mrr_at_10
+Q01,0,Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?,0,5,4,0.2,0.5,1.0
+Q01,1,Did the Sporting News report a win for the Detroit Lions against the Green Bay Packers?,0,1,0,1.0,0.5,1.0
+Q01,2,Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?,0,5,4,0.2,0.5,1.0
+Q01,3,Did the Sporting News report a win for the Detroit Lions against the Green Bay Packers?,0,1,0,1.0,0.5,1.0
+Q02,0,Did TechCrunch report on Flipboard's integration of the ActivityPub protocol?,0,2,0,1.0,1.0,1.0
+Q02,1,Did The Verge discuss the structure of the ActivityPub protocol in social media contexts?,0,2,0,1.0,1.0,1.0
+Q02,2,Did TechCrunch report on Flipboard's integration of the ActivityPub protocol?,0,2,0,1.0,1.0,1.0
+Q02,3,Did The Verge discuss the structure of the ActivityPub protocol in social media contexts?,0,2,0,1.0,1.0,1.0
+Q03,0,individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts and committed fraud for personal gain,0,9,6,0.3333,1.0,1.0
+Q03,1,Sam Bankman-Fried persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX,0,7,4,0.4286,1.0,1.0
+Q04,0,Which company known for its insurance products has a CEO with the initial 'M' mentioned in articles from the New York Times and Wall Street Journal?,1,0,0,,,
+Q04,1,Pets Best insurance products CEO initial 'M' mentioned in New York Times and Wall Street Journal articles.,1,0,0,,,
+Q04,2,Which company known for its insurance products has a CEO with the initial 'M' mentioned in articles from the New York Times and Wall Street Journal?,1,0,0,,,
+Q04,3,Pets Best insurance products CEO initial 'M' mentioned in New York Times and Wall Street Journal articles.,1,0,0,,,
+Q05,0,"Which company is at the center of concerns from news publishers for anticompetitive practices, has been compared to OpenAI's GPT-3.5 in terms of product performance, and is also suspected by the public of potential foul play according to a report by 'The Age'?",0,4,2,0.5,0.6667,1.0
+Q05,1,"Which company is at the center of concerns from news publishers for anticompetitive practices, has been compared to OpenAI's GPT-3.5 in terms of product performance, and is also suspected by the public of potential foul play according to a report by 'The Age'?",0,4,2,0.5,0.6667,1.0
+Q05,2,What company is being investigated for anticompetitive practices and has been compared to OpenAI's GPT-3.5?,0,7,6,0.1429,0.3333,1.0
+Q05,3,What company is being investigated for anticompetitive practices and has been compared to OpenAI's GPT-3.5?,0,7,6,0.1429,0.3333,1.0
+Q06,0,Does The Age suggest that 'People with an Aboriginal ancestor' have the same process to identify with their Aboriginal heritage compared to the stance of 'Indigenous people' on cultural identity as presented by The Guardian?,0,2,0,1.0,1.0,1.0
+Q06,1,What is The Guardian's stance on cultural identity for Indigenous people?,0,1,0,1.0,0.5,1.0
+Q06,2,Does The Age suggest that 'People with an Aboriginal ancestor' have the same process to identify with their Aboriginal heritage compared to the stance of 'Indigenous people' on cultural identity as presented by The Guardian?,0,2,0,1.0,1.0,1.0
+Q06,3,What is The Guardian's stance on cultural identity for Indigenous people?,0,1,0,1.0,0.5,1.0
+Q07,0,"What is the name of the general-purpose chatbot developed by OpenAI that can generate text, debug code, and compose music, and has celebrated its first anniversary since its release?",0,3,0,1.0,1.0,1.0
+Q07,1,"What is the name of the general-purpose chatbot developed by OpenAI that can generate text, debug code, and compose music, and has celebrated its first anniversary since its release?",0,3,0,1.0,1.0,1.0
+Q08,0,"Did The Independent - Travel change their coverage of ski resorts after the report on Swiss slopes of Zermatt and pistes of Vail in Colorado on October 13th, 2023?",0,2,0,1.0,1.0,1.0
+Q08,1,"What was the coverage of Tremblant Ski Resort by The Independent - Travel on October 25th, 2023?",0,2,0,1.0,1.0,1.0
+Q08,2,"What was the coverage of Tremblant Ski Resort by The Independent - Travel on October 25th, 2023?",0,2,0,1.0,1.0,1.0
+Q09,0,CEO of Forerunner featured in BBC News space technology article and Forbes valuation article.,1,0,0,,,
+Q09,1,latest advancements in space technology by Forerunner.,1,0,0,,,
+Q09,2,financial growth and market expansion of Forerunner.,1,1,1,,,
+Q09,3,CEO of Forerunner featured in BBC News space technology article and Forbes valuation article.,1,0,0,,,
+Q09,4,latest advancements in space technology by Forerunner.,1,0,0,,,
+Q09,5,financial growth and market expansion of Forerunner.,1,1,1,,,
+Q09,6,CEO of Forerunner known for leading innovative charge in space exploration.,1,0,0,,,
+Q09,7,Forerunner CEO featured in both BBC News and Forbes articles.,1,0,0,,,
+Q10,0,Does the TechCrunch article claim that Microsoft's investment in OpenAI is unspecified?,0,10,8,0.2,1.0,1.0
+Q10,1,Does The Age article focus on the founding of OpenAI without specifying financial figures?,0,8,6,0.25,1.0,1.0
+Q11,0,Did TechCrunch report on DeepMind's expected release of a next-generation chatbot named Gemini after TechCrunch reported that Google released only a 'lite' version of the Gemini model known as Gemini Pro?,0,5,3,0.4,1.0,1.0
+Q11,1,What is Gemini Pro and its relation to DeepMind's Gemini chatbot?,0,4,2,0.5,1.0,1.0

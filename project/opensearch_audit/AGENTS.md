@@ -1,13 +1,13 @@
 # opensearch_audit — Agent Guide
 
-> Standalone OpenSearch audit-pull tool. It has its own `.env` and output folder and does not use `OpenSearchRepository`.
+> Standalone OpenSearch audit-pull tool. It reads `project/.env` and writes to its own output folder. It does not use `OpenSearchRepository`.
 
 ## Purpose
 Run an arbitrary PPL query and write its results to a timestamped JSON file without overwriting previous pulls.
 
 ## Interface
 - Edit `PPL_FILTER` only in [`run_audit.py`](run_audit.py).
-- Fill local OpenSearch credentials, `OPENSEARCH_LOG_INDEX_PATTERN`, and `OTEL_SERVICE_NAME` in `.env`.
+- Fill local OpenSearch credentials, `OPENSEARCH_LOG_INDEX_PATTERN`, and `OTEL_SERVICE_NAME` in `project/.env`.
 - Call only `pull_audit_logs(query)` from [`opensearch_audit_client.py`](opensearch_audit_client.py).
 - Keep all filtering and time logic in PPL; the client remains query-agnostic.
 
