@@ -2,6 +2,10 @@
   "id": "Q08",
   "question": "Did the coverage of ski resorts by 'The Independent - Travel' change after their report on the 'Swiss slopes of Zermatt and pistes of Vail in Colorado' on October 13th, 2023, compared to their subsequent report on 'Tremblant Ski Resort' on October 25th, 2023?",
   "intents": ["yes-no", "temporal", "cross-article"],
+  "sub_questions": [
+    "What aspect of ski resorts did The Independent - Travel cover on October 13, 2023, in its report featuring the Swiss slopes of Zermatt and the pistes of Vail in Colorado?",
+    "What aspect of Tremblant Ski Resort did The Independent - Travel cover on October 25, 2023?"
+  ],
   "corpus": [
     {
       "title": "7 of the best luxury ski resorts for a five-star experience",

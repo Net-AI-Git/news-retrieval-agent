@@ -2,6 +2,10 @@
   "id": "Q10",
   "question": "Does the TechCrunch article claim that \"Microsoft's investment in OpenAI\" is unspecified, while The Age article focuses on the \"founding of OpenAI\" without specifying financial figures?",
   "intents": ["yes-no", "cross-article"],
+  "sub_questions": [
+    "What financial amount, if any, did TechCrunch report for Microsoft's investment in OpenAI?",
+    "What information did The Age report about the founding of OpenAI, including any financial figure stated in the article?"
+  ],
   "corpus": [
     {
       "title": "ChatGPT: Everything you need to know about the AI-powered chatbot",

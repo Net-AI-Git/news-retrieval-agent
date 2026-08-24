@@ -2,6 +2,10 @@
   "id": "Q02",
   "question": "Did TechCrunch report on Flipboard's integration of the ActivityPub protocol before The Verge discussed the structure of the ActivityPub protocol in social media contexts?",
   "intents": ["yes-no", "temporal", "cross-article"],
+  "sub_questions": [
+    "When did TechCrunch report on Flipboard's integration of the ActivityPub protocol?",
+    "When did The Verge discuss the structure of the ActivityPub protocol in social media contexts?"
+  ],
   "corpus": [
     {
       "title": "Flipboard becomes a federated app with support for ActivityPub",

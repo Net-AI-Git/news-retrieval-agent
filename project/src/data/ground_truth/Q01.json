@@ -2,6 +2,10 @@
   "id": "Q01",
   "question": "Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season, and did the same source also report a win for the Detroit Lions against the Green Bay Packers?",
   "intents": ["yes-no", "cross-article"],
+  "sub_questions": [
+    "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?",
+    "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
+  ],
   "corpus": [
     {
       "title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",

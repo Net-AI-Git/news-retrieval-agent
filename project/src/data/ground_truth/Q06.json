@@ -2,6 +2,10 @@
   "id": "Q06",
   "question": "Does the article from The Age suggest that 'People with an Aboriginal ancestor' have the same process to identify with their Aboriginal heritage compared to the stance of 'Indigenous people' on cultural identity as presented by The Guardian?",
   "intents": ["yes-no", "cross-article"],
+  "sub_questions": [
+    "According to The Age, what process or journey must people with an Aboriginal ancestor undertake to become Aboriginal?",
+    "According to The Guardian, how does Vincent Namatjira describe what Indigenous people need regarding their tradition, culture, art, and identity?"
+  ],
   "corpus": [
     {
       "title": "Author Melissa Lucashenko on playing with black and white binaries",

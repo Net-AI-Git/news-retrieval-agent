@@ -2,6 +2,11 @@
   "id": "Q05",
   "question": "Which company is at the center of concerns from news publishers for anticompetitive practices, has been compared to OpenAI's GPT-3.5 in terms of product performance, and is also suspected by the public of potential foul play according to a report by 'The Age'?",
   "intents": ["entity", "cross-article"],
+  "sub_questions": [
+    "Which company did TechCrunch report that a news publisher accused of anticompetitive practices that harm publishers' readership and advertising revenue?",
+    "Which company's AI product did TechCrunch report was compared with OpenAI's GPT-3.5 in terms of performance?",
+    "Which company did The Age report that the public was willing to suspect of potential foul play?"
+  ],
   "corpus": [
     {
       "title": "News publisher files class action antitrust suit against Google, citing AI’s harms to their bottom line",

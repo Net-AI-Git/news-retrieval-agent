@@ -2,6 +2,10 @@
   "id": "Q04",
   "question": "Considering the information from an article in the New York Times and another in the Wall Street Journal about Pets Best, which company, known for its insurance products and mentioned in both articles, has a CEO with the initial 'M'?",
   "intents": ["entity", "cross-article", "unanswerable"],
+  "sub_questions": [
+    "Which insurance companies and their CEOs are mentioned in the New York Times article about Pets Best?",
+    "Which insurance companies and their CEOs are mentioned in the Wall Street Journal article about Pets Best?"
+  ],
   "corpus": [],
   "facts": [],
   "answer": "Insufficient information",
