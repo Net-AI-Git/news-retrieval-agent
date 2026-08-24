@@ -7,6 +7,59 @@
     "According to TechCrunch, which FTX founder did the prosecution allege knowingly committed fraud to gain wealth, power, and influence?",
     "According to Fortune, who persuaded former Jane Street colleague Adam Yedidia to join Alameda Research and later FTX?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "According to TechCrunch, who instructed Caroline Ellison to use $14 billion of FTX customer funds to repay debts to Alameda Research lenders?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "According to TechCrunch, which FTX founder did the prosecution allege knowingly committed fraud to gain wealth, power, and influence?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 3,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "According to Fortune, who persuaded former Jane Street colleague Adam Yedidia to join Alameda Research and later FTX?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "According to TechCrunch, who instructed Caroline Ellison to use $14 billion of FTX customer funds to repay debts to Alameda Research lenders?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "According to TechCrunch, which FTX founder did the prosecution allege knowingly committed fraud to gain wealth, power, and influence?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 3,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "According to Fortune, who persuaded former Jane Street colleague Adam Yedidia to join Alameda Research and later FTX?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [
     {
       "title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",

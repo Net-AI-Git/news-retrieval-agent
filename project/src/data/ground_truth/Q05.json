@@ -7,6 +7,59 @@
     "Which company's AI product did TechCrunch report was compared with OpenAI's GPT-3.5 in terms of performance?",
     "Which company did The Age report that the public was willing to suspect of potential foul play?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which company did TechCrunch report that a news publisher accused of anticompetitive practices that harm publishers' readership and advertising revenue?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which company's AI product did TechCrunch report was compared with OpenAI's GPT-3.5 in terms of performance?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 3,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which company did The Age report that the public was willing to suspect of potential foul play?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which company did TechCrunch report that a news publisher accused of anticompetitive practices that harm publishers' readership and advertising revenue?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which company's AI product did TechCrunch report was compared with OpenAI's GPT-3.5 in terms of performance?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 3,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which company did The Age report that the public was willing to suspect of potential foul play?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [
     {
       "title": "News publisher files class action antitrust suit against Google, citing AI’s harms to their bottom line",

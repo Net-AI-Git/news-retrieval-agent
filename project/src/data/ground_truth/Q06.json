@@ -6,6 +6,42 @@
     "According to The Age, what process or journey must people with an Aboriginal ancestor undertake to become Aboriginal?",
     "According to The Guardian, how does Vincent Namatjira describe what Indigenous people need regarding their tradition, culture, art, and identity?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "According to The Age, what process or journey must people with an Aboriginal ancestor undertake to become Aboriginal?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "According to The Guardian, how does Vincent Namatjira describe what Indigenous people need regarding their tradition, culture, art, and identity?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "According to The Age, what process or journey must people with an Aboriginal ancestor undertake to become Aboriginal?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "According to The Guardian, how does Vincent Namatjira describe what Indigenous people need regarding their tradition, culture, art, and identity?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [
     {
       "title": "Author Melissa Lucashenko on playing with black and white binaries",

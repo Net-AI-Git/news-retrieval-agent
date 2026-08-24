@@ -6,6 +6,42 @@
     "When did TechCrunch report that DeepMind was expected to release a next-generation chatbot named Gemini?",
     "When did TechCrunch report that Google released only the lite Gemini Pro model rather than the full Gemini Ultra model?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "When did TechCrunch report that DeepMind was expected to release a next-generation chatbot named Gemini?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "When did TechCrunch report that Google released only the lite Gemini Pro model rather than the full Gemini Ultra model?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "When did TechCrunch report that DeepMind was expected to release a next-generation chatbot named Gemini?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "When did TechCrunch report that Google released only the lite Gemini Pro model rather than the full Gemini Ultra model?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [
     {
       "title": "One year later, ChatGPT is still alive and kicking",

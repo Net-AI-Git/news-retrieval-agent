@@ -6,6 +6,42 @@
     "Which CEO is identified in the BBC News article about Forerunner's latest advancements in space technology?",
     "Which CEO is identified in the Forbes article about Forerunner's financial growth, market expansion, and significant company valuation increase?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which CEO is identified in the BBC News article about Forerunner's latest advancements in space technology?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which CEO is identified in the Forbes article about Forerunner's financial growth, market expansion, and significant company valuation increase?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which CEO is identified in the BBC News article about Forerunner's latest advancements in space technology?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which CEO is identified in the Forbes article about Forerunner's financial growth, market expansion, and significant company valuation increase?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [],
   "facts": [],
   "answer": "Insufficient information",

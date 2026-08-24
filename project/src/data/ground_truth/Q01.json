@@ -6,6 +6,42 @@
     "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?",
     "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [
     {
       "title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",

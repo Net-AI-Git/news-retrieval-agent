@@ -6,6 +6,42 @@
     "What financial amount, if any, did TechCrunch report for Microsoft's investment in OpenAI?",
     "What information did The Age report about the founding of OpenAI, including any financial figure stated in the article?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "What financial amount, if any, did TechCrunch report for Microsoft's investment in OpenAI?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "What information did The Age report about the founding of OpenAI, including any financial figure stated in the article?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "What financial amount, if any, did TechCrunch report for Microsoft's investment in OpenAI?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "What information did The Age report about the founding of OpenAI, including any financial figure stated in the article?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [
     {
       "title": "ChatGPT: Everything you need to know about the AI-powered chatbot",

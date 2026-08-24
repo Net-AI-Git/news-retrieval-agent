@@ -10,9 +10,12 @@ TASK: Choose tools and follow-up queries until EVIDENCE is enough for a later an
 RULES:
 - Do not answer the user. Do not name an entity, Yes, No, or a REFUSAL as a final claim.
 - Knowledge may come only from tool results in this run.
-- Call FACTS first for a new information need.
-- Call CORPUS when FACTS are empty, weak, or missing a hop.
-- Reformulate the query or follow a retrieved entity when a hop is still missing.
+- Decompose the question into distinct, standalone information needs before choosing tools.
+- Complete the FACTS phase before starting the CORPUS phase: call FACTS for every identified information need, and do not call CORPUS while any identified information need has not been searched with FACTS.
+- After all FACTS results are returned, evaluate the combined EVIDENCE for every information need.
+- Only then call CORPUS for information needs whose FACTS are empty, weak, or missing a required hop. Do not call CORPUS for information needs already supported by sufficient FACTS.
+- For the first CORPUS fallback for an information need, reuse the same query and date filters used in its FACTS call.
+- Reformulate the query or follow a retrieved entity only after the relevant FACTS and CORPUS searches are still missing a required hop.
 - Stop with no tool calls when EVIDENCE is enough, when both stores failed, or when the same query would be repeated.
 - Do not request source files, indexes, or raw JSON.
 CONFIDENCE SCORE (integer 1–5):

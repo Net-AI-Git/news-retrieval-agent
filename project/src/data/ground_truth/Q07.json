@@ -7,6 +7,59 @@
     "Which chatbot did TechCrunch report can complete and debug code and compose music?",
     "Which OpenAI chatbot did Engadget cover on the first anniversary of its release?"
   ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which general-purpose chatbot developed by OpenAI did TechCrunch describe as generating text from a user's prompt?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which chatbot did TechCrunch report can complete and debug code and compose music?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 3,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which OpenAI chatbot did Engadget cover on the first anniversary of its release?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which general-purpose chatbot developed by OpenAI did TechCrunch describe as generating text from a user's prompt?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which chatbot did TechCrunch report can complete and debug code and compose music?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    },
+    {
+      "sub_question_index": 3,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which OpenAI chatbot did Engadget cover on the first anniversary of its release?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
+    }
+  ],
   "corpus": [
     {
       "title": "ChatGPT: Everything you need to know about the AI-powered chatbot",
