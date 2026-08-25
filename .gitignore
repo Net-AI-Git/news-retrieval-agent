@@ -73,3 +73,7 @@ project/opensearch_audit/audit_log/*
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
 project/vector_stores/
+
+# Local agent/rules tooling — not part of the assignment repo
+.agents/
+.Codex/

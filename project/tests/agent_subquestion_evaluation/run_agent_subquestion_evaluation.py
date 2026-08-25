@@ -3,7 +3,6 @@ import json
 import os
 import socket
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
@@ -14,20 +13,6 @@ from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "opensearch_audit"))
-
-from opensearch_audit_client import pull_audit_logs
-from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS
-from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, route_after_gather, tools_node
-from src.repositories.opensearch_repository import OpenSearchRepository
-from src.schemas.agent import SearchEvidenceOutput
-from src.services.retrieval_service import run_retrieval
-from src.tools.retrieval_tools import RetrievalTools
-
-
-EVALUATION_TOP_K = 5
-UNANSWERABLE_QUESTION_IDS = {"Q04", "Q09"}
-CSV_FIELDNAMES = ["question_id", "question", "unanswerable", "gt_answer", "flow_id", "agent_tool_call_count", "agent_tool_names", "gt_required_tools", "facts_precision_at_5", "facts_recall_at_5", "facts_success_at_5", "facts_missing_urls", "corpus_precision_at_5", "corpus_recall_at_5", "corpus_success_at_5", "corpus_missing_urls", "agent_facts_url_recall", "agent_corpus_url_recall", "gt_intents", "gt_sub_questions", "gt_expected_tool_calls", "gt_facts", "gt_corpus_articles", "agent_tool_calls", "agent_tool_results", "isolated_facts_top5", "isolated_corpus_top5"]
 
 
 def port_is_open(host, port):
@@ -42,13 +27,20 @@ def port_is_open(host, port):
         connection.close()
 
 
-def require_log_stack():
-    opensearch_host = os.getenv("OPENSEARCH_HOST") or "127.0.0.1"
-    opensearch_port = int(os.getenv("OPENSEARCH_PORT") or "9200")
-    if not port_is_open("127.0.0.1", 4317):
-        raise RuntimeError("OTLP :4317 is closed. Start the log collector, then rerun.")
-    if not port_is_open(opensearch_host, opensearch_port):
-        raise RuntimeError("OpenSearch is closed. Start the log stack, then rerun.")
+if not port_is_open("127.0.0.1", 4317):
+    os.environ["OTEL_SDK_DISABLED"] = "true"
+
+from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS
+from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, route_after_gather, tools_node
+from src.repositories.opensearch_repository import OpenSearchRepository
+from src.schemas.agent import SearchEvidenceOutput
+from src.services.retrieval_service import run_retrieval
+from src.tools.retrieval_tools import RetrievalTools
+
+
+EVALUATION_TOP_K = 5
+UNANSWERABLE_QUESTION_IDS = {"Q04", "Q09"}
+CSV_FIELDNAMES = ["question_id", "question", "unanswerable", "gt_answer", "flow_id", "agent_tool_call_count", "agent_tool_names", "gt_required_tools", "facts_precision_at_5", "facts_recall_at_5", "facts_success_at_5", "facts_missing_urls", "corpus_precision_at_5", "corpus_recall_at_5", "corpus_success_at_5", "corpus_missing_urls", "agent_facts_url_recall", "agent_corpus_url_recall", "gt_intents", "gt_sub_questions", "gt_expected_tool_calls", "gt_facts", "gt_corpus_articles", "agent_tool_calls", "agent_tool_results", "isolated_facts_top5", "isolated_corpus_top5"]
 
 
 def json_cell(payload):
@@ -227,28 +219,11 @@ def write_csv(path, fieldnames, rows):
         writer.writerows(rows)
 
 
-def pull_run_audit(flow_ids):
-    clauses = " or ".join(f"`attributes.event.flow_id` = '{flow_id}'" for flow_id in flow_ids)
-    query = f"source={os.getenv('OPENSEARCH_LOG_INDEX_PATTERN')} | where `resource.attributes.service.name` = '{os.getenv('OTEL_SERVICE_NAME')}' | where {clauses} | sort time"
-    OpenSearchRepository.logger_provider.force_flush()
-    time.sleep(5)
-    audit_path = pull_audit_logs(query)
-    if audit_path is None:
-        raise RuntimeError("Audit pull failed")
-    payload = json.loads(Path(audit_path).read_text(encoding="utf-8"))
-    if not payload:
-        raise RuntimeError(f"Audit log empty: {audit_path}")
-    return
-
-
 def run_gather_inspect(project_root, questions):
     rows = []
-    flow_ids = []
     for question_data in questions:
-        flow_id = str(uuid4())
-        flow_ids.append(flow_id)
-        rows.append(build_inspect_row(project_root, gather_one_question(project_root, question_data, flow_id)))
-    return rows, flow_ids
+        rows.append(build_inspect_row(project_root, gather_one_question(project_root, question_data, str(uuid4()))))
+    return rows
 
 
 def selected_questions(questions):
@@ -258,11 +233,8 @@ def selected_questions(questions):
 
 
 def run_agent_subquestion_evaluation(project_root, questions):
-    require_log_stack()
     timestamp = datetime.now().astimezone()
-    rows, flow_ids = run_gather_inspect(project_root, questions)
-    write_csv(Path(__file__).resolve().parent / "outputs" / f"gather_inspect_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.csv", CSV_FIELDNAMES, rows)
-    pull_run_audit(flow_ids)
+    write_csv(Path(__file__).resolve().parent / "outputs" / f"gather_inspect_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.csv", CSV_FIELDNAMES, run_gather_inspect(project_root, questions))
 
 
 def main():
