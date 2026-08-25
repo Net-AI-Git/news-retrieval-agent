@@ -124,14 +124,15 @@ def embed_records(records, task_data, flow_id):
         embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [record["embedding_input"] for record in batch]}, flow_id)
         if not embeddings:
             raise ValueError("Corpus embedding generation failed")
-        embedding_sizes = {len(embedding) for embedding in embeddings}
+        embedding_sizes = set()
+        for embedding in embeddings:
+            embedding_sizes.add(len(embedding))
         if len(embedding_sizes) != 1 or embedding_dimensions and embedding_dimensions not in embedding_sizes:
             raise ValueError("Embedding dimensions are inconsistent across corpus batches")
         if embedding_dimensions is None:
             embedding_dimensions = len(embeddings[0])
         if not CorpusChromaRepository.upsert_records({**task_data, "records": batch, "embeddings": embeddings}, flow_id):
             raise ValueError("Corpus batch storage failed")
-        print(f"Indexed corpus passages: {min(start + len(batch), len(records))}/{len(records)}")
     return embedding_dimensions
 
 
@@ -141,7 +142,9 @@ def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
         stored_batch = CorpusChromaRepository.get_records({**task_data, "ids": [record["id"] for record in batch]}, flow_id)
         if not stored_batch:
             raise ValueError("Stored corpus batch could not be read")
-        stored_indexes = {record_id: index for index, record_id in enumerate(stored_batch["ids"])}
+        stored_indexes = {}
+        for stored_position, record_id in enumerate(stored_batch["ids"]):
+            stored_indexes[record_id] = stored_position
         if set(stored_indexes) != {record["id"] for record in batch}:
             raise ValueError("Stored corpus identifiers do not match source records")
         for record in batch:
@@ -155,8 +158,12 @@ def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
 def promote_corpus_collection(records, embedding_dimensions, task_data, flow_id):
     if not CorpusChromaRepository.promote_collection({**task_data, "record_count": len(records), "metadata": {"embedding_model": OpenAIEmbeddingsRepository.model_name, "embedding_dimensions": embedding_dimensions, "schema_version": CHROMA_SCHEMA_VERSION, "record_type": "corpus_passage", "chunk_target_tokens": CHROMA_CHUNK_TARGET_TOKENS, "chunk_min_tokens": CHROMA_CHUNK_MIN_TOKENS, "chunk_max_tokens": CHROMA_CHUNK_MAX_TOKENS, "overlap_target_tokens": CHROMA_OVERLAP_TARGET_TOKENS, "paragraph_boundary": "hard", "token_encoding": CHROMA_TOKEN_ENCODING, "sentence_segmenter": "pysbd:0.3.4"}}, flow_id):
         raise ValueError("Corpus collection promotion failed")
-    print(f"Corpus collection rebuilt with {len(records)} passages using {OpenAIEmbeddingsRepository.model_name}")
     return task_data["chroma_path"]
+
+
+def remove_stale_corpus(records, task_data, flow_id):
+    if not CorpusChromaRepository.delete_extra_records({**task_data, "ids": [record["id"] for record in records]}, flow_id):
+        raise ValueError("Corpus extra record cleanup failed")
 
 
 def run_corpus_chroma_index(task_data, flow_id):
@@ -171,6 +178,7 @@ def run_corpus_chroma_index(task_data, flow_id):
         validate_record_manifest(records)
         prepare_corpus_collection(task_data, flow_id)
         embedding_dimensions = embed_records(records, task_data, flow_id)
+        remove_stale_corpus(records, task_data, flow_id)
         validate_stored_records(records, embedding_dimensions, task_data, flow_id)
         chroma_path = promote_corpus_collection(records, embedding_dimensions, task_data, flow_id)
     except Exception as err:

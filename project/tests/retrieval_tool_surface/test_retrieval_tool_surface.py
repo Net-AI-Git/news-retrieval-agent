@@ -38,9 +38,13 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         self.assertNotIn("facts", result)
         self.assertNotIn("corpus", result)
 
-    def test_invalid_question_returns_invalid_status(self):
+    @patch("src.tools.retrieval_tools.run_retrieval")
+    def test_invalid_question_returns_invalid_status(self, run_retrieval_mock):
+        run_retrieval_mock.return_value = {"status": "empty", "question": "", "facts": [], "corpus": []}
         result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts(None)
         self.assertEqual({"status": RETRIEVAL_TOOL_STATUS_INVALID, "question": "", "results": []}, result)
+        run_retrieval_mock.assert_called_once()
+        self.assertIsNone(run_retrieval_mock.call_args[0][0]["question"])
 
     @patch("src.tools.retrieval_tools.run_retrieval")
     def test_search_facts_empty_status_is_machine_readable(self, run_retrieval_mock):
@@ -68,6 +72,14 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         self.assertEqual([], result["corpus"])
         self.assertEqual(RETRIEVAL_TOP_K, facts_query.call_args[0][0]["top_k"])
         self.assertLessEqual(len(result["facts"]), RETRIEVAL_TOP_K)
+
+    @patch("src.services.retrieval_service.OpenSearchRepository.log_event")
+    @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
+    def test_missing_question_logs_error_without_embedding(self, generate_embeddings, log_event_mock):
+        result = run_retrieval({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4()))
+        generate_embeddings.assert_not_called()
+        self.assertEqual({"status": "empty", "question": "", "facts": [], "corpus": []}, result)
+        self.assertIn("ERROR", [call.kwargs["status"] for call in log_event_mock.call_args_list])
 
     @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
     @patch("src.services.retrieval_service.FactsChromaRepository.query_records")

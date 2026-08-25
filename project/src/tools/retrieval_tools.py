@@ -20,6 +20,7 @@ class RetrievalTools:
             retrieval_result = run_retrieval({**self.task_data, "question": payload.question, "published_from": payload.published_from, "published_to": payload.published_to, "evidence_store": RETRIEVAL_EVIDENCE_STORE_FACTS}, self.flow_id)
             return SearchEvidenceOutput(status=retrieval_result["status"], question=payload.question, results=retrieval_result[RETRIEVAL_EVIDENCE_STORE_FACTS]).model_dump()
         except Exception:
+            run_retrieval({**self.task_data, "question": question, "published_from": published_from, "published_to": published_to, "evidence_store": RETRIEVAL_EVIDENCE_STORE_FACTS}, self.flow_id)
             return SearchEvidenceOutput(status=RETRIEVAL_TOOL_STATUS_INVALID, question="", results=[]).model_dump()
 
     def search_corpus(self, question: str, published_from: Optional[str] = None, published_to: Optional[str] = None) -> dict:
@@ -29,6 +30,7 @@ class RetrievalTools:
             retrieval_result = run_retrieval({**self.task_data, "question": payload.question, "published_from": payload.published_from, "published_to": payload.published_to, "evidence_store": RETRIEVAL_EVIDENCE_STORE_CORPUS}, self.flow_id)
             return SearchEvidenceOutput(status=retrieval_result["status"], question=payload.question, results=retrieval_result[RETRIEVAL_EVIDENCE_STORE_CORPUS]).model_dump()
         except Exception:
+            run_retrieval({**self.task_data, "question": question, "published_from": published_from, "published_to": published_to, "evidence_store": RETRIEVAL_EVIDENCE_STORE_CORPUS}, self.flow_id)
             return SearchEvidenceOutput(status=RETRIEVAL_TOOL_STATUS_INVALID, question="", results=[]).model_dump()
 
     def as_langchain_tools(self):

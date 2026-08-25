@@ -14,9 +14,6 @@ class CorpusChromaRepository:
             collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_or_create_collection(CORPUS_STAGING_COLLECTION, configuration={"hnsw": {"space": CHROMA_DISTANCE_METRIC}}, embedding_function=None)
             if collection.configuration["hnsw"]["space"] != CHROMA_DISTANCE_METRIC:
                 raise ValueError("Corpus staging collection must use cosine distance")
-            stored_count = collection.count()
-            if stored_count:
-                collection.delete(ids=collection.get(limit=stored_count)["ids"])
             prepared = True
         except Exception as err:
             OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
@@ -35,6 +32,25 @@ class CorpusChromaRepository:
             OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
         OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return stored
+
+    @staticmethod
+    def delete_extra_records(task_data, flow_id):
+        OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        cleaned = False
+        try:
+            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_STAGING_COLLECTION, embedding_function=None)
+            extra_ids = []
+            keep_ids = set(task_data["ids"])
+            for stored_id in collection.get()["ids"]:
+                if stored_id not in keep_ids:
+                    extra_ids.append(stored_id)
+            if extra_ids:
+                collection.delete(ids=extra_ids)
+            cleaned = True
+        except Exception as err:
+            OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        return cleaned
 
     @staticmethod
     def get_records(task_data, flow_id):

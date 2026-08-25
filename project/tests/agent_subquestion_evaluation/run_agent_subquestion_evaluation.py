@@ -1,8 +1,9 @@
 import csv
 import json
-import math
 import os
 import socket
+import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
@@ -13,19 +14,27 @@ from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "opensearch_audit"))
+
+from opensearch_audit_client import pull_audit_logs
+from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS
+from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, route_after_gather, tools_node
+from src.repositories.opensearch_repository import OpenSearchRepository
+from src.schemas.agent import SearchEvidenceOutput
+from src.services.retrieval_service import run_retrieval
+from src.tools.retrieval_tools import RetrievalTools
 
 
+EVALUATION_TOP_K = 5
 UNANSWERABLE_QUESTION_IDS = {"Q04", "Q09"}
-DECOMPOSITION_FIELDNAMES = ["question_id", "agent_call_index", "agent_question", "gt_index", "gt_sub_question", "cosine", "is_best_gt_for_this_agent_row", "best_gt_index", "best_cosine"]
-RETRIEVAL_SUBQUESTION_FIELDNAMES = ["question_id", "agent_call_index", "agent_question", "unanswerable", "returned_url_count", "false_positives", "document_precision_at_10", "document_recall_at_10", "mrr_at_10"]
-RETRIEVAL_QUESTION_FIELDNAMES = ["question_id", "agent_search_call_count", "unique_agent_question_count", "unanswerable", "returned_url_count", "false_positives", "document_precision_at_10", "document_recall_at_10", "mrr_at_10"]
+CSV_FIELDNAMES = ["question_id", "question", "unanswerable", "gt_answer", "flow_id", "agent_tool_call_count", "agent_tool_names", "gt_required_tools", "facts_precision_at_5", "facts_recall_at_5", "facts_success_at_5", "facts_missing_urls", "corpus_precision_at_5", "corpus_recall_at_5", "corpus_success_at_5", "corpus_missing_urls", "agent_facts_url_recall", "agent_corpus_url_recall", "gt_intents", "gt_sub_questions", "gt_expected_tool_calls", "gt_facts", "gt_corpus_articles", "agent_tool_calls", "agent_tool_results", "isolated_facts_top5", "isolated_corpus_top5"]
 
 
-def port_is_open(port):
+def port_is_open(host, port):
     connection = socket.socket()
-    connection.settimeout(1)
+    connection.settimeout(2)
     try:
-        connection.connect(("127.0.0.1", port))
+        connection.connect((host, port))
         return True
     except Exception:
         return False
@@ -33,80 +42,148 @@ def port_is_open(port):
         connection.close()
 
 
-PORT_STATUS = {"otlp_4317": port_is_open(4317), "opensearch_9200": port_is_open(9200)}
-if not PORT_STATUS["otlp_4317"]:
-    os.environ["OTEL_SDK_DISABLED"] = "true"
-
-from src.conts import RETRIEVAL_TOP_K
-from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, route_after_gather, tools_node
-from src.repositories.embeddings_repository import OpenAIEmbeddingsRepository
-from src.services.retrieval_service import run_retrieval
-from src.tools.retrieval_tools import RetrievalTools
+def require_log_stack():
+    opensearch_host = os.getenv("OPENSEARCH_HOST") or "127.0.0.1"
+    opensearch_port = int(os.getenv("OPENSEARCH_PORT") or "9200")
+    if not port_is_open("127.0.0.1", 4317):
+        raise RuntimeError("OTLP :4317 is closed. Start the log collector, then rerun.")
+    if not port_is_open(opensearch_host, opensearch_port):
+        raise RuntimeError("OpenSearch is closed. Start the log stack, then rerun.")
 
 
-def cosine_similarity(left_vector, right_vector):
-    left_norm = math.sqrt(sum(value * value for value in left_vector))
-    right_norm = math.sqrt(sum(value * value for value in right_vector))
-    if left_norm == 0.0 or right_norm == 0.0:
-        return 0.0
-    return sum(left_value * right_value for left_value, right_value in zip(left_vector, right_vector)) / (left_norm * right_norm)
+def json_cell(payload):
+    return json.dumps(payload, ensure_ascii=False)
 
 
-def collect_agent_search_calls(messages):
-    agent_rows = []
+def gold_fact_records(ground_truth):
+    records = []
+    for item in ground_truth.get("facts") or []:
+        records.append({"fact": item.get("fact"), "article_title": item.get("article_title"), "source": item.get("source"), "category": item.get("category"), "published_at": item.get("published_at"), "url": item.get("url")})
+    return records
+
+
+def gold_corpus_articles(ground_truth):
+    articles = []
+    for item in ground_truth.get("corpus") or []:
+        articles.append({"title": item.get("title"), "author": item.get("author"), "source": item.get("source"), "published_at": item.get("published_at"), "category": item.get("category"), "url": item.get("url")})
+    return articles
+
+
+def gold_urls(ground_truth, bucket_name):
+    return list(dict.fromkeys(item["url"] for item in ground_truth.get(bucket_name) or [] if item.get("url")))
+
+
+def compact_hits(hits):
+    compacted = []
+    for hit in hits:
+        compacted.append({"article_title": hit.get("article_title"), "url": hit.get("url"), "snippet": hit.get("snippet"), "match_percentage": hit.get("match_percentage"), "published_at": hit.get("published_at")})
+    return compacted
+
+
+def tool_call_record(tool_call):
+    arguments = tool_call.get("args") if isinstance(tool_call, dict) else getattr(tool_call, "args", None)
+    if not isinstance(arguments, dict):
+        arguments = {}
+    name = tool_call.get("name") if isinstance(tool_call, dict) else getattr(tool_call, "name", "")
+    call_id = tool_call.get("id") if isinstance(tool_call, dict) else getattr(tool_call, "id", "")
+    return call_id, {"tool": name, "question": arguments.get("question") or "", "published_from": arguments.get("published_from"), "published_to": arguments.get("published_to")}
+
+
+def parse_tool_payload(content):
+    if isinstance(content, dict):
+        return SearchEvidenceOutput.model_validate(content).model_dump()
+    return SearchEvidenceOutput.model_validate_json(content).model_dump()
+
+
+def collect_agent_tool_trace(messages):
+    calls = []
+    results = []
+    result_by_id = {}
     for message in messages:
         for tool_call in getattr(message, "tool_calls", None) or []:
-            arguments = tool_call.get("args") if isinstance(tool_call, dict) else getattr(tool_call, "args", None)
-            if not isinstance(arguments, dict):
-                continue
-            agent_question = str(arguments.get("question") or "").strip()
-            if not agent_question:
-                continue
-            agent_rows.append({"agent_call_index": len(agent_rows), "agent_question": agent_question})
-    return agent_rows
+            call_id, record = tool_call_record(tool_call)
+            calls.append(record)
+            result_slot = {"tool": record["tool"], "question": record["question"], "published_from": record["published_from"], "published_to": record["published_to"], "status": "", "hits": []}
+            results.append(result_slot)
+            if call_id:
+                result_by_id[call_id] = result_slot
+        tool_call_id = getattr(message, "tool_call_id", None)
+        if tool_call_id and getattr(message, "content", None):
+            payload = parse_tool_payload(message.content)
+            result_slot = result_by_id.get(tool_call_id)
+            if result_slot is not None:
+                result_slot["status"] = payload.get("status")
+                result_slot["hits"] = compact_hits(payload.get("results") or [])
+    return calls, results
 
 
-def expected_urls_from_ground_truth(ground_truth):
+def urls_from_agent_results(results, tool_name):
     urls = []
-    seen = set()
-    for bucket_name in ("facts", "corpus"):
-        for item in ground_truth.get(bucket_name) or []:
-            url = str(item.get("url") or "").strip()
-            if url and url not in seen:
-                seen.add(url)
+    for result in results:
+        if result.get("tool") != tool_name:
+            continue
+        for hit in result.get("hits") or []:
+            url = hit.get("url")
+            if url and url not in urls:
                 urls.append(url)
     return urls
 
 
-def ranked_urls_from_retrieval(retrieval_result):
-    urls = []
-    seen = set()
-    for hit in retrieval_result["facts"] + retrieval_result["corpus"]:
-        url = str(hit.get("url") or "").strip()
-        if url and url not in seen:
-            seen.add(url)
-            urls.append(url)
-    return urls
-
-
-def union_ranked_urls(url_lists):
-    ranked = []
-    seen = set()
-    for urls in url_lists:
-        for url in urls:
-            if url not in seen:
-                seen.add(url)
-                ranked.append(url)
-    return ranked
-
-
-def document_metrics(ranked_urls, expected_urls, unanswerable):
-    ranked = ranked_urls[:RETRIEVAL_TOP_K]
+def url_recall(retrieved_urls, expected_urls, unanswerable):
     if unanswerable:
-        return {"unanswerable": 1, "returned_url_count": len(ranked), "false_positives": len(ranked), "document_precision_at_10": "", "document_recall_at_10": "", "mrr_at_10": ""}
-    matched = [url for url in ranked if url in set(expected_urls)]
-    relevant_ranks = [rank for rank, url in enumerate(ranked, start=1) if url in set(expected_urls)]
-    return {"unanswerable": 0, "returned_url_count": len(ranked), "false_positives": len(ranked) - len(matched), "document_precision_at_10": round(len(matched) / len(ranked), 4) if ranked else 0.0, "document_recall_at_10": round(len(matched) / len(expected_urls), 4) if expected_urls else 0.0, "mrr_at_10": round(1 / min(relevant_ranks), 4) if relevant_ranks else 0.0}
+        return ""
+    if not expected_urls:
+        return 0.0
+    matched = [url for url in expected_urls if url in set(retrieved_urls)]
+    return round(len(matched) / len(expected_urls), 4)
+
+
+def merge_hit(merged, hit, sub_question):
+    key = (hit.get("url") or "", hit.get("snippet") or "")
+    current = merged.get(key)
+    if current is None:
+        merged[key] = {"article_title": hit["article_title"], "snippet": hit["snippet"], "url": hit.get("url"), "published_at": hit.get("published_at"), "match_percentage": hit["match_percentage"], "source_sub_questions": [sub_question]}
+        return
+    if hit["match_percentage"] > current["match_percentage"]:
+        current["match_percentage"] = hit["match_percentage"]
+        current["article_title"] = hit["article_title"]
+        current["published_at"] = hit.get("published_at")
+    if sub_question not in current["source_sub_questions"]:
+        current["source_sub_questions"].append(sub_question)
+
+
+def select_top_hits(merged):
+    ranked = sorted(merged.values(), key=lambda hit: (-hit["match_percentage"], hit.get("url") or "", hit.get("snippet") or ""))
+    return ranked[:EVALUATION_TOP_K]
+
+
+def annotate_hits(top_hits, expected_urls):
+    annotated = []
+    for hit in top_hits:
+        annotated.append({**hit, "is_hit": bool(hit.get("url") and hit["url"] in expected_urls)})
+    return annotated
+
+
+def store_metrics(unanswerable, expected_urls, top_hits):
+    matched_urls = list(dict.fromkeys(hit["url"] for hit in top_hits if hit.get("is_hit")))
+    returned = len(top_hits)
+    hit_count = sum(1 for hit in top_hits if hit["is_hit"])
+    if unanswerable:
+        return {"precision_at_5": "", "recall_at_5": "", "success_at_5": "", "missing_urls": []}
+    precision = round(hit_count / returned, 4) if returned else 0.0
+    recall = round(len(matched_urls) / len(expected_urls), 4) if expected_urls else 0.0
+    return {"precision_at_5": precision, "recall_at_5": recall, "success_at_5": 1 if recall == 1.0 else 0, "missing_urls": [url for url in expected_urls if url not in matched_urls]}
+
+
+def isolated_store_retrieval(project_root, ground_truth, evidence_store, flow_id):
+    merged = {}
+    for sub_question in ground_truth.get("sub_questions") or []:
+        for hit in run_retrieval({"question": sub_question, "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma"), "evidence_store": evidence_store}, flow_id)[evidence_store]:
+            merge_hit(merged, hit, sub_question)
+    expected_urls = gold_urls(ground_truth, evidence_store)
+    unanswerable = ground_truth["id"] in UNANSWERABLE_QUESTION_IDS or not expected_urls
+    annotated = annotate_hits(select_top_hits(merged), set(expected_urls))
+    return annotated, store_metrics(unanswerable, expected_urls, annotated)
 
 
 def build_gather_only_graph(task_data, flow_id):
@@ -121,120 +198,76 @@ def build_gather_only_graph(task_data, flow_id):
     return graph.compile()
 
 
-def gather_one_question(project_root, question_data):
+def gather_one_question(project_root, question_data, flow_id):
     ground_truth = json.loads((project_root / "src" / "data" / "ground_truth" / f"{question_data['id']}.json").read_text(encoding="utf-8"))
     if ground_truth["id"] != question_data["id"] or ground_truth["question"] != question_data["question"]:
         raise ValueError(f"Ground truth mismatch for {question_data['id']}")
     task_data = {"question": question_data["question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
-    graph_state = build_gather_only_graph(task_data, str(uuid4())).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": 32})
-    return {"question_id": question_data["id"], "question": question_data["question"], "ground_truth": ground_truth, "agent_rows": collect_agent_search_calls(graph_state["messages"])}
+    OpenSearchRepository.log_event(status="STARTING", content={"question_id": question_data["id"]}, flow_id=flow_id, level="INFO")
+    graph_state = build_gather_only_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": 32})
+    OpenSearchRepository.log_event(status="FINISHED", content={"question_id": question_data["id"]}, flow_id=flow_id, level="INFO")
+    calls, results = collect_agent_tool_trace(graph_state["messages"])
+    return {"question_id": question_data["id"], "question": question_data["question"], "ground_truth": ground_truth, "flow_id": flow_id, "agent_tool_calls": calls, "agent_tool_results": results}
 
 
-def embed_gathered_texts(gathered, flow_id):
-    texts = []
-    for item in gathered:
-        for agent_row in item["agent_rows"]:
-            texts.append(agent_row["agent_question"])
-        for gt_sub_question in item["ground_truth"].get("sub_questions") or []:
-            texts.append(gt_sub_question)
-    unique_texts = list(dict.fromkeys(texts))
-    if not unique_texts:
-        return {}
-    vectors = OpenAIEmbeddingsRepository.generate_embeddings({"texts": unique_texts}, flow_id)
-    if len(vectors) != len(unique_texts):
-        raise ValueError("Embedding generation failed")
-    return dict(zip(unique_texts, vectors))
-
-
-def all_decomposition_rows(gathered, embedding_by_text):
-    rows = []
-    for item in gathered:
-        gt_sub_questions = item["ground_truth"].get("sub_questions") or []
-        for agent_row in item["agent_rows"]:
-            scored_pairs = []
-            for gt_index, gt_sub_question in enumerate(gt_sub_questions):
-                scored_pairs.append((gt_index, gt_sub_question, cosine_similarity(embedding_by_text[agent_row["agent_question"]], embedding_by_text[gt_sub_question])))
-            if not scored_pairs:
-                continue
-            best_pair = max(scored_pairs, key=lambda scored: scored[2])
-            for gt_index, gt_sub_question, cosine in scored_pairs:
-                rows.append({"question_id": item["question_id"], "agent_call_index": agent_row["agent_call_index"], "agent_question": agent_row["agent_question"], "gt_index": gt_index, "gt_sub_question": gt_sub_question, "cosine": cosine, "is_best_gt_for_this_agent_row": 1 if cosine == best_pair[2] else 0, "best_gt_index": best_pair[0], "best_cosine": best_pair[2]})
-    rows.sort(key=lambda row: (row["question_id"], int(row["agent_call_index"]), -float(row["cosine"])))
-    return rows
-
-
-def retrieval_rows_for_item(item, project_root, cache):
-    unanswerable = item["question_id"] in UNANSWERABLE_QUESTION_IDS
-    expected_urls = expected_urls_from_ground_truth(item["ground_truth"])
-    per_call_rows = []
-    per_call_url_lists = []
-    for agent_row in item["agent_rows"]:
-        if agent_row["agent_question"] not in cache:
-            cache[agent_row["agent_question"]] = ranked_urls_from_retrieval(run_retrieval({"question": agent_row["agent_question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}, str(uuid4())))
-        ranked_urls = cache[agent_row["agent_question"]]
-        metrics = document_metrics(ranked_urls, expected_urls, unanswerable)
-        per_call_rows.append({"question_id": item["question_id"], "agent_call_index": agent_row["agent_call_index"], "agent_question": agent_row["agent_question"], "unanswerable": metrics["unanswerable"], "returned_url_count": metrics["returned_url_count"], "false_positives": metrics["false_positives"], "document_precision_at_10": metrics["document_precision_at_10"], "document_recall_at_10": metrics["document_recall_at_10"], "mrr_at_10": metrics["mrr_at_10"]})
-        per_call_url_lists.append(ranked_urls)
-    question_metrics = document_metrics(union_ranked_urls(per_call_url_lists), expected_urls, unanswerable)
-    unique_agent_questions = list(dict.fromkeys(agent_row["agent_question"] for agent_row in item["agent_rows"]))
-    return per_call_rows, {"question_id": item["question_id"], "agent_search_call_count": len(item["agent_rows"]), "unique_agent_question_count": len(unique_agent_questions), "unanswerable": question_metrics["unanswerable"], "returned_url_count": question_metrics["returned_url_count"], "false_positives": question_metrics["false_positives"], "document_precision_at_10": question_metrics["document_precision_at_10"], "document_recall_at_10": question_metrics["document_recall_at_10"], "mrr_at_10": question_metrics["mrr_at_10"]}
+def build_inspect_row(project_root, gathered_item):
+    ground_truth = gathered_item["ground_truth"]
+    unanswerable = 1 if gathered_item["question_id"] in UNANSWERABLE_QUESTION_IDS else 0
+    facts_hits, facts_metrics = isolated_store_retrieval(project_root, ground_truth, RETRIEVAL_EVIDENCE_STORE_FACTS, gathered_item["flow_id"])
+    corpus_hits, corpus_metrics = isolated_store_retrieval(project_root, ground_truth, RETRIEVAL_EVIDENCE_STORE_CORPUS, gathered_item["flow_id"])
+    required_tools = [item["tool"] for item in ground_truth.get("expected_tool_calls") or [] if item.get("expectation") == "required"]
+    return {"question_id": gathered_item["question_id"], "question": gathered_item["question"], "unanswerable": unanswerable, "gt_answer": ground_truth.get("answer"), "flow_id": gathered_item["flow_id"], "agent_tool_call_count": len(gathered_item["agent_tool_calls"]), "agent_tool_names": ",".join(call["tool"] for call in gathered_item["agent_tool_calls"]), "gt_required_tools": ",".join(required_tools), "facts_precision_at_5": facts_metrics["precision_at_5"], "facts_recall_at_5": facts_metrics["recall_at_5"], "facts_success_at_5": facts_metrics["success_at_5"], "facts_missing_urls": " | ".join(facts_metrics["missing_urls"]), "corpus_precision_at_5": corpus_metrics["precision_at_5"], "corpus_recall_at_5": corpus_metrics["recall_at_5"], "corpus_success_at_5": corpus_metrics["success_at_5"], "corpus_missing_urls": " | ".join(corpus_metrics["missing_urls"]), "agent_facts_url_recall": url_recall(urls_from_agent_results(gathered_item["agent_tool_results"], "search_facts"), gold_urls(ground_truth, "facts"), unanswerable), "agent_corpus_url_recall": url_recall(urls_from_agent_results(gathered_item["agent_tool_results"], "search_corpus"), gold_urls(ground_truth, "corpus"), unanswerable), "gt_intents": json_cell(ground_truth.get("intents") or []), "gt_sub_questions": json_cell(ground_truth.get("sub_questions") or []), "gt_expected_tool_calls": json_cell(ground_truth.get("expected_tool_calls") or []), "gt_facts": json_cell(gold_fact_records(ground_truth)), "gt_corpus_articles": json_cell(gold_corpus_articles(ground_truth)), "agent_tool_calls": json_cell(gathered_item["agent_tool_calls"]), "agent_tool_results": json_cell(gathered_item["agent_tool_results"]), "isolated_facts_top5": json_cell(facts_hits), "isolated_corpus_top5": json_cell(corpus_hits)}
 
 
 def write_csv(path, fieldnames, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as handle:
+    with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
 
 
-def build_summary_markdown(port_status, gathered, pair_rows, question_rows, timestamp):
-    seen = {}
-    for row in pair_rows:
-        key = (row["question_id"], row["agent_call_index"])
-        if key not in seen:
-            seen[key] = row["best_cosine"]
-    mean_value = round(sum(seen.values()) / len(seen), 6) if seen else ""
-    lines = ["# Agent Sub-question Evaluation", "", f"- Timestamp: {timestamp.isoformat(timespec='seconds')}", f"- OTLP :4317: {'open' if port_status['otlp_4317'] else 'closed'}", f"- OpenSearch :9200: {'open' if port_status['opensearch_9200'] else 'closed'}", f"- Questions: {len(gathered)}", f"- Agent search calls: {sum(len(item['agent_rows']) for item in gathered)}", f"- Decomposition pair rows: {len(pair_rows)}", f"- Mean best cosine: {mean_value}", "", "## Retrieval per question", ""]
-    for question_row in question_rows:
-        lines.append(f"- {question_row['question_id']}: unanswerable={question_row['unanswerable']} returned={question_row['returned_url_count']} false_positives={question_row['false_positives']} P@10={question_row['document_precision_at_10']} R@10={question_row['document_recall_at_10']} MRR@10={question_row['mrr_at_10']}")
-    return "\n".join(lines) + "\n"
+def pull_run_audit(flow_ids):
+    clauses = " or ".join(f"`attributes.event.flow_id` = '{flow_id}'" for flow_id in flow_ids)
+    query = f"source={os.getenv('OPENSEARCH_LOG_INDEX_PATTERN')} | where `resource.attributes.service.name` = '{os.getenv('OTEL_SERVICE_NAME')}' | where {clauses} | sort time"
+    OpenSearchRepository.logger_provider.force_flush()
+    time.sleep(5)
+    audit_path = pull_audit_logs(query)
+    if audit_path is None:
+        raise RuntimeError("Audit pull failed")
+    payload = json.loads(Path(audit_path).read_text(encoding="utf-8"))
+    if not payload:
+        raise RuntimeError(f"Audit log empty: {audit_path}")
+    return
 
 
-def write_outputs(output_directory, timestamp, port_status, gathered, pair_rows, retrieval_rows, question_rows):
-    output_directory.mkdir(parents=True, exist_ok=True)
-    stamp = timestamp.strftime("%Y-%m-%d_%H-%M-%S")
-    formatted_pairs = []
-    for row in pair_rows:
-        formatted_pairs.append({**row, "cosine": f"{row['cosine']:.6f}", "best_cosine": f"{row['best_cosine']:.6f}"})
-    write_csv(output_directory / f"decomposition_pairs_{stamp}.csv", DECOMPOSITION_FIELDNAMES, formatted_pairs)
-    write_csv(output_directory / f"retrieval_per_subquestion_{stamp}.csv", RETRIEVAL_SUBQUESTION_FIELDNAMES, retrieval_rows)
-    write_csv(output_directory / f"retrieval_per_question_{stamp}.csv", RETRIEVAL_QUESTION_FIELDNAMES, question_rows)
-    (output_directory / f"summary_{stamp}.md").write_text(build_summary_markdown(port_status, gathered, pair_rows, question_rows, timestamp), encoding="utf-8")
+def run_gather_inspect(project_root, questions):
+    rows = []
+    flow_ids = []
+    for question_data in questions:
+        flow_id = str(uuid4())
+        flow_ids.append(flow_id)
+        rows.append(build_inspect_row(project_root, gather_one_question(project_root, question_data, flow_id)))
+    return rows, flow_ids
+
+
+def selected_questions(questions):
+    if "--smoke" in sys.argv:
+        return [item for item in questions if item["id"] == "Q01"]
+    return questions
 
 
 def run_agent_subquestion_evaluation(project_root, questions):
-    gathered = []
-    for question_data in questions:
-        gathered.append(gather_one_question(project_root, question_data))
-    embedding_by_text = embed_gathered_texts(gathered, str(uuid4()))
-    pair_rows = all_decomposition_rows(gathered, embedding_by_text)
-    retrieval_cache = {}
-    retrieval_rows = []
-    question_rows = []
-    for item in gathered:
-        per_call_rows, question_row = retrieval_rows_for_item(item, project_root, retrieval_cache)
-        retrieval_rows.extend(per_call_rows)
-        question_rows.append(question_row)
-    return gathered, pair_rows, retrieval_rows, question_rows
+    require_log_stack()
+    timestamp = datetime.now().astimezone()
+    rows, flow_ids = run_gather_inspect(project_root, questions)
+    write_csv(Path(__file__).resolve().parent / "outputs" / f"gather_inspect_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.csv", CSV_FIELDNAMES, rows)
+    pull_run_audit(flow_ids)
 
 
 def main():
     project_root = Path(__file__).resolve().parents[2]
-    questions = json.loads((project_root / "src" / "data" / "questions.json").read_text(encoding="utf-8"))
-    timestamp = datetime.now().astimezone()
-    gathered, pair_rows, retrieval_rows, question_rows = run_agent_subquestion_evaluation(project_root, questions)
-    write_outputs(Path(__file__).resolve().parent / "outputs", timestamp, PORT_STATUS, gathered, pair_rows, retrieval_rows, question_rows)
+    run_agent_subquestion_evaluation(project_root, selected_questions(json.loads((project_root / "src" / "data" / "questions.json").read_text(encoding="utf-8"))))
 
 
 if __name__ == "__main__":

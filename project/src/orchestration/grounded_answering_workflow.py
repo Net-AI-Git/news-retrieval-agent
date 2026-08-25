@@ -9,7 +9,7 @@ from langgraph.prebuilt import ToolNode
 
 from ..agents.answer_agent import run_answer
 from ..agents.gather_agent import run_gather
-from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS
+from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT
 from ..repositories.opensearch_repository import OpenSearchRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
 from ..tools.retrieval_tools import RetrievalTools
@@ -84,7 +84,7 @@ def build_grounded_answering_graph(task_data, flow_id):
 
 
 def invoke_grounded_answering_graph(task_data, flow_id):
-    graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": 32})
+    graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
     return graph_state.get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
 
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from . import chroma_index, example_feature, ping
+from . import chroma_index, example_feature, grounded_answering, ping
 
 
 api_router = APIRouter()
@@ -10,3 +10,4 @@ api_router.include_router(chroma_index.corpus_chroma_index_router)
 api_router.include_router(chroma_index.facts_chroma_index_router)
 api_router.include_router(example_feature.example_router)
 api_router.include_router(example_feature.secondary_router)
+api_router.include_router(grounded_answering.grounded_answering_router)

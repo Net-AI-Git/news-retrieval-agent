@@ -65,14 +65,15 @@ def embed_records(records, task_data, flow_id):
         embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [record["document"] for record in batch]}, flow_id)
         if not embeddings:
             raise ValueError("Facts embedding generation failed")
-        embedding_sizes = {len(embedding) for embedding in embeddings}
+        embedding_sizes = set()
+        for embedding in embeddings:
+            embedding_sizes.add(len(embedding))
         if len(embedding_sizes) != 1 or embedding_dimensions and embedding_dimensions not in embedding_sizes:
             raise ValueError("Embedding dimensions are inconsistent across facts batches")
         if embedding_dimensions is None:
             embedding_dimensions = len(embeddings[0])
         if not FactsChromaRepository.upsert_records({**task_data, "records": batch, "embeddings": embeddings}, flow_id):
             raise ValueError("Facts batch storage failed")
-        print(f"Indexed facts: {min(start + len(batch), len(records))}/{len(records)}")
     return embedding_dimensions
 
 
@@ -82,7 +83,9 @@ def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
         stored_batch = FactsChromaRepository.get_records({**task_data, "ids": [record["id"] for record in batch]}, flow_id)
         if not stored_batch:
             raise ValueError("Stored facts batch could not be read")
-        stored_indexes = {record_id: index for index, record_id in enumerate(stored_batch["ids"])}
+        stored_indexes = {}
+        for stored_position, record_id in enumerate(stored_batch["ids"]):
+            stored_indexes[record_id] = stored_position
         if set(stored_indexes) != {record["id"] for record in batch}:
             raise ValueError("Stored fact identifiers do not match source records")
         for record in batch:
@@ -96,8 +99,12 @@ def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
 def promote_facts_collection(records, embedding_dimensions, task_data, flow_id):
     if not FactsChromaRepository.promote_collection({**task_data, "record_count": len(records), "metadata": {"embedding_model": OpenAIEmbeddingsRepository.model_name, "embedding_dimensions": embedding_dimensions, "schema_version": CHROMA_SCHEMA_VERSION, "record_type": "fact"}}, flow_id):
         raise ValueError("Facts collection promotion failed")
-    print(f"Facts collection rebuilt with {len(records)} records using {OpenAIEmbeddingsRepository.model_name}")
     return task_data["chroma_path"]
+
+
+def remove_stale_facts(records, task_data, flow_id):
+    if not FactsChromaRepository.delete_extra_records({**task_data, "ids": [record["id"] for record in records]}, flow_id):
+        raise ValueError("Facts extra record cleanup failed")
 
 
 def run_facts_chroma_index(task_data, flow_id):
@@ -110,6 +117,7 @@ def run_facts_chroma_index(task_data, flow_id):
         validate_record_manifest(records)
         prepare_facts_collection(task_data, flow_id)
         embedding_dimensions = embed_records(records, task_data, flow_id)
+        remove_stale_facts(records, task_data, flow_id)
         validate_stored_records(records, embedding_dimensions, task_data, flow_id)
         chroma_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
     except Exception as err:

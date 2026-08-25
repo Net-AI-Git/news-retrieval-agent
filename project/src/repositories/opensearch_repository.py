@@ -12,13 +12,13 @@ from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 
-from ..conts import OTEL_SERVICE_NAME
+from ..conts import OPENSEARCH_MAX_RETRIES, OTEL_SERVICE_NAME
 
 load_dotenv()
 
 
 class OpenSearchRepository:
-    client = OpenSearch(hosts=[{"host": os.getenv("OPENSEARCH_HOST"), "port": int(os.getenv("OPENSEARCH_PORT"))}], http_auth=(os.getenv("OPENSEARCH_USER"), os.getenv("OPENSEARCH_PASSWORD")), use_ssl=os.getenv("OPENSEARCH_USE_SSL").lower() == "true", verify_certs=os.getenv("OPENSEARCH_VERIFY_CERTS").lower() == "true", ssl_assert_hostname=False, ssl_show_warn=False, http_compress=True, max_retries=3, retry_on_timeout=True)
+    client = OpenSearch(hosts=[{"host": os.getenv("OPENSEARCH_HOST"), "port": int(os.getenv("OPENSEARCH_PORT"))}], http_auth=(os.getenv("OPENSEARCH_USER"), os.getenv("OPENSEARCH_PASSWORD")), use_ssl=os.getenv("OPENSEARCH_USE_SSL").lower() == "true", verify_certs=os.getenv("OPENSEARCH_VERIFY_CERTS").lower() == "true", ssl_assert_hostname=False, ssl_show_warn=False, http_compress=True, max_retries=OPENSEARCH_MAX_RETRIES, retry_on_timeout=True)
     logger_provider = LoggerProvider(resource=Resource.create({"service.name": OTEL_SERVICE_NAME}))
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter(endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"), insecure=os.getenv("OTEL_EXPORTER_OTLP_INSECURE").lower() == "true")))
     set_logger_provider(logger_provider)
@@ -62,6 +62,6 @@ class OpenSearchRepository:
             field_names = [field["name"] for field in query_response.get("schema", [])]
             opensearch_logs = [dict(zip(field_names, row)) for row in query_response.get("datarows", [])]
         except Exception as err:
-            OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "full_error": err.__cause__}, flow_id=flow_id, level="ERROR")
-        OpenSearchRepository.log_event(status="FINISHED", content={"opensearch_logs_retrieved": bool(opensearch_logs)}, flow_id=flow_id, level="INFO")
+            OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": query}, flow_id=flow_id, level="ERROR")
+        OpenSearchRepository.log_event(status="FINISHED", content=query, flow_id=flow_id, level="INFO")
         return opensearch_logs

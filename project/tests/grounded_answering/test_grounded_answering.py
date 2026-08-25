@@ -9,9 +9,11 @@ from uuid import uuid4
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.agents import answer_agent, gather_agent
-from src.conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS
+from src.conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS
 from src.orchestration import grounded_answering_workflow as workflow
+from src.routes.grounded_answering import grounded_answering
 from src.schemas.agent import AnswerCitation, AnswerResult, SearchEvidenceOutput
+from src.schemas.request import Request
 
 
 EVIDENCE_ITEM = {"article_title": "One year later, ChatGPT is still alive and kicking", "snippet": "ChatGPT can complete and debug code.", "url": "https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/", "published_at": "2023-11-30T14:10:43+00:00", "match_percentage": 82.0}
@@ -84,6 +86,16 @@ class GroundedAnsweringTests(unittest.TestCase):
             with patch("src.orchestration.grounded_answering_workflow.OpenSearchRepository.log_event"):
                 result = workflow.run_grounded_answering({"question": "Who?", "facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4()))
         self.assertEqual({"status": ANSWER_STATUS_REFUSED, "answer": "", "citations": []}, result)
+
+    @patch("src.routes.grounded_answering.run_grounded_answering")
+    def test_route_creates_one_flow_id_and_calls_orchestration(self, run_grounded_answering_mock):
+        run_grounded_answering_mock.return_value = {"status": ANSWER_STATUS_REFUSED, "answer": "", "citations": []}
+        result = grounded_answering(Request(content="Who won?"))
+        task_data, flow_id = run_grounded_answering_mock.call_args[0]
+        self.assertEqual({"question": "Who won?", "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": CORPUS_CHROMA_PATH}, task_data)
+        self.assertTrue(flow_id)
+        self.assertEqual(1, run_grounded_answering_mock.call_count)
+        self.assertEqual('{"status": "refused", "answer": "", "citations": []}', result.content)
 
 
 if __name__ == "__main__":
