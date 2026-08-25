@@ -39,7 +39,7 @@ This file lists config, per-run artifacts, and averages. Experiments A, B, and C
 
 ## Status
 
-Active — 2026-08-24. Live index is Experiment A (raw text, no prefixes, no `input_type`). B and C are recorded ablations. A/B/C repeats were identical across n=3.
+Active — 2026-08-25. Live index is Experiment A (raw text, no prefixes, no `input_type`). Live drop floors are 0.35 facts / 0.35 corpus. B and C are recorded ablations. A/B/C repeats were identical across n=3.
 
 ---
 
@@ -199,6 +199,37 @@ C restored Q01 precision to A. It did not recover Q05/Q08. Precision sits betwee
 | Q11 | 0.4 | 0.4 | 0.4 | 1.0 | 1.0 | 1.0 | 1 | 1 | 1 |
 
 Q04 returned 0 in all three. Q09 false positives: 3 in A/B, 5 in C. Success@5 unchanged. C matches B on Q03 recall (worse than A) and recovers A precision via Q10.
+
+---
+
+## Rewritten GT sub-questions (raw index, floor still 0.3)
+
+After A/B/C, GT `sub_questions` were rewritten on Q03, Q05, Q06, Q07 (less outlet-specific). Same raw index, shared drop floor 0.3. Artifacts: FACTS `metrics_2026-08-24_23-08-45.csv`, CORPUS `metrics_2026-08-24_23-09-00.csv`.
+
+| Store | Metric | Before rewrite (A) | After rewrite |
+|---|---|---|---|
+| FACTS | Success@5 | 0.7778 | 0.7778 |
+| FACTS | Recall@5 | 0.9074 | 0.9074 |
+| FACTS | Precision@5 | 0.8222 | 0.8222 |
+| CORPUS | Success@5 | 0.5556 | 0.6667 |
+| CORPUS | Recall@5 | 0.7778 | 0.8333 |
+| CORPUS | Precision@5 | 0.8000 | 0.7778 |
+
+FACTS unchanged (Q05/Q08 still miss). CORPUS gain is Q06 Success 0→1 and Q05 recall 0.33→0.67. Q03 CORPUS recall fell 0.67→0.33 without TechCrunch/Fortune in the query. Live GT keeps the rewrites.
+
+---
+
+## Drop-floor calibration (live constants)
+
+Shared `RETRIEVAL_MIN_SIMILARITY = 0.3` was split and raised:
+
+| Constant | Value | Why |
+|---|---|---|
+| `RETRIEVAL_FACTS_MIN_SIMILARITY` | 0.35 | Weakest gold FACTS hit is Q02 at 35.21. 0.30 kept a Q05 miss at 33.32. 0.38+ kills Q02. |
+| `RETRIEVAL_CORPUS_MIN_SIMILARITY` | 0.35 | Weakest gold CORPUS URL still needed is Q06 Guardian at 35.17. 0.35 also drops Q09 false positives at 34.21 / 31.99 / 30.06. 0.36 kills Q06 Success. |
+| `RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY` | 0.40 | Status `ok` vs `low_confidence` only. Not a drop filter. |
+
+A/B/C and the rewrite run were measured at 0.3. Live retrieval uses 0.35 / 0.35. Eval was not re-run after the floor change.
 
 ---
 

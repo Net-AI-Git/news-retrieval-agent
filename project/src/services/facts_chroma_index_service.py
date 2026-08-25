@@ -77,25 +77,6 @@ def embed_records(records, task_data, flow_id):
     return embedding_dimensions
 
 
-def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
-    for start in range(0, len(records), CHROMA_BATCH_SIZE):
-        batch = records[start:start + CHROMA_BATCH_SIZE]
-        stored_batch = FactsChromaRepository.get_records({**task_data, "ids": [record["id"] for record in batch]}, flow_id)
-        if not stored_batch:
-            raise ValueError("Stored facts batch could not be read")
-        stored_indexes = {}
-        for stored_position, record_id in enumerate(stored_batch["ids"]):
-            stored_indexes[record_id] = stored_position
-        if set(stored_indexes) != {record["id"] for record in batch}:
-            raise ValueError("Stored fact identifiers do not match source records")
-        for record in batch:
-            stored_index = stored_indexes[record["id"]]
-            if stored_batch["documents"][stored_index] != record["document"] or stored_batch["metadatas"][stored_index] != record["metadata"]:
-                raise ValueError(f"Stored fact content does not match source record: {record['id']}")
-            if len(stored_batch["embeddings"][stored_index]) != embedding_dimensions:
-                raise ValueError(f"Stored fact embedding dimensions are invalid: {record['id']}")
-
-
 def promote_facts_collection(records, embedding_dimensions, task_data, flow_id):
     if not FactsChromaRepository.promote_collection({**task_data, "record_count": len(records), "metadata": {"embedding_model": OpenAIEmbeddingsRepository.model_name, "embedding_dimensions": embedding_dimensions, "schema_version": CHROMA_SCHEMA_VERSION, "record_type": "fact"}}, flow_id):
         raise ValueError("Facts collection promotion failed")
@@ -118,7 +99,6 @@ def run_facts_chroma_index(task_data, flow_id):
         prepare_facts_collection(task_data, flow_id)
         embedding_dimensions = embed_records(records, task_data, flow_id)
         remove_stale_facts(records, task_data, flow_id)
-        validate_stored_records(records, embedding_dimensions, task_data, flow_id)
         chroma_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
     except Exception as err:
         LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")

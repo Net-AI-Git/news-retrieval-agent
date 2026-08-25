@@ -178,7 +178,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Two prompts: Gather searches, Answer claims
 
-**Choice:** Two production prompt files, one per agent module, no prompt text in Python. Gather: do not answer the user; call tools; try `search_facts` first, then `search_corpus` if needed; reformulate or follow an entity; stop with no `tool_calls` when enough or stuck. Answer: only the question plus this run's `evidence`; return an entity / `Yes` / `No` or refuse; cite only listed items; no world-knowledge fill-in. No third agent.
+**Choice:** Two production prompt files, one per agent module, no prompt text in Python. Gather: do not answer the user; call tools; decompose into standalone information needs; finish `search_facts` for every need before any `search_corpus`; call corpus only for needs whose facts are empty, weak, or missing a hop; stop with no `tool_calls` when enough or stuck. Answer: only the question plus this run's `evidence`; return an entity / `Yes` / `No` or refuse; cite only listed items; no world-knowledge fill-in. No third agent.
 
 **Chosen over:**
 
@@ -190,6 +190,52 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 - Cost: two files to keep in sync with graph behavior.
 - Gain: Gather cannot emit the final claim; Answer cannot search.
 - Constraint honored: filename stem matches the consuming agent module.
+
+### Gather: finish FACTS for every need, then CORPUS only as fallback
+
+**Choice:** Gather must complete `search_facts` for every identified information need before starting `search_corpus`. After all FACTS results return, CORPUS is called only for needs whose FACTS are empty, weak, or missing a required hop. The first CORPUS fallback for a need reuses the same `question` and date filters as that need's FACTS call. Reformulation or following a retrieved entity happens only after both stores still miss a hop.
+
+**Chosen over:**
+
+- Interleaving FACTS and CORPUS per sub-question — spends the tool budget on corpus before every fact need is checked, and fights the GT pattern of required facts calls then conditional corpus.
+- A different, tighter corpus query on the first fallback — a second wording with no measurement that the FACTS query already retrieves the passage.
+- Encoding FACTS-then-CORPUS as graph edges — orchestration would choose tools, not the LLM.
+
+**Trade-off we accepted:**
+
+- Cost: more FACTS calls before any corpus hop; an 8-call cap can expire before corpus on a wide question.
+- Gain: corpus is a fallback, not a parallel first look; first corpus query is comparable to the facts query that just failed.
+- Constraint honored: tool choice stays in the Gather prompt; the graph still only routes on `tool_calls` vs stop.
+
+### Prompt confidence 4–5 is a stop/refuse gate
+
+**Choice:** Gather may emit a tool call only when the next query would score 4 or 5 as useful; scores 1–3 stop with no tool calls. Answer may return a non-refusal only at score 4 or 5; 1–3 must refuse. This is prompt policy. Retrieval still drops by `RETRIEVAL_FACTS_MIN_SIMILARITY` / `RETRIEVAL_CORPUS_MIN_SIMILARITY` (both 0.35). Answer still has no second numeric `match_percentage` cutoff in code.
+
+**Chosen over:**
+
+- No prompt score bar — Gather keeps calling weak follow-ups until the orchestration cap.
+- A code gate on `match_percentage` in Answer — duplicates the retrieval floor and drops usable hits the model can still refuse.
+
+**Trade-off we accepted:**
+
+- Cost: a model that ignores the score still needs the 6/8 caps.
+- Gain: stop/refuse is stated in the same 1–5 scale the prompt standard requires; retrieval floors stay in `conts.py`.
+- Constraint honored: filtering by the retrieval floor remains service logic; the prompt score does not replace it.
+
+### Retrieval floors stay in the retrieval service, split by store
+
+**Choice:** Drop matches below 0.35 in Facts and below 0.35 in Corpus, as two constants. Calibrated on GT union Top-5 after the sub-question rewrites: 0.30 kept FACTS noise and Q09 CORPUS false positives; 0.40 would kill the weakest gold FACTS hit (Q02 35.21) and the Q06 Guardian CORPUS hit (35.17). High-confidence status stays 0.40 and is not a drop filter. Live embeddings stay raw (no NVIDIA prefixes, no `input_type`); A/B/C measurements are in `tests/gt_union_topk_retrieval_report/README.md` and the README retrieval chapter.
+
+**Chosen over:**
+
+- One shared `RETRIEVAL_MIN_SIMILARITY` — the stores have different hit/miss curves; they should be able to move separately.
+- NVIDIA `query:` / `passage:` prefixes or `extra_body input_type` — measured, did not improve Success or recall.
+
+**Trade-off we accepted:**
+
+- Cost: two constants that currently hold the same number.
+- Gain: each store can be retuned without retuning the other; the live floor sits just under the weakest gold hit we still need.
+- Constraint honored: Answer still does not apply a second numeric cutoff; this is retrieval only.
 
 ---
 

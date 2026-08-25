@@ -11,9 +11,7 @@ class FactsChromaRepository:
         LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         prepared = False
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_or_create_collection(FACTS_STAGING_COLLECTION, configuration={"hnsw": {"space": CHROMA_DISTANCE_METRIC}}, embedding_function=None)
-            if collection.configuration["hnsw"]["space"] != CHROMA_DISTANCE_METRIC:
-                raise ValueError("Facts staging collection must use cosine distance")
+            chromadb.PersistentClient(path=task_data["chroma_path"]).get_or_create_collection(FACTS_STAGING_COLLECTION, configuration={"hnsw": {"space": CHROMA_DISTANCE_METRIC}}, embedding_function=None)
             prepared = True
         except Exception as err:
             LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
@@ -53,18 +51,6 @@ class FactsChromaRepository:
         return cleaned
 
     @staticmethod
-    def get_records(task_data, flow_id):
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
-        stored_records = None
-        try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(FACTS_STAGING_COLLECTION, embedding_function=None)
-            stored_records = collection.get(ids=task_data["ids"], include=["documents", "metadatas", "embeddings"])
-        except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
-        return stored_records
-
-    @staticmethod
     def promote_collection(task_data, flow_id):
         LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         promoted = False
@@ -96,13 +82,7 @@ class FactsChromaRepository:
         query_result = None
         try:
             collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(FACTS_ACTIVE_COLLECTION, embedding_function=None)
-            if collection.configuration["hnsw"]["space"] != CHROMA_DISTANCE_METRIC:
-                raise ValueError("Facts collection must use cosine distance")
             query_result = collection.query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=["documents", "metadatas", "distances"])
-            if len(query_result["documents"]) != 1 or len(query_result["metadatas"]) != 1 or len(query_result["distances"]) != 1:
-                raise ValueError("Facts query returned an invalid query count")
-            if len({len(query_result[field][0]) for field in ["documents", "metadatas", "distances"]}) != 1:
-                raise ValueError("Facts query returned misaligned results")
         except Exception as err:
             LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
         LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")

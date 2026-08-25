@@ -26,6 +26,7 @@ class SearchEvidenceOutput(BaseModel):
 class AnswerCitation(BaseModel):
     article_title: str
     url: Optional[str] = None
+    snippet: str
 
 
 class AnswerResult(BaseModel):

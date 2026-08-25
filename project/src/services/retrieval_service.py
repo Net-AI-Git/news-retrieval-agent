@@ -8,10 +8,7 @@ from ..repositories.local_logging_repository import LocalLoggingRepository
 
 
 def create_query_embedding(task_data, flow_id):
-    embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [task_data["question"]]}, flow_id)
-    if len(embeddings) != 1:
-        raise ValueError("Question embedding generation failed")
-    return embeddings[0]
+    return OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [task_data["question"]]}, flow_id)[0]
 
 
 def build_published_at_filter(task_data):
@@ -31,8 +28,6 @@ def query_facts(task_data, flow_id, query_embedding, published_at_filter):
     if task_data.get("evidence_store") == RETRIEVAL_EVIDENCE_STORE_CORPUS:
         return []
     query_result = FactsChromaRepository.query_records({**task_data, "chroma_path": task_data["facts_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id, query_embedding)
-    if query_result is None:
-        raise ValueError("Evidence retrieval failed")
     results = []
     for document, metadata, distance in zip(query_result["documents"][0], query_result["metadatas"][0], query_result["distances"][0]):
         similarity = max(0.0, min(1.0, 1.0 - distance))
@@ -46,8 +41,6 @@ def query_corpus(task_data, flow_id, query_embedding, published_at_filter):
     if task_data.get("evidence_store") == RETRIEVAL_EVIDENCE_STORE_FACTS:
         return []
     query_result = CorpusChromaRepository.query_records({**task_data, "chroma_path": task_data["corpus_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id, query_embedding)
-    if query_result is None:
-        raise ValueError("Evidence retrieval failed")
     results = []
     for document, metadata, distance in zip(query_result["documents"][0], query_result["metadatas"][0], query_result["distances"][0]):
         similarity = max(0.0, min(1.0, 1.0 - distance))

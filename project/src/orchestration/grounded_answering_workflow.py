@@ -34,10 +34,10 @@ def collect_tool_evidence(tool_messages):
 def filter_answer_citations(answer_result, evidence):
     grounded_citations = []
     for citation in answer_result.citations:
-        if citation.url and any(item.get("url") == citation.url for item in evidence):
-            grounded_citations.append(citation)
-        elif not citation.url and any(item.get("article_title") == citation.article_title for item in evidence):
-            grounded_citations.append(citation)
+        for item in evidence:
+            if citation.snippet == item.get("snippet") and citation.url == item.get("url"):
+                grounded_citations.append(citation)
+                break
     if answer_result.status != ANSWER_STATUS_ANSWERED or not grounded_citations:
         return AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
     return AnswerResult(status=ANSWER_STATUS_ANSWERED, answer=answer_result.answer, citations=grounded_citations)
@@ -53,29 +53,52 @@ def route_after_gather(state):
     return "answer"
 
 
-def gather_node(state, langchain_tools, flow_id):
-    return {"messages": [run_gather({"tools": langchain_tools, "messages": state["messages"]}, flow_id)], "gather_count": state.get("gather_count", 0) + 1}
+def extract_tool_calls(message):
+    tool_calls = []
+    for tool_call in getattr(message, "tool_calls", None) or []:
+        tool_calls.append({"name": tool_call["name"] if isinstance(tool_call, dict) else tool_call.name, "args": tool_call["args"] if isinstance(tool_call, dict) else tool_call.args})
+    return tool_calls
 
 
-def tools_node(state, tool_node):
+def gather_node(state, langchain_tools, task_data, flow_id):
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    gather_message = run_gather({"tools": langchain_tools, "messages": state["messages"]}, flow_id)
+    task_data["gather_count"] = state.get("gather_count", 0) + 1
+    task_data["model_text"] = gather_message.content
+    task_data["tool_calls"] = extract_tool_calls(gather_message)
+    task_data["next_route"] = route_after_gather({"messages": [gather_message], "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+    return {"messages": [gather_message], "gather_count": task_data["gather_count"]}
+
+
+def tools_node(state, tool_node, task_data, flow_id):
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     tool_messages = tool_node.invoke(state)["messages"]
-    return {"messages": tool_messages, "evidence": collect_tool_evidence(tool_messages), "tool_count": state.get("tool_count", 0) + len(state["messages"][-1].tool_calls)}
+    evidence = collect_tool_evidence(tool_messages)
+    task_data["tool_calls"] = extract_tool_calls(state["messages"][-1])
+    task_data["tool_count"] = state.get("tool_count", 0) + len(task_data["tool_calls"])
+    task_data["evidence"] = (state.get("evidence") or []) + evidence
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+    return {"messages": tool_messages, "evidence": evidence, "tool_count": task_data["tool_count"]}
 
 
-def answer_node(state, flow_id):
+def answer_node(state, task_data, flow_id):
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     evidence = state.get("evidence") or []
-    if not evidence:
-        return {"answer_result": AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])}
-    return {"answer_result": filter_answer_citations(run_answer({"question": state["question"], "evidence": evidence}, flow_id), evidence)}
+    answer_result = filter_answer_citations(run_answer({"question": state["question"], "evidence": evidence}, flow_id), evidence)
+    task_data["evidence"] = evidence
+    task_data["answer_result"] = answer_result.model_dump()
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+    return {"answer_result": answer_result}
 
 
 def build_grounded_answering_graph(task_data, flow_id):
     langchain_tools = RetrievalTools(task_data, flow_id).as_langchain_tools()
     tool_node = ToolNode(langchain_tools)
     graph = StateGraph(GroundedAnsweringState)
-    graph.add_node("gather", lambda state: gather_node(state, langchain_tools, flow_id))
-    graph.add_node("tools", lambda state: tools_node(state, tool_node))
-    graph.add_node("answer", lambda state: answer_node(state, flow_id))
+    graph.add_node("gather", lambda state: gather_node(state, langchain_tools, task_data, flow_id))
+    graph.add_node("tools", lambda state: tools_node(state, tool_node, task_data, flow_id))
+    graph.add_node("answer", lambda state: answer_node(state, task_data, flow_id))
     graph.set_entry_point("gather")
     graph.add_conditional_edges("gather", route_after_gather, {"tools": "tools", "answer": "answer"})
     graph.add_edge("tools", "gather")
@@ -93,6 +116,7 @@ def run_grounded_answering(task_data, flow_id):
     answer_result = AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
     try:
         answer_result = invoke_grounded_answering_graph(task_data, flow_id)
+        task_data["answer_result"] = answer_result.model_dump()
     except Exception as err:
         if isinstance(err, GraphInterrupt):
             raise

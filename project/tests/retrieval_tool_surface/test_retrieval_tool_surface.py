@@ -99,7 +99,7 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         run_retrieval_mock.return_value = {"status": "ok", "question": "Who won?", "facts": [FACT_ITEM], "corpus": []}
         langchain_tools = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).as_langchain_tools()
         schema_keys = set(langchain_tools[0].args_schema.model_json_schema()["properties"])
-        self.assertEqual(["search_facts", "search_corpus"], [tool.name for tool in langchain_tools])
+        self.assertEqual(["search_facts"], [tool.name for tool in langchain_tools])
         self.assertEqual({"question", "published_from", "published_to"}, schema_keys)
         self.assertEqual([FACT_ITEM], langchain_tools[0].invoke({"question": "Who won?"})["results"])
         self.assertEqual(RETRIEVAL_EVIDENCE_STORE_FACTS, run_retrieval_mock.call_args[0][0]["evidence_store"])

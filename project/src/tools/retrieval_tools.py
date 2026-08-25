@@ -34,4 +34,4 @@ class RetrievalTools:
             return SearchEvidenceOutput(status=RETRIEVAL_TOOL_STATUS_INVALID, question="", results=[]).model_dump()
 
     def as_langchain_tools(self):
-        return [StructuredTool.from_function(self.search_facts, args_schema=SearchEvidenceInput), StructuredTool.from_function(self.search_corpus, args_schema=SearchEvidenceInput)]
+        return [StructuredTool.from_function(self.search_facts, args_schema=SearchEvidenceInput)]
