@@ -22,24 +22,6 @@
         "question": "When did The Verge discuss the structure of the ActivityPub protocol in social media contexts?"
       },
       "expectation": "required"
-    },
-    {
-      "sub_question_index": 1,
-      "tool": "search_corpus",
-      "arguments": {
-        "question": "When did TechCrunch report on Flipboard's integration of the ActivityPub protocol?"
-      },
-      "expectation": "conditional",
-      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
-    },
-    {
-      "sub_question_index": 2,
-      "tool": "search_corpus",
-      "arguments": {
-        "question": "When did The Verge discuss the structure of the ActivityPub protocol in social media contexts?"
-      },
-      "expectation": "conditional",
-      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
     }
   ],
   "corpus": [

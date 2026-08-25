@@ -22,24 +22,6 @@
         "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
       },
       "expectation": "required"
-    },
-    {
-      "sub_question_index": 1,
-      "tool": "search_corpus",
-      "arguments": {
-        "question": "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?"
-      },
-      "expectation": "conditional",
-      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
-    },
-    {
-      "sub_question_index": 2,
-      "tool": "search_corpus",
-      "arguments": {
-        "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
-      },
-      "expectation": "conditional",
-      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
     }
   ],
   "corpus": [

@@ -3,16 +3,16 @@
   "question": "Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts, alleged to have committed fraud for personal gain, and also persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?",
   "intents": ["entity", "cross-article"],
   "sub_questions": [
-    "According to TechCrunch, who instructed Caroline Ellison to use $14 billion of FTX customer funds to repay debts to Alameda Research lenders?",
-    "According to TechCrunch, which FTX founder did the prosecution allege knowingly committed fraud to gain wealth, power, and influence?",
-    "According to Fortune, who persuaded former Jane Street colleague Adam Yedidia to join Alameda Research and later FTX?"
+    "Who instructed Caroline Ellison to use $14 billion of customer funds to repay debts in connection with the FTX collapse?",
+    "Who was alleged to have committed fraud for personal gain in connection with the FTX collapse?",
+    "Who persuaded a former colleague from Jane Street to join ventures at Alameda and FTX?"
   ],
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
       "tool": "search_facts",
       "arguments": {
-        "question": "According to TechCrunch, who instructed Caroline Ellison to use $14 billion of FTX customer funds to repay debts to Alameda Research lenders?"
+        "question": "Who instructed Caroline Ellison to use $14 billion of customer funds to repay debts in connection with the FTX collapse?"
       },
       "expectation": "required"
     },
@@ -20,7 +20,7 @@
       "sub_question_index": 2,
       "tool": "search_facts",
       "arguments": {
-        "question": "According to TechCrunch, which FTX founder did the prosecution allege knowingly committed fraud to gain wealth, power, and influence?"
+        "question": "Who was alleged to have committed fraud for personal gain in connection with the FTX collapse?"
       },
       "expectation": "required"
     },
@@ -28,36 +28,9 @@
       "sub_question_index": 3,
       "tool": "search_facts",
       "arguments": {
-        "question": "According to Fortune, who persuaded former Jane Street colleague Adam Yedidia to join Alameda Research and later FTX?"
+        "question": "Who persuaded a former colleague from Jane Street to join ventures at Alameda and FTX?"
       },
       "expectation": "required"
-    },
-    {
-      "sub_question_index": 1,
-      "tool": "search_corpus",
-      "arguments": {
-        "question": "According to TechCrunch, who instructed Caroline Ellison to use $14 billion of FTX customer funds to repay debts to Alameda Research lenders?"
-      },
-      "expectation": "conditional",
-      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
-    },
-    {
-      "sub_question_index": 2,
-      "tool": "search_corpus",
-      "arguments": {
-        "question": "According to TechCrunch, which FTX founder did the prosecution allege knowingly committed fraud to gain wealth, power, and influence?"
-      },
-      "expectation": "conditional",
-      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
-    },
-    {
-      "sub_question_index": 3,
-      "tool": "search_corpus",
-      "arguments": {
-        "question": "According to Fortune, who persuaded former Jane Street colleague Adam Yedidia to join Alameda Research and later FTX?"
-      },
-      "expectation": "conditional",
-      "condition": "after_all_facts_calls_if_evidence_insufficient_for_sub_question"
     }
   ],
   "corpus": [

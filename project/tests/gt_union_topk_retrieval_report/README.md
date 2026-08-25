@@ -53,7 +53,7 @@ Active — 2026-08-24. Live index is Experiment A (raw text, no prefixes, no `in
 | Per sub-question retrieve `k` | `RETRIEVAL_TOP_K = 10` |
 | Union then keep | Top 5 by `match_percentage` |
 | Similarity | cosine (`CHROMA_DISTANCE_METRIC`) |
-| Drop below | `RETRIEVAL_MIN_SIMILARITY = 0.3` |
+| Drop below | `RETRIEVAL_FACTS_MIN_SIMILARITY = 0.35`, `RETRIEVAL_CORPUS_MIN_SIMILARITY = 0.35` (A/B/C and the rewritten-sub-question run used the previous shared `0.3`) |
 | Hit | returned `url` is in that question's gold URL set |
 | Success@5 | 1 iff every gold URL appears at least once in the top 5 |
 | Date filters | not applied by this eval runner |
