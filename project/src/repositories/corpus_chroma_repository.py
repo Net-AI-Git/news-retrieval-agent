@@ -91,14 +91,14 @@ class CorpusChromaRepository:
         return promoted
 
     @staticmethod
-    def query_records(task_data, flow_id):
+    def query_records(task_data, flow_id, query_embedding):
         LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         query_result = None
         try:
             collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_ACTIVE_COLLECTION, embedding_function=None)
             if collection.configuration["hnsw"]["space"] != CHROMA_DISTANCE_METRIC:
                 raise ValueError("Corpus collection must use cosine distance")
-            query_result = collection.query(query_embeddings=[task_data["query_embedding"]], n_results=task_data["top_k"], where=task_data.get("where"), include=["documents", "metadatas", "distances"])
+            query_result = collection.query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=["documents", "metadatas", "distances"])
             if len(query_result["documents"]) != 1 or len(query_result["metadatas"]) != 1 or len(query_result["distances"]) != 1:
                 raise ValueError("Corpus query returned an invalid query count")
             if len({len(query_result[field][0]) for field in ["documents", "metadatas", "distances"]}) != 1:

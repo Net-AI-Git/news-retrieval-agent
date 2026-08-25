@@ -10,7 +10,7 @@ from langgraph.prebuilt import ToolNode
 from ..agents.answer_agent import run_answer
 from ..agents.gather_agent import run_gather
 from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT
-from ..repositories.opensearch_repository import OpenSearchRepository
+from ..repositories.local_logging_repository import LocalLoggingRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
 from ..tools.retrieval_tools import RetrievalTools
 
@@ -89,13 +89,13 @@ def invoke_grounded_answering_graph(task_data, flow_id):
 
 
 def run_grounded_answering(task_data, flow_id):
-    OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     answer_result = AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
     try:
         answer_result = invoke_grounded_answering_graph(task_data, flow_id)
     except Exception as err:
         if isinstance(err, GraphInterrupt):
             raise
-        OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return answer_result.model_dump()

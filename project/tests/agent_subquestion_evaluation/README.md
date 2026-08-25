@@ -6,11 +6,11 @@ Dump one CSV row per question with Gather tool calls next to ground truth and is
 
 ## Scope
 
-Exercises `src/orchestration/grounded_answering_workflow.py` gather/tools loop only (answer routes to END), `src/agents/gather_agent.py`, `src/tools/retrieval_tools.py`, `src/services/retrieval_service.py`, and `src/data/ground_truth/Q01.json` through `Q11.json`. Isolated RAG copies the union Top-5 protocol from the GT facts/corpus evals. Audit-log pull is skipped until the log stack is back.
+Exercises `src/orchestration/grounded_answering_workflow.py` gather/tools loop only (answer routes to END), `src/agents/gather_agent.py`, `src/tools/retrieval_tools.py`, `src/services/retrieval_service.py`, and `src/data/ground_truth/Q01.json` through `Q11.json`. Isolated RAG copies the union Top-5 protocol from the GT facts/corpus evals. After the run, `local_logging_audit.export_audit_logs` writes a snapshot of events for the run `trace_id`.
 
 ## How to run
 
-If OTLP `:4317` is closed the runner sets `OTEL_SDK_DISABLED` so the run does not hang. Re-enable log pull later when the collector and OpenSearch are up.
+No log collector or OpenSearch is required. Events append to `local_logging_audit/audit_log/events.jsonl`.
 
 ```text
 cd project
@@ -25,10 +25,12 @@ No files in `inputs/`. The runner loads `src/data/questions.json` and matching g
 
 ## Expected outcome
 
-`outputs/gather_inspect_<timestamp>.csv` — one row per question: GT sub-questions and expected tool calls (including date args), gold facts, corpus article metadata, Gather tool names/args/results, isolated FACTS and CORPUS Top-5 HIT/MISS plus P/R/Success@5. `flow_id` is on the row for a later log join.
+`outputs/gather_inspect_<timestamp>.csv` — one row per question: GT sub-questions and expected tool calls (including date args), gold facts, corpus article metadata, Gather tool names/args/results, isolated FACTS and CORPUS Top-5 HIT/MISS plus P/R/Success@5. `flow_id` is per question; `trace_id` is shared by the whole run.
+
+`local_logging_audit/audit_log/audit_<timestamp>.json` — one audit file per run, filtered by that `trace_id`. Empty audit files fail the run.
 
 Q04 and Q09 are unanswerable: isolated RAG recall is blank; returned hits are false positives.
 
 ## Status
 
-Active — 2026-08-25. Log stack not required for this run.
+Active — 2026-08-25

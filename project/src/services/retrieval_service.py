@@ -30,7 +30,7 @@ def build_published_at_filter(task_data):
 def query_facts(task_data, flow_id, query_embedding, published_at_filter):
     if task_data.get("evidence_store") == RETRIEVAL_EVIDENCE_STORE_CORPUS:
         return []
-    query_result = FactsChromaRepository.query_records({**task_data, "chroma_path": task_data["facts_chroma_path"], "query_embedding": query_embedding, "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id)
+    query_result = FactsChromaRepository.query_records({**task_data, "chroma_path": task_data["facts_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id, query_embedding)
     if query_result is None:
         raise ValueError("Evidence retrieval failed")
     results = []
@@ -45,7 +45,7 @@ def query_facts(task_data, flow_id, query_embedding, published_at_filter):
 def query_corpus(task_data, flow_id, query_embedding, published_at_filter):
     if task_data.get("evidence_store") == RETRIEVAL_EVIDENCE_STORE_FACTS:
         return []
-    query_result = CorpusChromaRepository.query_records({**task_data, "chroma_path": task_data["corpus_chroma_path"], "query_embedding": query_embedding, "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id)
+    query_result = CorpusChromaRepository.query_records({**task_data, "chroma_path": task_data["corpus_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id, query_embedding)
     if query_result is None:
         raise ValueError("Evidence retrieval failed")
     results = []

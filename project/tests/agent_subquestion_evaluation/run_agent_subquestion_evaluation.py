@@ -1,7 +1,5 @@
 import csv
 import json
-import os
-import socket
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -14,25 +12,10 @@ from langgraph.prebuilt import ToolNode
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-
-def port_is_open(host, port):
-    connection = socket.socket()
-    connection.settimeout(2)
-    try:
-        connection.connect((host, port))
-        return True
-    except Exception:
-        return False
-    finally:
-        connection.close()
-
-
-if not port_is_open("127.0.0.1", 4317):
-    os.environ["OTEL_SDK_DISABLED"] = "true"
-
+from local_logging_audit.local_logging_audit_client import export_audit_logs
 from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS
 from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, route_after_gather, tools_node
-from src.repositories.opensearch_repository import OpenSearchRepository
+from src.repositories.local_logging_repository import LocalLoggingRepository
 from src.schemas.agent import SearchEvidenceOutput
 from src.services.retrieval_service import run_retrieval
 from src.tools.retrieval_tools import RetrievalTools
@@ -40,7 +23,7 @@ from src.tools.retrieval_tools import RetrievalTools
 
 EVALUATION_TOP_K = 5
 UNANSWERABLE_QUESTION_IDS = {"Q04", "Q09"}
-CSV_FIELDNAMES = ["question_id", "question", "unanswerable", "gt_answer", "flow_id", "agent_tool_call_count", "agent_tool_names", "gt_required_tools", "facts_precision_at_5", "facts_recall_at_5", "facts_success_at_5", "facts_missing_urls", "corpus_precision_at_5", "corpus_recall_at_5", "corpus_success_at_5", "corpus_missing_urls", "agent_facts_url_recall", "agent_corpus_url_recall", "gt_intents", "gt_sub_questions", "gt_expected_tool_calls", "gt_facts", "gt_corpus_articles", "agent_tool_calls", "agent_tool_results", "isolated_facts_top5", "isolated_corpus_top5"]
+CSV_FIELDNAMES = ["question_id", "question", "unanswerable", "gt_answer", "flow_id", "trace_id", "agent_tool_call_count", "agent_tool_names", "gt_required_tools", "facts_precision_at_5", "facts_recall_at_5", "facts_success_at_5", "facts_missing_urls", "corpus_precision_at_5", "corpus_recall_at_5", "corpus_success_at_5", "corpus_missing_urls", "agent_facts_url_recall", "agent_corpus_url_recall", "gt_intents", "gt_sub_questions", "gt_expected_tool_calls", "gt_facts", "gt_corpus_articles", "agent_tool_calls", "agent_tool_results", "isolated_facts_top5", "isolated_corpus_top5"]
 
 
 def json_cell(payload):
@@ -195,11 +178,11 @@ def gather_one_question(project_root, question_data, flow_id):
     if ground_truth["id"] != question_data["id"] or ground_truth["question"] != question_data["question"]:
         raise ValueError(f"Ground truth mismatch for {question_data['id']}")
     task_data = {"question": question_data["question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
-    OpenSearchRepository.log_event(status="STARTING", content={"question_id": question_data["id"]}, flow_id=flow_id, level="INFO")
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     graph_state = build_gather_only_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": 32})
-    OpenSearchRepository.log_event(status="FINISHED", content={"question_id": question_data["id"]}, flow_id=flow_id, level="INFO")
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     calls, results = collect_agent_tool_trace(graph_state["messages"])
-    return {"question_id": question_data["id"], "question": question_data["question"], "ground_truth": ground_truth, "flow_id": flow_id, "agent_tool_calls": calls, "agent_tool_results": results}
+    return {"question_id": question_data["id"], "question": question_data["question"], "ground_truth": ground_truth, "flow_id": flow_id, "trace_id": LocalLoggingRepository.active_trace_id.get(), "agent_tool_calls": calls, "agent_tool_results": results}
 
 
 def build_inspect_row(project_root, gathered_item):
@@ -208,7 +191,7 @@ def build_inspect_row(project_root, gathered_item):
     facts_hits, facts_metrics = isolated_store_retrieval(project_root, ground_truth, RETRIEVAL_EVIDENCE_STORE_FACTS, gathered_item["flow_id"])
     corpus_hits, corpus_metrics = isolated_store_retrieval(project_root, ground_truth, RETRIEVAL_EVIDENCE_STORE_CORPUS, gathered_item["flow_id"])
     required_tools = [item["tool"] for item in ground_truth.get("expected_tool_calls") or [] if item.get("expectation") == "required"]
-    return {"question_id": gathered_item["question_id"], "question": gathered_item["question"], "unanswerable": unanswerable, "gt_answer": ground_truth.get("answer"), "flow_id": gathered_item["flow_id"], "agent_tool_call_count": len(gathered_item["agent_tool_calls"]), "agent_tool_names": ",".join(call["tool"] for call in gathered_item["agent_tool_calls"]), "gt_required_tools": ",".join(required_tools), "facts_precision_at_5": facts_metrics["precision_at_5"], "facts_recall_at_5": facts_metrics["recall_at_5"], "facts_success_at_5": facts_metrics["success_at_5"], "facts_missing_urls": " | ".join(facts_metrics["missing_urls"]), "corpus_precision_at_5": corpus_metrics["precision_at_5"], "corpus_recall_at_5": corpus_metrics["recall_at_5"], "corpus_success_at_5": corpus_metrics["success_at_5"], "corpus_missing_urls": " | ".join(corpus_metrics["missing_urls"]), "agent_facts_url_recall": url_recall(urls_from_agent_results(gathered_item["agent_tool_results"], "search_facts"), gold_urls(ground_truth, "facts"), unanswerable), "agent_corpus_url_recall": url_recall(urls_from_agent_results(gathered_item["agent_tool_results"], "search_corpus"), gold_urls(ground_truth, "corpus"), unanswerable), "gt_intents": json_cell(ground_truth.get("intents") or []), "gt_sub_questions": json_cell(ground_truth.get("sub_questions") or []), "gt_expected_tool_calls": json_cell(ground_truth.get("expected_tool_calls") or []), "gt_facts": json_cell(gold_fact_records(ground_truth)), "gt_corpus_articles": json_cell(gold_corpus_articles(ground_truth)), "agent_tool_calls": json_cell(gathered_item["agent_tool_calls"]), "agent_tool_results": json_cell(gathered_item["agent_tool_results"]), "isolated_facts_top5": json_cell(facts_hits), "isolated_corpus_top5": json_cell(corpus_hits)}
+    return {"question_id": gathered_item["question_id"], "question": gathered_item["question"], "unanswerable": unanswerable, "gt_answer": ground_truth.get("answer"), "flow_id": gathered_item["flow_id"], "trace_id": gathered_item["trace_id"], "agent_tool_call_count": len(gathered_item["agent_tool_calls"]), "agent_tool_names": ",".join(call["tool"] for call in gathered_item["agent_tool_calls"]), "gt_required_tools": ",".join(required_tools), "facts_precision_at_5": facts_metrics["precision_at_5"], "facts_recall_at_5": facts_metrics["recall_at_5"], "facts_success_at_5": facts_metrics["success_at_5"], "facts_missing_urls": " | ".join(facts_metrics["missing_urls"]), "corpus_precision_at_5": corpus_metrics["precision_at_5"], "corpus_recall_at_5": corpus_metrics["recall_at_5"], "corpus_success_at_5": corpus_metrics["success_at_5"], "corpus_missing_urls": " | ".join(corpus_metrics["missing_urls"]), "agent_facts_url_recall": url_recall(urls_from_agent_results(gathered_item["agent_tool_results"], "search_facts"), gold_urls(ground_truth, "facts"), unanswerable), "agent_corpus_url_recall": url_recall(urls_from_agent_results(gathered_item["agent_tool_results"], "search_corpus"), gold_urls(ground_truth, "corpus"), unanswerable), "gt_intents": json_cell(ground_truth.get("intents") or []), "gt_sub_questions": json_cell(ground_truth.get("sub_questions") or []), "gt_expected_tool_calls": json_cell(ground_truth.get("expected_tool_calls") or []), "gt_facts": json_cell(gold_fact_records(ground_truth)), "gt_corpus_articles": json_cell(gold_corpus_articles(ground_truth)), "agent_tool_calls": json_cell(gathered_item["agent_tool_calls"]), "agent_tool_results": json_cell(gathered_item["agent_tool_results"]), "isolated_facts_top5": json_cell(facts_hits), "isolated_corpus_top5": json_cell(corpus_hits)}
 
 
 def write_csv(path, fieldnames, rows):
@@ -217,6 +200,14 @@ def write_csv(path, fieldnames, rows):
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def pull_run_audit(trace_id):
+    audit_path = export_audit_logs(f"SELECT * FROM local_logs WHERE trace_id = '{trace_id}' ORDER BY time")
+    if audit_path is None:
+        raise RuntimeError("Audit pull failed")
+    if not json.loads(audit_path.read_text(encoding="utf-8")):
+        raise RuntimeError(f"Audit log empty: {audit_path}")
 
 
 def run_gather_inspect(project_root, questions):
@@ -234,7 +225,14 @@ def selected_questions(questions):
 
 def run_agent_subquestion_evaluation(project_root, questions):
     timestamp = datetime.now().astimezone()
-    write_csv(Path(__file__).resolve().parent / "outputs" / f"gather_inspect_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.csv", CSV_FIELDNAMES, run_gather_inspect(project_root, questions))
+    run_trace_id = str(uuid4())
+    trace_token = LocalLoggingRepository.active_trace_id.set(run_trace_id)
+    try:
+        rows = run_gather_inspect(project_root, questions)
+        write_csv(Path(__file__).resolve().parent / "outputs" / f"gather_inspect_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.csv", CSV_FIELDNAMES, rows)
+        pull_run_audit(run_trace_id)
+    finally:
+        LocalLoggingRepository.active_trace_id.reset(trace_token)
 
 
 def main():

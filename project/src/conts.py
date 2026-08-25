@@ -2,6 +2,8 @@ from pathlib import Path
 
 
 OTEL_SERVICE_NAME = "news-retrieval-agent"
+LOCAL_LOGGER_NAME = "news-retrieval-agent"
+LOCAL_LOG_FILE_PATH = str(Path(__file__).resolve().parents[1] / "local_logging_audit" / "audit_log" / "events.jsonl")
 
 
 OPENAI_EMBEDDING_TIMEOUT_SECONDS = 60

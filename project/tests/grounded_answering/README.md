@@ -12,7 +12,6 @@ Exercises `src/orchestration/grounded_answering_workflow.py`, `src/agents/gather
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 uv sync
 uv run python -m unittest tests.grounded_answering.test_grounded_answering
 ```

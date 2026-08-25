@@ -1,3 +1,4 @@
+import contextvars
 import inspect
 import json
 import logging
@@ -15,6 +16,7 @@ class LocalLoggingRepository:
     logger.setLevel(logging.INFO)
     logger.propagate = False
     logger.handlers.clear()
+    active_trace_id = contextvars.ContextVar("active_trace_id", default=None)
 
     @staticmethod
     def log_event(status, process=None, content=None, flow_id=None, trace_id=None, level=None):
@@ -27,7 +29,7 @@ class LocalLoggingRepository:
                 LocalLoggingRepository.logger.addHandler(file_handler)
             process = process or inspect.stack()[1].function
             span_context = trace.get_current_span().get_span_context()
-            trace_id = trace_id or (format(span_context.trace_id, "032x") if span_context.is_valid else None)
+            trace_id = trace_id or LocalLoggingRepository.active_trace_id.get() or (format(span_context.trace_id, "032x") if span_context.is_valid else None)
             LocalLoggingRepository.logger.log(getattr(logging, level or "INFO"), json.dumps({"time": datetime.now(timezone.utc).isoformat(), "event": {"status": status, "process": process, "content": content, "flow_id": flow_id, "trace_id": trace_id, "level": level}}, default=str, ensure_ascii=False))
             for handler in LocalLoggingRepository.logger.handlers:
                 handler.flush()

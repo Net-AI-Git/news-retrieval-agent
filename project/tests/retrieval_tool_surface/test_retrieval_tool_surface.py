@@ -71,6 +71,7 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         self.assertEqual("ok", result["status"])
         self.assertEqual([], result["corpus"])
         self.assertEqual(RETRIEVAL_TOP_K, facts_query.call_args[0][0]["top_k"])
+        self.assertNotIn("query_embedding", facts_query.call_args[0][0])
         self.assertLessEqual(len(result["facts"]), RETRIEVAL_TOP_K)
 
     @patch("src.services.retrieval_service.LocalLoggingRepository.log_event")

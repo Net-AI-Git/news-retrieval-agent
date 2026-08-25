@@ -83,7 +83,7 @@ class GroundedAnsweringTests(unittest.TestCase):
 
     def test_run_grounded_answering_refuses_on_error(self):
         with patch("src.orchestration.grounded_answering_workflow.invoke_grounded_answering_graph", side_effect=RuntimeError("boom")):
-            with patch("src.orchestration.grounded_answering_workflow.OpenSearchRepository.log_event"):
+            with patch("src.orchestration.grounded_answering_workflow.LocalLoggingRepository.log_event"):
                 result = workflow.run_grounded_answering({"question": "Who?", "facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4()))
         self.assertEqual({"status": ANSWER_STATUS_REFUSED, "answer": "", "citations": []}, result)
 
