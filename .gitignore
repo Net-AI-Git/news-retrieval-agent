@@ -67,9 +67,10 @@ __azurite_db*__.json
 poetry.lock
 Pipfile.lock
 
-# opensearch_audit — local pulled logs, keep the folder only
-project/opensearch_audit/audit_log/*
-!project/opensearch_audit/audit_log/.gitkeep
+# Local logging artifacts, keep the source folder only
+project/local_logging_audit/audit_log/*
+!project/local_logging_audit/audit_log/.gitkeep
+project/local_logging_dashboard/dashboard.html
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
 project/vector_stores/

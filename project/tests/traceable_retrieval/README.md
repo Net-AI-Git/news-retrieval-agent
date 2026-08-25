@@ -12,7 +12,6 @@ Exercises `src/services/retrieval_service.py`, the real embedding API and both a
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 uv run python -m unittest tests.traceable_retrieval.test_traceable_retrieval
 ```
 
@@ -20,7 +19,6 @@ The reusable-handle test performs a full real index rebuild once and is intentio
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 $env:RUN_INDEX_REBUILD_TEST="true"
 uv run python -m unittest tests.traceable_retrieval.test_traceable_retrieval.TraceableRetrievalTests.test_build_index_handle_is_reused_for_multiple_questions
 ```

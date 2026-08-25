@@ -1,7 +1,5 @@
 import csv
 import json
-import os
-import socket
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
@@ -16,21 +14,6 @@ UNANSWERABLE_QUESTION_IDS = {"Q04", "Q09"}
 METRIC_FIELDNAMES = ["question_id", "unanswerable", "gold_article_count", "returned_chunk_count", "hit_chunk_count", "false_positives", "precision_at_5", "recall_at_5", "success_at_5", "matched_url_count", "missing_urls"]
 CHUNK_FIELDNAMES = ["question_id", "rank", "is_hit", "match_percentage", "article_title", "url", "source_sub_questions", "snippet"]
 
-
-def port_is_open(port):
-    connection = socket.socket()
-    connection.settimeout(1)
-    try:
-        connection.connect(("127.0.0.1", port))
-        return True
-    except Exception:
-        return False
-    finally:
-        connection.close()
-
-
-if not port_is_open(4317):
-    os.environ["OTEL_SDK_DISABLED"] = "true"
 
 from src.conts import RETRIEVAL_EVIDENCE_STORE_FACTS
 from src.services.retrieval_service import run_retrieval

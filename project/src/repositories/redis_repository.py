@@ -4,7 +4,7 @@ import os
 import redis
 from dotenv import load_dotenv
 
-from .opensearch_repository import OpenSearchRepository
+from .local_logging_repository import LocalLoggingRepository
 
 load_dotenv()
 
@@ -15,33 +15,33 @@ class RedisRepository:
 
     @staticmethod
     def push_to_queue(task_data, flow_id):
-        OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         try:
             RedisRepository.client.lpush(f"queue:{task_data['queue_id']}", json.dumps(task_data["payload"], ensure_ascii=False))
         except Exception as err:
-            OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return
 
     @staticmethod
     def pull_from_queue(task_data, flow_id):
-        OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         try:
             callback = task_data["callback"]
             while True:
                 callback(json.loads(RedisRepository.client.brpop(f"queue:{task_data['queue_id']}")[1]))
         except Exception as err:
-            OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return
 
     @staticmethod
     def get_queue_status(task_data, flow_id):
-        OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         items_in_queue = 0
         try:
             items_in_queue = len(RedisRepository.client.lrange(f"queue:{task_data['queue_id']}", 0, -1))
         except Exception as err:
-            OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return items_in_queue

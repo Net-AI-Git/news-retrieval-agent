@@ -18,7 +18,6 @@ Runners: `tests/gt_facts_union_topk/run_gt_facts_union_topk.py`, `tests/gt_corpu
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.gt_facts_union_topk.run_gt_facts_union_topk
 uv run python -m tests.gt_corpus_union_topk.run_gt_corpus_union_topk
 ```

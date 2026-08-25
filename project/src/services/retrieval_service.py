@@ -4,7 +4,7 @@ from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CO
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
-from ..repositories.opensearch_repository import OpenSearchRepository
+from ..repositories.local_logging_repository import LocalLoggingRepository
 
 
 def create_query_embedding(task_data, flow_id):
@@ -69,7 +69,7 @@ def build_retrieval_result(question, facts, corpus):
 
 
 def run_retrieval(task_data, flow_id):
-    OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     retrieval_result = {"status": RETRIEVAL_STATUS_EMPTY, "question": task_data.get("question", ""), "facts": [], "corpus": []}
     try:
         if not task_data.get("question"):
@@ -80,6 +80,6 @@ def run_retrieval(task_data, flow_id):
         corpus = query_corpus(task_data, flow_id, query_embedding, published_at_filter)
         retrieval_result = build_retrieval_result(task_data["question"], facts, corpus)
     except Exception as err:
-        OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return retrieval_result

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, DATA_DIR, FACTS_CHROMA_PATH, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
-from ..repositories.opensearch_repository import OpenSearchRepository
+from ..repositories.local_logging_repository import LocalLoggingRepository
 
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -108,7 +108,7 @@ def remove_stale_facts(records, task_data, flow_id):
 
 
 def run_facts_chroma_index(task_data, flow_id):
-    OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     chroma_path = None
     try:
         facts, corpus = load_facts_sources(task_data)
@@ -121,8 +121,8 @@ def run_facts_chroma_index(task_data, flow_id):
         validate_stored_records(records, embedding_dimensions, task_data, flow_id)
         chroma_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
     except Exception as err:
-        OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return chroma_path
 
 

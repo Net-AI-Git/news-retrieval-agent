@@ -23,7 +23,6 @@ Macro metrics average the nine answerable questions equally. Q04 and Q09 are eva
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.retrieval_evaluation.run_retrieval_evaluation
 ```
 

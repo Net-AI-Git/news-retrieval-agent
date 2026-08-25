@@ -12,7 +12,6 @@ Exercises `src/services/retrieval_service.py` with `evidence_store=corpus` again
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.gt_corpus_union_topk.run_gt_corpus_union_topk
 ```
 
