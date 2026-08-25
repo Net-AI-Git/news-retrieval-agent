@@ -1,6 +1,6 @@
 import chromadb
 
-from ..conts import CHROMA_DISTANCE_METRIC, CORPUS_ACTIVE_COLLECTION, CORPUS_PREVIOUS_COLLECTION, CORPUS_STAGING_COLLECTION
+from ..conts import CHROMA_DISTANCE_METRIC, CHROMA_QUERY_INCLUDE, CORPUS_ACTIVE_COLLECTION, CORPUS_PREVIOUS_COLLECTION, CORPUS_STAGING_COLLECTION
 from .local_logging_repository import LocalLoggingRepository
 
 
@@ -82,7 +82,7 @@ class CorpusChromaRepository:
         query_result = None
         try:
             collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_ACTIVE_COLLECTION, embedding_function=None)
-            query_result = collection.query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=["documents", "metadatas", "distances"])
+            query_result = collection.query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=CHROMA_QUERY_INCLUDE)
         except Exception as err:
             LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
         LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")

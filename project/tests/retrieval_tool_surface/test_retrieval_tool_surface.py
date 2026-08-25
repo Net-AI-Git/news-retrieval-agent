@@ -7,7 +7,7 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_TOOL_STATUS_INVALID, RETRIEVAL_TOP_K
+from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_STATUS_INVALID, RETRIEVAL_TOP_K
 from src.services.retrieval_service import run_retrieval
 from src.tools import retrieval_tools as retrieval_tools_module
 from src.tools.retrieval_tools import RetrievalTools
@@ -42,9 +42,12 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
     def test_invalid_question_returns_invalid_status(self, run_retrieval_mock):
         run_retrieval_mock.return_value = {"status": "empty", "question": "", "facts": [], "corpus": []}
         result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts(None)
-        self.assertEqual({"status": RETRIEVAL_TOOL_STATUS_INVALID, "question": "", "results": []}, result)
-        run_retrieval_mock.assert_called_once()
-        self.assertIsNone(run_retrieval_mock.call_args[0][0]["question"])
+        self.assertEqual({"status": RETRIEVAL_STATUS_INVALID, "question": "", "results": []}, result)
+        run_retrieval_mock.assert_not_called()
+
+    def test_search_facts_bad_date_returns_invalid_status(self):
+        result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts("Who won?", published_from="not-a-date")
+        self.assertEqual({"status": RETRIEVAL_STATUS_INVALID, "question": "Who won?", "results": []}, result)
 
     @patch("src.tools.retrieval_tools.run_retrieval")
     def test_search_facts_empty_status_is_machine_readable(self, run_retrieval_mock):
@@ -79,7 +82,7 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
     def test_missing_question_logs_error_without_embedding(self, generate_embeddings, log_event_mock):
         result = run_retrieval({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4()))
         generate_embeddings.assert_not_called()
-        self.assertEqual({"status": "empty", "question": "", "facts": [], "corpus": []}, result)
+        self.assertEqual({"status": "invalid", "question": "", "facts": [], "corpus": []}, result)
         self.assertIn("ERROR", [call.kwargs["status"] for call in log_event_mock.call_args_list])
 
     @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")

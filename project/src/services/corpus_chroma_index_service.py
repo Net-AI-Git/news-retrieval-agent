@@ -9,7 +9,7 @@ import pysbd
 import tiktoken
 from dotenv import load_dotenv
 
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_CHROMA_PATH, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS, DATA_DIR
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_CHROMA_PATH, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS, DATA_DIR, PDA_ARTICLE_ID_PREFIX
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.local_logging_repository import LocalLoggingRepository
@@ -41,7 +41,11 @@ def validate_corpus(corpus):
 def split_corpus_sentence_units(corpus):
     article_units = []
     for article in corpus:
-        paragraphs = [paragraph.strip() for paragraph in re.split(r"\n\s*\n+", article["body"].replace("\r\n", "\n").replace("\r", "\n")) if paragraph.strip()]
+        paragraphs = []
+        for paragraph in re.split(r"\n\s*\n+", article["body"].replace("\r\n", "\n").replace("\r", "\n")):
+            stripped_paragraph = paragraph.strip()
+            if stripped_paragraph:
+                paragraphs.append(stripped_paragraph)
         paragraph_units = []
         for paragraph in paragraphs:
             if len(tokenizer.encode(paragraph)) <= CHROMA_CHUNK_MAX_TOKENS:
@@ -91,7 +95,7 @@ def chunk_corpus_units(article_units):
 def assemble_corpus_records(article_chunks):
     records = []
     for article, chunks in article_chunks:
-        article_id = str(uuid5(NAMESPACE_URL, f"pda-article:{article['title']}"))
+        article_id = str(uuid5(NAMESPACE_URL, f"{PDA_ARTICLE_ID_PREFIX}{article['title']}"))
         paragraph_chunk_counts = {}
         for chunk_index, (paragraph_index, document) in enumerate(chunks):
             paragraph_chunk_index = paragraph_chunk_counts.get(paragraph_index, 0)

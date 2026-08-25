@@ -6,7 +6,7 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from dotenv import load_dotenv
 
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, DATA_DIR, FACTS_CHROMA_PATH, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, DATA_DIR, FACTS_CHROMA_PATH, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS, PDA_ARTICLE_ID_PREFIX
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
 from ..repositories.local_logging_repository import LocalLoggingRepository
@@ -36,7 +36,7 @@ def validate_sources(facts, corpus):
 def build_records(facts):
     records = []
     for fact in facts:
-        article_id = str(uuid5(NAMESPACE_URL, f"pda-article:{fact['article_title']}"))
+        article_id = str(uuid5(NAMESPACE_URL, f"{PDA_ARTICLE_ID_PREFIX}{fact['article_title']}"))
         records.append({"id": str(uuid5(NAMESPACE_URL, f"pda-fact:{article_id}:{fact['fact']}")), "document": fact["fact"], "metadata": {"article_id": article_id, "article_title": fact["article_title"], "source": fact["source"], "category": fact["category"], "published_at": fact["published_at"], "published_at_epoch": int(datetime.fromisoformat(fact["published_at"]).timestamp()), "url": fact["url"]}})
     if len({record["id"] for record in records}) != len(records):
         raise ValueError("Fact identifiers must be unique")

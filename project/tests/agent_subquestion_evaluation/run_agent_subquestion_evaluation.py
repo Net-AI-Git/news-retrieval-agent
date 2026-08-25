@@ -13,10 +13,10 @@ from langgraph.prebuilt import ToolNode
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 from local_logging_audit.local_logging_audit_client import export_audit_logs
+from src.agents.gather_agent import build_gather_tools
 from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, route_after_gather, tools_node
 from src.repositories.local_logging_repository import LocalLoggingRepository
 from src.schemas.agent import SearchEvidenceOutput
-from src.tools.retrieval_tools import RetrievalTools
 
 
 UNANSWERABLE_QUESTION_IDS = {"Q04", "Q09"}
@@ -120,10 +120,9 @@ def annotate_agent_results(results, gold_by_tool, unanswerable):
 
 
 def build_gather_only_graph(task_data, flow_id):
-    langchain_tools = RetrievalTools(task_data, flow_id).as_langchain_tools()
-    tool_node = ToolNode(langchain_tools)
+    tool_node = ToolNode(build_gather_tools(task_data, flow_id))
     graph = StateGraph(GroundedAnsweringState)
-    graph.add_node("gather", lambda state: gather_node(state, langchain_tools, task_data, flow_id))
+    graph.add_node("gather", lambda state: gather_node(state, task_data, flow_id))
     graph.add_node("tools", lambda state: tools_node(state, tool_node, task_data, flow_id))
     graph.set_entry_point("gather")
     graph.add_conditional_edges("gather", route_after_gather, {"tools": "tools", "answer": END})

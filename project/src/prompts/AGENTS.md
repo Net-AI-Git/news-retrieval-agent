@@ -10,6 +10,7 @@ Single source of truth for all authored LLM instructions. Prompt text is version
 
 ## Placement and Loading
 - Python code loads the prompt file at runtime and passes dynamic input separately as structured user data.
+- Prompt text is English only.
 - Prompt files contain no executable code, environment lookups, secrets, or production credentials.
 - No authored instruction, role, rule, response-format text, or example may be duplicated in Python.
 - Do not create feature subdirectories, a second prompt location, or multiple prompt formats.
@@ -40,7 +41,7 @@ Single source of truth for all authored LLM instructions. Prompt text is version
 ## Examples
 - Use two-digit blocks: `[EXAMPLE 01]...[/EXAMPLE_01]`.
 - Include at least one empty or edge-case result.
-- Use realistic production-shaped Hebrew data and varying confidence scores, including a score below `4`.
+- Use realistic production-shaped English data and varying confidence scores, including a score below `4`.
 - Before adding examples, ask the user where approved real examples can be found. Never invent production examples.
 - Never include credentials, customer PII, or unapproved production content.
 

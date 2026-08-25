@@ -8,11 +8,10 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 
 from ..agents.answer_agent import run_answer
-from ..agents.gather_agent import run_gather
+from ..agents.gather_agent import build_gather_tools, run_gather
 from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT
 from ..repositories.local_logging_repository import LocalLoggingRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
-from ..tools.retrieval_tools import RetrievalTools
 
 
 class GroundedAnsweringState(TypedDict):
@@ -60,43 +59,36 @@ def extract_tool_calls(message):
     return tool_calls
 
 
-def gather_node(state, langchain_tools, task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
-    gather_message = run_gather({"tools": langchain_tools, "messages": state["messages"]}, flow_id)
+def gather_node(state, task_data, flow_id):
+    gather_message = run_gather({**task_data, "messages": state["messages"]}, flow_id)
     task_data["gather_count"] = state.get("gather_count", 0) + 1
     task_data["model_text"] = gather_message.content
     task_data["tool_calls"] = extract_tool_calls(gather_message)
     task_data["next_route"] = route_after_gather({"messages": [gather_message], "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return {"messages": [gather_message], "gather_count": task_data["gather_count"]}
 
 
 def tools_node(state, tool_node, task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     tool_messages = tool_node.invoke(state)["messages"]
     evidence = collect_tool_evidence(tool_messages)
     task_data["tool_calls"] = extract_tool_calls(state["messages"][-1])
     task_data["tool_count"] = state.get("tool_count", 0) + len(task_data["tool_calls"])
     task_data["evidence"] = (state.get("evidence") or []) + evidence
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return {"messages": tool_messages, "evidence": evidence, "tool_count": task_data["tool_count"]}
 
 
 def answer_node(state, task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     evidence = state.get("evidence") or []
-    answer_result = filter_answer_citations(run_answer({"question": state["question"], "evidence": evidence}, flow_id), evidence)
+    answer_result = filter_answer_citations(run_answer({**task_data, "question": state["question"], "evidence": evidence}, flow_id), evidence)
     task_data["evidence"] = evidence
     task_data["answer_result"] = answer_result.model_dump()
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return {"answer_result": answer_result}
 
 
 def build_grounded_answering_graph(task_data, flow_id):
-    langchain_tools = RetrievalTools(task_data, flow_id).as_langchain_tools()
-    tool_node = ToolNode(langchain_tools)
+    tool_node = ToolNode(build_gather_tools(task_data, flow_id))
     graph = StateGraph(GroundedAnsweringState)
-    graph.add_node("gather", lambda state: gather_node(state, langchain_tools, task_data, flow_id))
+    graph.add_node("gather", lambda state: gather_node(state, task_data, flow_id))
     graph.add_node("tools", lambda state: tools_node(state, tool_node, task_data, flow_id))
     graph.add_node("answer", lambda state: answer_node(state, task_data, flow_id))
     graph.set_entry_point("gather")
@@ -106,16 +98,12 @@ def build_grounded_answering_graph(task_data, flow_id):
     return graph.compile()
 
 
-def invoke_grounded_answering_graph(task_data, flow_id):
-    graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
-    return graph_state.get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
-
-
 def run_grounded_answering(task_data, flow_id):
     LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     answer_result = AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
     try:
-        answer_result = invoke_grounded_answering_graph(task_data, flow_id)
+        graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
+        answer_result = graph_state.get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
         task_data["answer_result"] = answer_result.model_dump()
     except Exception as err:
         if isinstance(err, GraphInterrupt):

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_FACTS_MIN_SIMILARITY, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K
+from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_FACTS_MIN_SIMILARITY, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_INVALID, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
@@ -50,6 +50,11 @@ def query_corpus(task_data, flow_id, query_embedding, published_at_filter):
     return results
 
 
+def validate_question(task_data):
+    if not task_data.get("question"):
+        raise ValueError("Question is required")
+
+
 def build_retrieval_result(question, facts, corpus):
     results = facts + corpus
     if not results:
@@ -63,12 +68,11 @@ def build_retrieval_result(question, facts, corpus):
 
 def run_retrieval(task_data, flow_id):
     LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
-    retrieval_result = {"status": RETRIEVAL_STATUS_EMPTY, "question": task_data.get("question", ""), "facts": [], "corpus": []}
+    retrieval_result = {"status": RETRIEVAL_STATUS_INVALID, "question": task_data.get("question", ""), "facts": [], "corpus": []}
     try:
-        if not task_data.get("question"):
-            raise ValueError("Question is required")
-        query_embedding = create_query_embedding(task_data, flow_id)
+        validate_question(task_data)
         published_at_filter = build_published_at_filter(task_data)
+        query_embedding = create_query_embedding(task_data, flow_id)
         facts = query_facts(task_data, flow_id, query_embedding, published_at_filter)
         corpus = query_corpus(task_data, flow_id, query_embedding, published_at_filter)
         retrieval_result = build_retrieval_result(task_data["question"], facts, corpus)
