@@ -13,7 +13,7 @@ Implement a genuinely agentic answering flow in which an LLM chooses retrieval t
 ## Product Requirements
 
 - The LLM decides which tools to call and may chain multiple calls for one question.
-- The agent receives knowledge only through the tool surface created in TASK 03.
+- The agent receives knowledge only through `search_facts`. `search_corpus` exists from TASK 03 but is not bound in this loop.
 - A single LLM call with pre-baked retrieval does not satisfy this task.
 - Final answers are limited to an entity name, `Yes`, `No`, or an explicit insufficient-information refusal.
 - Every non-refusal answer cites only evidence actually returned by tools during that run.
@@ -43,6 +43,7 @@ The developer chooses the LLM provider, model, agent framework, loop implementat
 
 - Replacing the retrieval representation or tool contracts without a documented need.
 - Batch generation of the final `answers.json` and transcripts.
+- Binding `search_corpus` in the answering loop.
 - Optional bonus features unrelated to required answer quality.
 
 ## Success Criteria
@@ -56,7 +57,7 @@ The developer chooses the LLM provider, model, agent framework, loop implementat
 ## Definition of Done
 
 - [ ] The LLM controls tool selection and follow-up decisions.
-- [ ] The loop supports multiple tool calls and multiple evidence sources.
+- [ ] The loop supports multiple `search_facts` calls. Corpus is out of this task.
 - [ ] Raw corpus and facts are never inserted directly into the answer-time prompt.
 - [ ] Evidence-sufficiency and refusal behavior are implemented and tested.
 - [ ] Answer and citation claims are validated against retrieved evidence.

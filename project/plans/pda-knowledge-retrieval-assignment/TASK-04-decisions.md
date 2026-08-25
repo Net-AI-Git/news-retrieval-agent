@@ -1,7 +1,7 @@
 # TASK 04 — Decision Log
 
 **Status:** In progress  
-**Scope:** Agentic grounded answering loop. Tool contracts stay as TASK 03.
+**Scope:** Agentic grounded answering loop. Tool contracts stay as TASK 03. This loop binds `search_facts` only.
 
 Closed decisions stay here with the trade-off that justified them. Open items stay listed until chosen.
 
@@ -11,7 +11,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### LangGraph loop composing the TASK 03 tool list
 
-**Choice:** Run the answering loop as a LangGraph graph. Bind `search_facts` and `search_corpus` from `RetrievalTools.as_langchain_tools()`. Orchestration owns the graph, budgets, and stop conditions. The agent owns the prompt and the two-tool allowlist.
+**Choice:** Run the answering loop as a LangGraph graph. Bind only `search_facts` from `RetrievalTools.as_langchain_tools()`. Orchestration owns the graph, budgets, and stop conditions. The agent owns the prompt and the one-tool allowlist. `search_corpus` stays on the TASK 03 class and is not in this loop.
 
 **Chosen over:**
 
@@ -26,7 +26,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Gather with tools + Answer with no tools
 
-**Choice:** Two agents. `gather` has the `search_facts` / `search_corpus` allowlist and decides the next hop, reformulation, or stop. `answer` has no tools and sees only evidence accumulated in this run, then returns a name / `Yes` / `No` / refusal plus citations. Decomposition is gather prompt behavior, not a mandatory planner node.
+**Choice:** Two agents. `gather` has the `search_facts` allowlist and decides the next hop, reformulation, or stop. `answer` has no tools and sees only evidence accumulated in this run, then returns a name / `Yes` / `No` / refusal plus citations. Decomposition is gather prompt behavior, not a mandatory planner node.
 
 **Chosen over:**
 
@@ -178,7 +178,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Two prompts: Gather searches, Answer claims
 
-**Choice:** Two production prompt files, one per agent module, no prompt text in Python. Gather: do not answer the user; call tools; decompose into standalone information needs; finish `search_facts` for every need before any `search_corpus`; call corpus only for needs whose facts are empty, weak, or missing a hop; stop with no `tool_calls` when enough or stuck. Answer: only the question plus this run's `evidence`; return an entity / `Yes` / `No` or refuse; cite only listed items; no world-knowledge fill-in. No third agent.
+**Choice:** Two production prompt files, one per agent module, no prompt text in Python. Gather: do not answer the user; call `search_facts`; decompose into standalone information needs; stop with no `tool_calls` when enough or stuck. Answer: only the question plus this run's `evidence`; return an entity / `Yes` / `No` or refuse; cite only listed items; no world-knowledge fill-in. No third agent. No `search_corpus` in this loop.
 
 **Chosen over:**
 
@@ -191,20 +191,19 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 - Gain: Gather cannot emit the final claim; Answer cannot search.
 - Constraint honored: filename stem matches the consuming agent module.
 
-### Gather: finish FACTS for every need, then CORPUS only as fallback
+### Gather uses FACTS only; corpus is out of this task
 
-**Choice:** Gather must complete `search_facts` for every identified information need before starting `search_corpus`. After all FACTS results return, CORPUS is called only for needs whose FACTS are empty, weak, or missing a required hop. The first CORPUS fallback for a need reuses the same `question` and date filters as that need's FACTS call. Reformulation or following a retrieved entity happens only after both stores still miss a hop.
+**Choice:** Gather calls `search_facts` only. Reformulation or following a retrieved entity is another `search_facts` call. `search_corpus` is not bound and is not a fallback in this task.
 
 **Chosen over:**
 
-- Interleaving FACTS and CORPUS per sub-question — spends the tool budget on corpus before every fact need is checked, and fights the GT pattern of required facts calls then conditional corpus.
-- A different, tighter corpus query on the first fallback — a second wording with no measurement that the FACTS query already retrieves the passage.
-- Encoding FACTS-then-CORPUS as graph edges — orchestration would choose tools, not the LLM.
+- Binding `search_facts` and `search_corpus` in this loop — current scope is facts-only.
+- Encoding a corpus fallback as graph edges — would add a tool this task does not bind.
 
 **Trade-off we accepted:**
 
-- Cost: more FACTS calls before any corpus hop; an 8-call cap can expire before corpus on a wide question.
-- Gain: corpus is a fallback, not a parallel first look; first corpus query is comparable to the facts query that just failed.
+- Cost: questions that need passages cannot retrieve corpus evidence in this task and must refuse if facts are not enough.
+- Gain: one allowlist, one store, no corpus hops against the 8-call cap.
 - Constraint honored: tool choice stays in the Gather prompt; the graph still only routes on `tool_calls` vs stop.
 
 ### Prompt confidence 4–5 is a stop/refuse gate
