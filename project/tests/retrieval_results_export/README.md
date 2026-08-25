@@ -12,7 +12,6 @@ Exercises `src/services/retrieval_service.py`, the configured embedding API, and
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.retrieval_results_export.run_retrieval_results_export
 ```
 

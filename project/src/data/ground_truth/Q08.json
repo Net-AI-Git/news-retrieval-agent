@@ -2,6 +2,32 @@
   "id": "Q08",
   "question": "Did the coverage of ski resorts by 'The Independent - Travel' change after their report on the 'Swiss slopes of Zermatt and pistes of Vail in Colorado' on October 13th, 2023, compared to their subsequent report on 'Tremblant Ski Resort' on October 25th, 2023?",
   "intents": ["yes-no", "temporal", "cross-article"],
+  "sub_questions": [
+    "What aspect of ski resorts did The Independent - Travel cover on October 13, 2023, in its report featuring the Swiss slopes of Zermatt and the pistes of Vail in Colorado?",
+    "What aspect of Tremblant Ski Resort did The Independent - Travel cover on October 25, 2023?"
+  ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "What aspect of ski resorts did The Independent - Travel cover on October 13, 2023, in its report featuring the Swiss slopes of Zermatt and the pistes of Vail in Colorado?",
+        "published_from": "2023-10-13T00:00:00+00:00",
+        "published_to": "2023-10-13T23:59:59+00:00"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "What aspect of Tremblant Ski Resort did The Independent - Travel cover on October 25, 2023?",
+        "published_from": "2023-10-25T00:00:00+00:00",
+        "published_to": "2023-10-25T23:59:59+00:00"
+      },
+      "expectation": "required"
+    }
+  ],
   "corpus": [
     {
       "title": "7 of the best luxury ski resorts for a five-star experience",
@@ -38,6 +64,17 @@
       "category": "entertainment",
       "published_at": "2023-10-25T11:51:09+00:00",
       "url": "https://www.independent.co.uk/travel/skiing/best-ski-holidays-canada-b2432416.html"
+    }
+  ],
+  "answer": "Yes",
+  "citations": [
+    {
+      "article_title": "7 of the best luxury ski resorts for a five-star experience",
+      "snippet": "From the Swiss slopes of Zermatt to the pistes of Vail in Colorado, it’s not just the snow that sparkles."
+    },
+    {
+      "article_title": "7 of the best ski holidays in Canada",
+      "snippet": "Quebec’s premier ski resort sits at the foot of the eponymous mountain, whose pistes cater well to all abilities."
     }
   ]
 }

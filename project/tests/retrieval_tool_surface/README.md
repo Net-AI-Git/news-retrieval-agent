@@ -12,7 +12,6 @@ Exercises `src/tools/retrieval_tools.py`, `src/schemas/agent.py`, and `src/servi
 
 ```text
 cd project
-$env:OTEL_SDK_DISABLED="true"
 uv run python -m unittest tests.retrieval_tool_surface.test_retrieval_tool_surface
 ```
 

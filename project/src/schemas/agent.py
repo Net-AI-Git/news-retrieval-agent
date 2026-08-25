@@ -21,3 +21,15 @@ class SearchEvidenceOutput(BaseModel):
     status: str
     question: str
     results: list[RetrievedItem]
+
+
+class AnswerCitation(BaseModel):
+    article_title: str
+    url: Optional[str] = None
+    snippet: str
+
+
+class AnswerResult(BaseModel):
+    status: str
+    answer: str = ""
+    citations: list[AnswerCitation] = []

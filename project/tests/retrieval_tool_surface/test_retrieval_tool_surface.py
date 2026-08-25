@@ -7,7 +7,7 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_TOOL_STATUS_INVALID, RETRIEVAL_TOP_K
+from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_STATUS_INVALID, RETRIEVAL_TOP_K
 from src.services.retrieval_service import run_retrieval
 from src.tools import retrieval_tools as retrieval_tools_module
 from src.tools.retrieval_tools import RetrievalTools
@@ -38,9 +38,16 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         self.assertNotIn("facts", result)
         self.assertNotIn("corpus", result)
 
-    def test_invalid_question_returns_invalid_status(self):
+    @patch("src.tools.retrieval_tools.run_retrieval")
+    def test_invalid_question_returns_invalid_status(self, run_retrieval_mock):
+        run_retrieval_mock.return_value = {"status": "empty", "question": "", "facts": [], "corpus": []}
         result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts(None)
-        self.assertEqual({"status": RETRIEVAL_TOOL_STATUS_INVALID, "question": "", "results": []}, result)
+        self.assertEqual({"status": RETRIEVAL_STATUS_INVALID, "question": "", "results": []}, result)
+        run_retrieval_mock.assert_not_called()
+
+    def test_search_facts_bad_date_returns_invalid_status(self):
+        result = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts("Who won?", published_from="not-a-date")
+        self.assertEqual({"status": RETRIEVAL_STATUS_INVALID, "question": "Who won?", "results": []}, result)
 
     @patch("src.tools.retrieval_tools.run_retrieval")
     def test_search_facts_empty_status_is_machine_readable(self, run_retrieval_mock):
@@ -67,7 +74,16 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         self.assertEqual("ok", result["status"])
         self.assertEqual([], result["corpus"])
         self.assertEqual(RETRIEVAL_TOP_K, facts_query.call_args[0][0]["top_k"])
+        self.assertNotIn("query_embedding", facts_query.call_args[0][0])
         self.assertLessEqual(len(result["facts"]), RETRIEVAL_TOP_K)
+
+    @patch("src.services.retrieval_service.LocalLoggingRepository.log_event")
+    @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
+    def test_missing_question_logs_error_without_embedding(self, generate_embeddings, log_event_mock):
+        result = run_retrieval({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4()))
+        generate_embeddings.assert_not_called()
+        self.assertEqual({"status": "invalid", "question": "", "facts": [], "corpus": []}, result)
+        self.assertIn("ERROR", [call.kwargs["status"] for call in log_event_mock.call_args_list])
 
     @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
     @patch("src.services.retrieval_service.FactsChromaRepository.query_records")
@@ -86,7 +102,7 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         run_retrieval_mock.return_value = {"status": "ok", "question": "Who won?", "facts": [FACT_ITEM], "corpus": []}
         langchain_tools = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).as_langchain_tools()
         schema_keys = set(langchain_tools[0].args_schema.model_json_schema()["properties"])
-        self.assertEqual(["search_facts", "search_corpus"], [tool.name for tool in langchain_tools])
+        self.assertEqual(["search_facts"], [tool.name for tool in langchain_tools])
         self.assertEqual({"question", "published_from", "published_to"}, schema_keys)
         self.assertEqual([FACT_ITEM], langchain_tools[0].invoke({"question": "Who won?"})["results"])
         self.assertEqual(RETRIEVAL_EVIDENCE_STORE_FACTS, run_retrieval_mock.call_args[0][0]["evidence_store"])

@@ -2,6 +2,48 @@
   "id": "Q09",
   "question": "Considering the information from a BBC News article detailing the latest advancements in space technology by Forerunner and a Forbes article discussing the financial growth and market expansion of Forerunner, which CEO, known for leading the innovative charge in space exploration and also recognized for significant company valuation increase, has been featured in both publications?",
   "intents": ["entity", "cross-article", "unanswerable"],
+  "sub_questions": [
+    "Which CEO is identified in the BBC News article about Forerunner's latest advancements in space technology?",
+    "Which CEO is identified in the Forbes article about Forerunner's financial growth, market expansion, and significant company valuation increase?"
+  ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which CEO is identified in the BBC News article about Forerunner's latest advancements in space technology?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which CEO is identified in the Forbes article about Forerunner's financial growth, market expansion, and significant company valuation increase?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which CEO is identified in the BBC News article about Forerunner's latest advancements in space technology?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_no_relevant_information_returned_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which CEO is identified in the Forbes article about Forerunner's financial growth, market expansion, and significant company valuation increase?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_no_relevant_information_returned_for_sub_question"
+    }
+  ],
   "corpus": [],
-  "facts": []
+  "facts": [],
+  "answer": "Insufficient information",
+  "citations": []
 }

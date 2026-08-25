@@ -2,6 +2,48 @@
   "id": "Q04",
   "question": "Considering the information from an article in the New York Times and another in the Wall Street Journal about Pets Best, which company, known for its insurance products and mentioned in both articles, has a CEO with the initial 'M'?",
   "intents": ["entity", "cross-article", "unanswerable"],
+  "sub_questions": [
+    "Which insurance companies and their CEOs are mentioned in the New York Times article about Pets Best?",
+    "Which insurance companies and their CEOs are mentioned in the Wall Street Journal article about Pets Best?"
+  ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which insurance companies and their CEOs are mentioned in the New York Times article about Pets Best?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Which insurance companies and their CEOs are mentioned in the Wall Street Journal article about Pets Best?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 1,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which insurance companies and their CEOs are mentioned in the New York Times article about Pets Best?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_no_relevant_information_returned_for_sub_question"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_corpus",
+      "arguments": {
+        "question": "Which insurance companies and their CEOs are mentioned in the Wall Street Journal article about Pets Best?"
+      },
+      "expectation": "conditional",
+      "condition": "after_all_facts_calls_if_no_relevant_information_returned_for_sub_question"
+    }
+  ],
   "corpus": [],
-  "facts": []
+  "facts": [],
+  "answer": "Insufficient information",
+  "citations": []
 }

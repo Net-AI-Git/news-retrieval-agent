@@ -2,6 +2,28 @@
   "id": "Q02",
   "question": "Did TechCrunch report on Flipboard's integration of the ActivityPub protocol before The Verge discussed the structure of the ActivityPub protocol in social media contexts?",
   "intents": ["yes-no", "temporal", "cross-article"],
+  "sub_questions": [
+    "When did TechCrunch report on Flipboard's integration of the ActivityPub protocol?",
+    "When did The Verge discuss the structure of the ActivityPub protocol in social media contexts?"
+  ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "When did TechCrunch report on Flipboard's integration of the ActivityPub protocol?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "When did The Verge discuss the structure of the ActivityPub protocol in social media contexts?"
+      },
+      "expectation": "required"
+    }
+  ],
   "corpus": [
     {
       "title": "Flipboard becomes a federated app with support for ActivityPub",
@@ -38,6 +60,17 @@
       "category": "technology",
       "published_at": "2023-12-19T13:00:00+00:00",
       "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub"
+    }
+  ],
+  "answer": "Yes",
+  "citations": [
+    {
+      "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+      "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added."
+    },
+    {
+      "article_title": "2023 in social media: the case for the fediverse",
+      "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL."
     }
   ]
 }

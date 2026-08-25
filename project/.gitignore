@@ -30,6 +30,9 @@ dist
 
 # Python Environments
 .env
+**/.env
+!.env.example
+!**/.env.example
 .venv
 env/
 venv/
@@ -60,9 +63,13 @@ __azurite_db*__.json
 poetry.lock
 Pipfile.lock
 
-# opensearch_audit — local pulled logs, keep the folder only
-opensearch_audit/audit_log/*
-!opensearch_audit/audit_log/.gitkeep
+# Local logging artifacts, keep the source folder only
+local_logging_audit/audit_log/*
+!local_logging_audit/audit_log/.gitkeep
+local_logging_dashboard/dashboard.html
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
 vector_stores/
+
+# Local experiment notes
+EXP.txt

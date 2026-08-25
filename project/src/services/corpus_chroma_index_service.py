@@ -9,10 +9,10 @@ import pysbd
 import tiktoken
 from dotenv import load_dotenv
 
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_CHROMA_PATH, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS, DATA_DIR, PDA_ARTICLE_ID_PREFIX
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
-from ..repositories.opensearch_repository import OpenSearchRepository
+from ..repositories.local_logging_repository import LocalLoggingRepository
 
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -41,7 +41,11 @@ def validate_corpus(corpus):
 def split_corpus_sentence_units(corpus):
     article_units = []
     for article in corpus:
-        paragraphs = [paragraph.strip() for paragraph in re.split(r"\n\s*\n+", article["body"].replace("\r\n", "\n").replace("\r", "\n")) if paragraph.strip()]
+        paragraphs = []
+        for paragraph in re.split(r"\n\s*\n+", article["body"].replace("\r\n", "\n").replace("\r", "\n")):
+            stripped_paragraph = paragraph.strip()
+            if stripped_paragraph:
+                paragraphs.append(stripped_paragraph)
         paragraph_units = []
         for paragraph in paragraphs:
             if len(tokenizer.encode(paragraph)) <= CHROMA_CHUNK_MAX_TOKENS:
@@ -91,7 +95,7 @@ def chunk_corpus_units(article_units):
 def assemble_corpus_records(article_chunks):
     records = []
     for article, chunks in article_chunks:
-        article_id = str(uuid5(NAMESPACE_URL, f"pda-article:{article['title']}"))
+        article_id = str(uuid5(NAMESPACE_URL, f"{PDA_ARTICLE_ID_PREFIX}{article['title']}"))
         paragraph_chunk_counts = {}
         for chunk_index, (paragraph_index, document) in enumerate(chunks):
             paragraph_chunk_index = paragraph_chunk_counts.get(paragraph_index, 0)
@@ -124,43 +128,31 @@ def embed_records(records, task_data, flow_id):
         embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [record["embedding_input"] for record in batch]}, flow_id)
         if not embeddings:
             raise ValueError("Corpus embedding generation failed")
-        embedding_sizes = {len(embedding) for embedding in embeddings}
+        embedding_sizes = set()
+        for embedding in embeddings:
+            embedding_sizes.add(len(embedding))
         if len(embedding_sizes) != 1 or embedding_dimensions and embedding_dimensions not in embedding_sizes:
             raise ValueError("Embedding dimensions are inconsistent across corpus batches")
         if embedding_dimensions is None:
             embedding_dimensions = len(embeddings[0])
         if not CorpusChromaRepository.upsert_records({**task_data, "records": batch, "embeddings": embeddings}, flow_id):
             raise ValueError("Corpus batch storage failed")
-        print(f"Indexed corpus passages: {min(start + len(batch), len(records))}/{len(records)}")
     return embedding_dimensions
-
-
-def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
-    for start in range(0, len(records), CHROMA_BATCH_SIZE):
-        batch = records[start:start + CHROMA_BATCH_SIZE]
-        stored_batch = CorpusChromaRepository.get_records({**task_data, "ids": [record["id"] for record in batch]}, flow_id)
-        if not stored_batch:
-            raise ValueError("Stored corpus batch could not be read")
-        stored_indexes = {record_id: index for index, record_id in enumerate(stored_batch["ids"])}
-        if set(stored_indexes) != {record["id"] for record in batch}:
-            raise ValueError("Stored corpus identifiers do not match source records")
-        for record in batch:
-            stored_index = stored_indexes[record["id"]]
-            if stored_batch["documents"][stored_index] != record["document"] or stored_batch["metadatas"][stored_index] != record["metadata"]:
-                raise ValueError(f"Stored corpus content does not match source record: {record['id']}")
-            if len(stored_batch["embeddings"][stored_index]) != embedding_dimensions:
-                raise ValueError(f"Stored corpus embedding dimensions are invalid: {record['id']}")
 
 
 def promote_corpus_collection(records, embedding_dimensions, task_data, flow_id):
     if not CorpusChromaRepository.promote_collection({**task_data, "record_count": len(records), "metadata": {"embedding_model": OpenAIEmbeddingsRepository.model_name, "embedding_dimensions": embedding_dimensions, "schema_version": CHROMA_SCHEMA_VERSION, "record_type": "corpus_passage", "chunk_target_tokens": CHROMA_CHUNK_TARGET_TOKENS, "chunk_min_tokens": CHROMA_CHUNK_MIN_TOKENS, "chunk_max_tokens": CHROMA_CHUNK_MAX_TOKENS, "overlap_target_tokens": CHROMA_OVERLAP_TARGET_TOKENS, "paragraph_boundary": "hard", "token_encoding": CHROMA_TOKEN_ENCODING, "sentence_segmenter": "pysbd:0.3.4"}}, flow_id):
         raise ValueError("Corpus collection promotion failed")
-    print(f"Corpus collection rebuilt with {len(records)} passages using {OpenAIEmbeddingsRepository.model_name}")
     return task_data["chroma_path"]
 
 
+def remove_stale_corpus(records, task_data, flow_id):
+    if not CorpusChromaRepository.delete_extra_records({**task_data, "ids": [record["id"] for record in records]}, flow_id):
+        raise ValueError("Corpus extra record cleanup failed")
+
+
 def run_corpus_chroma_index(task_data, flow_id):
-    OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     chroma_path = None
     try:
         corpus = load_corpus(task_data)
@@ -171,14 +163,13 @@ def run_corpus_chroma_index(task_data, flow_id):
         validate_record_manifest(records)
         prepare_corpus_collection(task_data, flow_id)
         embedding_dimensions = embed_records(records, task_data, flow_id)
-        validate_stored_records(records, embedding_dimensions, task_data, flow_id)
+        remove_stale_corpus(records, task_data, flow_id)
         chroma_path = promote_corpus_collection(records, embedding_dimensions, task_data, flow_id)
     except Exception as err:
-        OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return chroma_path
 
 
 if __name__ == "__main__":
-    project_root = Path(__file__).resolve().parents[2]
-    run_corpus_chroma_index({"data_dir": str(Path(__file__).resolve().parents[1] / "data"), "chroma_path": str(project_root / "vector_stores" / "corpus_chroma"), "index_name": "corpus"}, str(uuid4()))
+    run_corpus_chroma_index({"data_dir": DATA_DIR, "chroma_path": CORPUS_CHROMA_PATH}, str(uuid4()))

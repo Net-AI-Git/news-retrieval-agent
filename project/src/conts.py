@@ -1,4 +1,9 @@
+from pathlib import Path
+
+
 OTEL_SERVICE_NAME = "news-retrieval-agent"
+LOCAL_LOGGER_NAME = "news-retrieval-agent"
+LOCAL_LOG_FILE_PATH = str(Path(__file__).resolve().parents[1] / "local_logging_audit" / "audit_log" / "events.jsonl")
 
 
 OPENAI_EMBEDDING_TIMEOUT_SECONDS = 60
@@ -12,18 +17,33 @@ CHROMA_CHUNK_TARGET_TOKENS = 500
 CHROMA_CHUNK_MIN_TOKENS = 400
 CHROMA_CHUNK_MAX_TOKENS = 600
 CHROMA_OVERLAP_TARGET_TOKENS = 100
+CHROMA_QUERY_INCLUDE = ["documents", "metadatas", "distances"]
+PDA_ARTICLE_ID_PREFIX = "pda-article:"
 FACTS_ACTIVE_COLLECTION = "facts"
 FACTS_STAGING_COLLECTION = "facts_staging"
 FACTS_PREVIOUS_COLLECTION = "facts_previous"
 CORPUS_ACTIVE_COLLECTION = "corpus"
 CORPUS_STAGING_COLLECTION = "corpus_staging"
 CORPUS_PREVIOUS_COLLECTION = "corpus_previous"
+DATA_DIR = str(Path(__file__).resolve().parent / "data")
+CORPUS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "corpus_chroma")
+FACTS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "facts_chroma")
 RETRIEVAL_TOP_K = 10
-RETRIEVAL_MIN_SIMILARITY = 0.3
+RETRIEVAL_FACTS_MIN_SIMILARITY = 0.35
+RETRIEVAL_CORPUS_MIN_SIMILARITY = 0.35
 RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY = 0.4
+RETRIEVAL_PERCENT_SCALE = 100
 RETRIEVAL_EVIDENCE_STORE_FACTS = "facts"
 RETRIEVAL_EVIDENCE_STORE_CORPUS = "corpus"
-RETRIEVAL_TOOL_STATUS_INVALID = "invalid"
+RETRIEVAL_STATUS_EMPTY = "empty"
+RETRIEVAL_STATUS_OK = "ok"
+RETRIEVAL_STATUS_LOW_CONFIDENCE = "low_confidence"
+RETRIEVAL_STATUS_INVALID = "invalid"
+ANSWER_STATUS_ANSWERED = "answered"
+ANSWER_STATUS_REFUSED = "refused"
+GATHER_MAX_LLM_TURNS = 6
+GATHER_MAX_TOOL_CALLS = 8
+GROUNDED_ANSWERING_RECURSION_LIMIT = 32
 FACTS_REQUIRED_FIELDS = {"fact", "article_title", "source", "category", "published_at", "url"}
 CORPUS_REQUIRED_FIELDS = {"title", "author", "source", "published_at", "category", "url", "body"}
 FACTS_EXPECTED_RECORD_COUNT = 251

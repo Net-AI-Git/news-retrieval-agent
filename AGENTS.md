@@ -8,7 +8,7 @@
 2. [`.Codex/rules/01-teach-lesson.md`](.Codex/rules/01-teach-lesson.md) — Phase 0: what to read before each task type.
 3. [`.Codex/rules/02-code-layout.md`](.Codex/rules/02-code-layout.md) — Phase 1: file structure, naming, layer placement.
 4. [`.Codex/rules/03-code-quality.md`](.Codex/rules/03-code-quality.md) — Phase 2: function size, formatting, minimal code.
-5. [`.Codex/rules/04-error-and-logging.md`](.Codex/rules/04-error-and-logging.md) — Phase 3: single try/except, OpenTelemetry logging.
+5. [`.Codex/rules/04-error-and-logging.md`](.Codex/rules/04-error-and-logging.md) — Phase 3: single try/except, local structured logging.
 
 Reference implementation: [`.Codex/rules/reference/gpt_feature_name_repository.py`](.Codex/rules/reference/gpt_feature_name_repository.py) — canonical GPT repository shape.
 
@@ -20,7 +20,7 @@ Skill definitions live in [`.agents/skills/`](.agents/skills/). Each reads its r
 - `create-command` / `update-command` — redirect legacy command requests to repository skills.
 - `code-review` — validate changed files against every rule (read-only).
 - `sync-sdd` — reconcile code changes with a chosen SDD.
-- `create-opensearch-tech-dashboard` — build an OpenSearch technical dashboard from a service's emitted `OpenSearchRepository.log_event` events.
+- `create-local-logging-dashboard` — build a standalone dashboard from a service's emitted `LocalLoggingRepository.log_event` events.
 
 ## Directory-Scoped Standards
 

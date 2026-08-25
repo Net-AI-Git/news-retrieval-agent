@@ -16,7 +16,7 @@ The system-level control plane for multi-agent flows. This layer owns execution 
 - Parallelize only independent work and join results at a declared synchronization point.
 - Persist checkpoints before waits or human approval and resume from the saved state.
 - Preserve framework interrupts and cancellation signals; never absorb them in a broad application exception handler.
-- Emit one correlated trace for the workflow and standard GenAI spans for agents, model calls, tools, handoffs, and guardrails.
+- Preserve `flow_id` across the workflow and pass an available trace identifier into local lifecycle logs.
 - Orchestration calls agents or services only. Business operations remain in services.
 
 ## Forbidden
@@ -31,4 +31,4 @@ The system-level control plane for multi-agent flows. This layer owns execution 
 - [`../tools/AGENTS.md`](../tools/AGENTS.md) — agent-callable business adapters.
 - [`../prompts/AGENTS.md`](../prompts/AGENTS.md) — external instructions.
 - [`../schemas/AGENTS.md`](../schemas/AGENTS.md) — workflow state contracts.
-- [`../../docs/opensearch.md`](../../docs/opensearch.md) — trace correlation and GenAI observability.
+- [`../../docs/local_logging.md`](../../docs/local_logging.md) — local event storage and trace correlation.

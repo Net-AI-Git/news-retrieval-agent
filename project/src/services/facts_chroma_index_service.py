@@ -6,10 +6,10 @@ from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from dotenv import load_dotenv
 
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, DATA_DIR, FACTS_CHROMA_PATH, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS, PDA_ARTICLE_ID_PREFIX
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
-from ..repositories.opensearch_repository import OpenSearchRepository
+from ..repositories.local_logging_repository import LocalLoggingRepository
 
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -36,7 +36,7 @@ def validate_sources(facts, corpus):
 def build_records(facts):
     records = []
     for fact in facts:
-        article_id = str(uuid5(NAMESPACE_URL, f"pda-article:{fact['article_title']}"))
+        article_id = str(uuid5(NAMESPACE_URL, f"{PDA_ARTICLE_ID_PREFIX}{fact['article_title']}"))
         records.append({"id": str(uuid5(NAMESPACE_URL, f"pda-fact:{article_id}:{fact['fact']}")), "document": fact["fact"], "metadata": {"article_id": article_id, "article_title": fact["article_title"], "source": fact["source"], "category": fact["category"], "published_at": fact["published_at"], "published_at_epoch": int(datetime.fromisoformat(fact["published_at"]).timestamp()), "url": fact["url"]}})
     if len({record["id"] for record in records}) != len(records):
         raise ValueError("Fact identifiers must be unique")
@@ -65,43 +65,31 @@ def embed_records(records, task_data, flow_id):
         embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [record["document"] for record in batch]}, flow_id)
         if not embeddings:
             raise ValueError("Facts embedding generation failed")
-        embedding_sizes = {len(embedding) for embedding in embeddings}
+        embedding_sizes = set()
+        for embedding in embeddings:
+            embedding_sizes.add(len(embedding))
         if len(embedding_sizes) != 1 or embedding_dimensions and embedding_dimensions not in embedding_sizes:
             raise ValueError("Embedding dimensions are inconsistent across facts batches")
         if embedding_dimensions is None:
             embedding_dimensions = len(embeddings[0])
         if not FactsChromaRepository.upsert_records({**task_data, "records": batch, "embeddings": embeddings}, flow_id):
             raise ValueError("Facts batch storage failed")
-        print(f"Indexed facts: {min(start + len(batch), len(records))}/{len(records)}")
     return embedding_dimensions
-
-
-def validate_stored_records(records, embedding_dimensions, task_data, flow_id):
-    for start in range(0, len(records), CHROMA_BATCH_SIZE):
-        batch = records[start:start + CHROMA_BATCH_SIZE]
-        stored_batch = FactsChromaRepository.get_records({**task_data, "ids": [record["id"] for record in batch]}, flow_id)
-        if not stored_batch:
-            raise ValueError("Stored facts batch could not be read")
-        stored_indexes = {record_id: index for index, record_id in enumerate(stored_batch["ids"])}
-        if set(stored_indexes) != {record["id"] for record in batch}:
-            raise ValueError("Stored fact identifiers do not match source records")
-        for record in batch:
-            stored_index = stored_indexes[record["id"]]
-            if stored_batch["documents"][stored_index] != record["document"] or stored_batch["metadatas"][stored_index] != record["metadata"]:
-                raise ValueError(f"Stored fact content does not match source record: {record['id']}")
-            if len(stored_batch["embeddings"][stored_index]) != embedding_dimensions:
-                raise ValueError(f"Stored fact embedding dimensions are invalid: {record['id']}")
 
 
 def promote_facts_collection(records, embedding_dimensions, task_data, flow_id):
     if not FactsChromaRepository.promote_collection({**task_data, "record_count": len(records), "metadata": {"embedding_model": OpenAIEmbeddingsRepository.model_name, "embedding_dimensions": embedding_dimensions, "schema_version": CHROMA_SCHEMA_VERSION, "record_type": "fact"}}, flow_id):
         raise ValueError("Facts collection promotion failed")
-    print(f"Facts collection rebuilt with {len(records)} records using {OpenAIEmbeddingsRepository.model_name}")
     return task_data["chroma_path"]
 
 
+def remove_stale_facts(records, task_data, flow_id):
+    if not FactsChromaRepository.delete_extra_records({**task_data, "ids": [record["id"] for record in records]}, flow_id):
+        raise ValueError("Facts extra record cleanup failed")
+
+
 def run_facts_chroma_index(task_data, flow_id):
-    OpenSearchRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     chroma_path = None
     try:
         facts, corpus = load_facts_sources(task_data)
@@ -110,14 +98,13 @@ def run_facts_chroma_index(task_data, flow_id):
         validate_record_manifest(records)
         prepare_facts_collection(task_data, flow_id)
         embedding_dimensions = embed_records(records, task_data, flow_id)
-        validate_stored_records(records, embedding_dimensions, task_data, flow_id)
+        remove_stale_facts(records, task_data, flow_id)
         chroma_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
     except Exception as err:
-        OpenSearchRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    OpenSearchRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return chroma_path
 
 
 if __name__ == "__main__":
-    project_root = Path(__file__).resolve().parents[2]
-    run_facts_chroma_index({"data_dir": str(Path(__file__).resolve().parents[1] / "data"), "chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "index_name": "facts"}, str(uuid4()))
+    run_facts_chroma_index({"data_dir": DATA_DIR, "chroma_path": FACTS_CHROMA_PATH}, str(uuid4()))

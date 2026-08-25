@@ -2,6 +2,28 @@
   "id": "Q01",
   "question": "Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season, and did the same source also report a win for the Detroit Lions against the Green Bay Packers?",
   "intents": ["yes-no", "cross-article"],
+  "sub_questions": [
+    "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?",
+    "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
+  ],
+  "expected_tool_calls": [
+    {
+      "sub_question_index": 1,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?"
+      },
+      "expectation": "required"
+    },
+    {
+      "sub_question_index": 2,
+      "tool": "search_facts",
+      "arguments": {
+        "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
+      },
+      "expectation": "required"
+    }
+  ],
   "corpus": [
     {
       "title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
@@ -38,6 +60,17 @@
       "category": "sports",
       "published_at": "2023-09-28T23:54:07+00:00",
       "url": "https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437"
+    }
+  ],
+  "answer": "Yes",
+  "citations": [
+    {
+      "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+      "snippet": "The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14."
+    },
+    {
+      "article_title": "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",
+      "snippet": "Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay."
     }
   ]
 }
