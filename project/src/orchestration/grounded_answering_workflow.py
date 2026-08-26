@@ -1,4 +1,5 @@
 import operator
+import os
 from typing import Annotated, Optional, TypedDict
 
 from langchain_core.messages import HumanMessage
@@ -9,7 +10,7 @@ from langgraph.prebuilt import ToolNode
 
 from ..agents.answer_agent import run_answer
 from ..agents.gather_agent import build_gather_tools, run_gather
-from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT
+from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS
 from ..repositories.local_logging_repository import LocalLoggingRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
 
@@ -98,10 +99,18 @@ def build_grounded_answering_graph(task_data, flow_id):
     return graph.compile()
 
 
+def raise_if_missing_solution_env(task_data):
+    for env_name in REQUIRED_SOLUTION_ENV_VARS:
+        if not (os.getenv(env_name) or "").strip():
+            task_data["missing_env_name"] = env_name
+            raise ValueError(f"{env_name} is missing")
+
+
 def run_grounded_answering(task_data, flow_id):
     LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     answer_result = AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
     try:
+        raise_if_missing_solution_env(task_data)
         graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
         answer_result = graph_state.get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
         task_data["answer_result"] = answer_result.model_dump()
