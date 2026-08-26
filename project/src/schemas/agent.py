@@ -33,3 +33,13 @@ class AnswerResult(BaseModel):
     status: str
     answer: str = ""
     citations: list[AnswerCitation] = []
+
+
+class SolutionCitation(BaseModel):
+    article_title: str
+    snippet: str
+
+
+class SolutionAnswer(BaseModel):
+    answer: str = ""
+    citations: list[SolutionCitation] = []
