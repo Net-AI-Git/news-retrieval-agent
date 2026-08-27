@@ -1,0 +1,12 @@
+﻿question_id,unanswerable,hop_count,hops_with_dates,hops_with_source,gold_url_count,gold_snippet_count,union_result_count,url_recall,snippet_recall,all_chunks_found,false_positive_url_count,missing_urls,missing_titles,statuses
+Q01,0,2,0,2,2,2,14,1.0,1.0,1,11,,,ok | ok
+Q02,0,2,0,2,2,2,20,1.0,1.0,1,12,,,low_confidence | ok
+Q03,0,3,0,0,3,3,11,1.0,1.0,1,4,,,ok | ok | ok
+Q04,1,2,0,2,0,0,1,,,1,1,,,low_confidence | empty
+Q05,0,3,0,1,3,3,13,1.0,1.0,1,5,,,ok | ok | low_confidence
+Q06,0,2,0,2,2,2,18,1.0,1.0,1,9,,,ok | ok
+Q07,0,3,0,3,3,3,22,1.0,1.0,1,11,,,ok | ok | ok
+Q08,0,2,2,2,2,2,2,1.0,1.0,1,0,,,ok | low_confidence
+Q09,1,2,0,2,0,0,0,,,1,0,,,invalid | invalid
+Q10,0,2,0,2,2,2,0,0.0,0.0,0,0,https://techcrunch.com/2023/09/28/chatgpt-everything-to-know-about-the-ai-chatbot/ | https://www.theage.com.au/business/entrepreneurship/how-ego-and-fear-fuelled-the-rise-of-artificial-intelligence-20231205-p5ep7j.html?ref=rss&utm_medium=rss&utm_source=rss_business,ChatGPT: Everything you need to know about the AI-powered chatbot | How ego and fear fuelled the rise of artificial intelligence,invalid | invalid
+Q11,0,2,0,2,2,2,0,0.0,0.0,0,0,https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/ | https://techcrunch.com/2023/12/09/google-fakes-an-ai-demo-grand-theft-auto-vi-goes-viral-and-spotify-cuts-jobs/,"One year later, ChatGPT is still alive and kicking | Google fakes an AI demo, Grand Theft Auto VI goes viral and Spotify cuts jobs",invalid | invalid

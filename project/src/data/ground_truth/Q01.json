@@ -11,7 +11,8 @@
       "sub_question_index": 1,
       "tool": "search_facts",
       "arguments": {
-        "question": "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?"
+        "question": "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?",
+        "source": "Sporting News"
       },
       "expectation": "required"
     },
@@ -19,7 +20,8 @@
       "sub_question_index": 2,
       "tool": "search_facts",
       "arguments": {
-        "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?"
+        "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?",
+        "source": "Sporting News"
       },
       "expectation": "required"
     }

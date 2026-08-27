@@ -17,6 +17,7 @@ class SearchEvidenceInput(BaseModel):
     question: str
     published_from: Optional[str] = None
     published_to: Optional[str] = None
+    source: Optional[str] = None
 
 
 class SearchEvidenceOutput(BaseModel):

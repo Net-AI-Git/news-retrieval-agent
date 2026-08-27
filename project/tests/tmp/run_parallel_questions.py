@@ -6,11 +6,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from solution import answer, build_index
-from src.conts import FACTS_CHROMA_PATH
+from src.conts import FACTS_CHROMA_PATH, WORKERS
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "src" / "data"
 QUESTIONS = json.loads((DATA_DIR / "questions.json").read_text(encoding="utf-8"))
-WORKER_COUNT = 4
 
 
 def loaded_index():
@@ -28,7 +27,7 @@ def main():
     index = loaded_index()
     results = []
     failures = []
-    with ThreadPoolExecutor(max_workers=WORKER_COUNT) as pool:
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         futures = {}
         for question_data in QUESTIONS:
             futures[pool.submit(answer_one, index, question_data)] = question_data["id"]

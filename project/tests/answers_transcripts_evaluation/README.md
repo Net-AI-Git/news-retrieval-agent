@@ -6,7 +6,7 @@ Produce the assignment `answers.json` and tool-call transcripts through the publ
 
 ## Scope
 
-Exercises root `solution.py`, `src/orchestration/grounded_answering_workflow.py`, `src/schemas/agent.py`, and the local JSONL lifecycle log. Live calls go through `build_index` only when the Facts Chroma store is missing; otherwise the existing index handle is passed to `answer`.
+Exercises root `solution.py`, `src/orchestration/grounded_answering_workflow.py`, `src/schemas/agent.py`, and the local JSONL lifecycle log. Live calls go through `build_index` only when the Facts Chroma store is missing; otherwise the existing index handle is passed to `answer`. Questions run one at a time (`WORKERS` in `src/conts.py`) so embedding calls stay under the OpenRouter free-tier per-minute limit.
 
 ## How to run
 

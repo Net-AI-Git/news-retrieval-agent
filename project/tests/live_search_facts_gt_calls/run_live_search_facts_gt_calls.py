@@ -2,6 +2,7 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
+from time import sleep
 from uuid import uuid4
 
 from dotenv import load_dotenv
@@ -12,9 +13,10 @@ from src.conts import CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH
 from src.tools.retrieval_tools import RetrievalTools
 
 
-METRIC_FIELDNAMES = ["question_id", "unanswerable", "hop_count", "hops_with_dates", "gold_url_count", "gold_snippet_count", "union_result_count", "url_recall", "snippet_recall", "all_chunks_found", "false_positive_url_count", "missing_urls", "missing_titles", "statuses"]
-HOP_FIELDNAMES = ["question_id", "hop_index", "query", "published_from", "published_to", "status", "result_count", "gold_title", "gold_url", "url_hit", "snippet_hit", "gold_url_rank", "gold_snippet_rank", "gold_url_score", "gold_snippet_score", "returned_titles"]
+METRIC_FIELDNAMES = ["question_id", "unanswerable", "hop_count", "hops_with_dates", "hops_with_source", "gold_url_count", "gold_snippet_count", "union_result_count", "url_recall", "snippet_recall", "all_chunks_found", "false_positive_url_count", "missing_urls", "missing_titles", "statuses"]
+HOP_FIELDNAMES = ["question_id", "hop_index", "query", "source", "published_from", "published_to", "status", "result_count", "gold_title", "gold_url", "url_hit", "snippet_hit", "gold_url_rank", "gold_snippet_rank", "gold_url_score", "gold_snippet_score", "returned_titles"]
 CHUNK_FIELDNAMES = ["question_id", "hop_index", "rank", "status", "is_gold_url", "is_gold_snippet", "match_percentage", "article_title", "url", "published_at", "snippet"]
+LIVE_SEARCH_PAUSE_SECONDS = 4
 
 
 def tool_task_data():
@@ -146,7 +148,8 @@ def question_metrics(ground_truth, hops, union_hits):
     missing_urls = [url for url in gold_url_list if url not in hit_urls]
     missing_facts = missing_gold_facts(gold_items, [item.get("snippet") or "" for item in union_hits])
     date_hops = sum(1 for hop in hops if hop["arguments"].get("published_from") or hop["arguments"].get("published_to"))
-    return {"unanswerable": unanswerable, "hop_count": len(hops), "hops_with_dates": date_hops, "gold_url_count": len(gold_url_list), "gold_snippet_count": len(gold_items), "union_result_count": len(union_hits), **recall_flags(unanswerable, gold_url_list, gold_items, missing_urls, missing_facts), "missing_urls": missing_urls, "missing_titles": [item.get("article_title") or "" for item in missing_facts], "false_positive_url_count": len([url for url in hit_urls if url not in gold_url_list]), "statuses": [hop["payload"].get("status") or "" for hop in hops]}
+    source_hops = sum(1 for hop in hops if hop["arguments"].get("source"))
+    return {"unanswerable": unanswerable, "hop_count": len(hops), "hops_with_dates": date_hops, "hops_with_source": source_hops, "gold_url_count": len(gold_url_list), "gold_snippet_count": len(gold_items), "union_result_count": len(union_hits), **recall_flags(unanswerable, gold_url_list, gold_items, missing_urls, missing_facts), "missing_urls": missing_urls, "missing_titles": [item.get("article_title") or "" for item in missing_facts], "false_positive_url_count": len([url for url in hit_urls if url not in gold_url_list]), "statuses": [hop["payload"].get("status") or "" for hop in hops]}
 
 
 def evaluate_question(project_root, question_data):
@@ -154,6 +157,8 @@ def evaluate_question(project_root, question_data):
     search_facts = bound_search_facts()
     hops = []
     for call in required_facts_calls(ground_truth):
+        if hops:
+            sleep(LIVE_SEARCH_PAUSE_SECONDS)
         hops.append(evaluate_hop(call, search_facts.invoke(call.get("arguments") or {}), hop_gold_item(ground_truth, call)))
     union_hits = union_results(hops)
     return {"question_id": question_data["id"], "hops": hops, "union_hits": union_hits, **question_metrics(ground_truth, hops, union_hits)}
@@ -162,6 +167,8 @@ def evaluate_question(project_root, question_data):
 def evaluate_all_questions(project_root, questions):
     rows = []
     for question_data in questions:
+        if rows:
+            sleep(LIVE_SEARCH_PAUSE_SECONDS)
         rows.append(evaluate_question(project_root, question_data))
     return rows
 
@@ -171,7 +178,7 @@ def hop_csv_row(question_id, hop):
     arguments = hop["arguments"]
     url_rank = hop["url_match"]["rank"]
     snippet_rank = hop["snippet_match"]["rank"]
-    return {"question_id": question_id, "hop_index": hop["call"].get("sub_question_index") or "", "query": arguments.get("question") or "", "published_from": arguments.get("published_from") or "", "published_to": arguments.get("published_to") or "", "status": hop["payload"].get("status") or "", "result_count": len(hop["results"]), "gold_title": gold_item.get("article_title") or "", "gold_url": gold_item.get("url") or "", "url_hit": hop_hit_flag(gold_item.get("url"), url_rank), "snippet_hit": hop_hit_flag(gold_item.get("fact"), snippet_rank), "gold_url_rank": url_rank, "gold_snippet_rank": snippet_rank, "gold_url_score": hop["url_match"]["match_percentage"], "gold_snippet_score": hop["snippet_match"]["match_percentage"], "returned_titles": " | ".join(item.get("article_title") or "" for item in hop["results"])}
+    return {"question_id": question_id, "hop_index": hop["call"].get("sub_question_index") or "", "query": arguments.get("question") or "", "source": arguments.get("source") or "", "published_from": arguments.get("published_from") or "", "published_to": arguments.get("published_to") or "", "status": hop["payload"].get("status") or "", "result_count": len(hop["results"]), "gold_title": gold_item.get("article_title") or "", "gold_url": gold_item.get("url") or "", "url_hit": hop_hit_flag(gold_item.get("url"), url_rank), "snippet_hit": hop_hit_flag(gold_item.get("fact"), snippet_rank), "gold_url_rank": url_rank, "gold_snippet_rank": snippet_rank, "gold_url_score": hop["url_match"]["match_percentage"], "gold_snippet_score": hop["snippet_match"]["match_percentage"], "returned_titles": " | ".join(item.get("article_title") or "" for item in hop["results"])}
 
 
 def chunk_csv_rows(question_id, hop):
@@ -184,7 +191,7 @@ def chunk_csv_rows(question_id, hop):
 
 
 def metric_csv_row(row):
-    return {"question_id": row["question_id"], "unanswerable": row["unanswerable"], "hop_count": row["hop_count"], "hops_with_dates": row["hops_with_dates"], "gold_url_count": row["gold_url_count"], "gold_snippet_count": row["gold_snippet_count"], "union_result_count": row["union_result_count"], "url_recall": row["url_recall"], "snippet_recall": row["snippet_recall"], "all_chunks_found": row["all_chunks_found"], "false_positive_url_count": row["false_positive_url_count"], "missing_urls": " | ".join(row["missing_urls"]), "missing_titles": " | ".join(row["missing_titles"]), "statuses": " | ".join(row["statuses"])}
+    return {"question_id": row["question_id"], "unanswerable": row["unanswerable"], "hop_count": row["hop_count"], "hops_with_dates": row["hops_with_dates"], "hops_with_source": row["hops_with_source"], "gold_url_count": row["gold_url_count"], "gold_snippet_count": row["gold_snippet_count"], "union_result_count": row["union_result_count"], "url_recall": row["url_recall"], "snippet_recall": row["snippet_recall"], "all_chunks_found": row["all_chunks_found"], "false_positive_url_count": row["false_positive_url_count"], "missing_urls": " | ".join(row["missing_urls"]), "missing_titles": " | ".join(row["missing_titles"]), "statuses": " | ".join(row["statuses"])}
 
 
 def write_csv(path, fieldnames, rows):
