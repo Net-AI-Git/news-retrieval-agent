@@ -4,6 +4,7 @@ import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 from uuid import uuid4
 
 from dotenv import load_dotenv
@@ -83,9 +84,12 @@ class GroundedAnsweringTests(unittest.TestCase):
         self.assertIn("[INSTRUCTIONS]", gather_prompt)
         self.assertIn("search_facts", gather_prompt)
         self.assertIn("Do not request source files", gather_prompt)
-        self.assertIn("REFUSAL", answer_prompt)
-        self.assertIn("Copy snippet, url, and article_title exactly", answer_prompt)
-        self.assertIn("Do NOT wrap the response in markdown code blocks", answer_prompt)
+        self.assertIn("# Identity", answer_prompt)
+        self.assertIn("published_at", answer_prompt)
+        self.assertIn("copy article_title, url, and snippet exactly", answer_prompt)
+        self.assertNotIn("Flipboard", answer_prompt)
+        self.assertNotIn("Forerunner", answer_prompt)
+        self.assertNotIn("Tremblant", answer_prompt)
 
     def test_workflow_does_not_read_source_json(self):
         source = inspect.getsource(workflow)
@@ -94,6 +98,13 @@ class GroundedAnsweringTests(unittest.TestCase):
 
     def test_extract_tool_calls_keeps_name_and_args(self):
         self.assertEqual([{"name": "search_facts", "args": {"question": "Who?"}}], workflow.extract_tool_calls(SimpleNamespace(tool_calls=[{"name": "search_facts", "args": {"question": "Who?"}}])))
+
+    @patch("src.orchestration.grounded_answering_workflow.run_answer")
+    def test_answer_node_sends_gathered_evidence(self, run_answer):
+        run_answer.return_value = AnswerResult(status=ANSWER_STATUS_ANSWERED, answer="Yes", citations=[AnswerCitation(article_title=EVIDENCE_ITEM["article_title"], url=EVIDENCE_ITEM["url"], snippet=EVIDENCE_ITEM["snippet"])])
+        result = workflow.answer_node({"question": "Who?", "evidence": [EVIDENCE_ITEM]}, {}, str(uuid4()))
+        self.assertEqual([EVIDENCE_ITEM], run_answer.call_args[0][0]["evidence"])
+        self.assertEqual(ANSWER_STATUS_ANSWERED, result["answer_result"].status)
 
     def test_live_q01_answers_yes_with_grounded_snippets(self):
         state = invoke_live_question("Q01")

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_FACTS_MIN_SIMILARITY, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_SOURCE_FILTERED_MIN_SIMILARITY, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_INVALID, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K
+from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_INVALID, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
@@ -34,11 +34,8 @@ def query_facts(task_data, flow_id, query_embedding, where_filter):
     results = []
     if not query_result or not query_result.get("documents") or not query_result["documents"][0]:
         return results
-    min_similarity = RETRIEVAL_SOURCE_FILTERED_MIN_SIMILARITY if task_data.get("resolved_source") else RETRIEVAL_FACTS_MIN_SIMILARITY
     for document, metadata, distance in zip(query_result["documents"][0], query_result["metadatas"][0], query_result["distances"][0]):
         similarity = max(0.0, min(1.0, 1.0 - distance))
-        if similarity < min_similarity:
-            continue
         results.append({"article_title": metadata["article_title"], "snippet": document, "url": metadata.get("url"), "published_at": metadata.get("published_at"), "match_percentage": round(similarity * RETRIEVAL_PERCENT_SCALE, 2)})
     return results
 

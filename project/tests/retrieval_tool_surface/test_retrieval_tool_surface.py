@@ -138,6 +138,16 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         self.assertEqual(1, len(result["facts"]))
         self.assertEqual(20.0, result["facts"][0]["match_percentage"])
 
+    @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
+    @patch("src.services.retrieval_service.FactsChromaRepository.query_records")
+    @patch("src.services.retrieval_service.CorpusChromaRepository.query_records")
+    def test_facts_keeps_weak_similarity_without_source_filter(self, corpus_query, facts_query, generate_embeddings):
+        generate_embeddings.return_value = [[0.1, 0.2]]
+        facts_query.return_value = {"documents": [["A curated fact."]], "metadatas": [[{"article_title": "Fact Title", "url": "https://example.com/fact", "published_at": "2024-01-01T00:00:00"}]], "distances": [[0.8]]}
+        result = run_retrieval({"question": "Who won?", "facts_chroma_path": "facts", "corpus_chroma_path": "corpus", "evidence_store": RETRIEVAL_EVIDENCE_STORE_FACTS}, str(uuid4()))
+        self.assertEqual(1, len(result["facts"]))
+        self.assertEqual(20.0, result["facts"][0]["match_percentage"])
+
     def test_tools_module_reads_knowledge_only_through_run_retrieval(self):
         source = inspect.getsource(retrieval_tools_module)
         self.assertIn("run_retrieval", source)

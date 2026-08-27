@@ -206,38 +206,67 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 - Gain: one allowlist, one store, no corpus hops against the 8-call cap.
 - Constraint honored: tool choice stays in the Gather prompt; the graph still only routes on `tool_calls` vs stop.
 
-### Prompt confidence 4–5 is a stop/refuse gate
+### Prompt confidence 4–5 is a Gather stop gate only
 
-**Choice:** Gather may emit a tool call only when the next query would score 4 or 5 as useful; scores 1–3 stop with no tool calls. Answer may return a non-refusal only at score 4 or 5; 1–3 must refuse. This is prompt policy. Retrieval still drops by `RETRIEVAL_FACTS_MIN_SIMILARITY` / `RETRIEVAL_CORPUS_MIN_SIMILARITY` (both 0.35). Answer still has no second numeric `match_percentage` cutoff in code.
-
-**Chosen over:**
-
-- No prompt score bar — Gather keeps calling weak follow-ups until the orchestration cap.
-- A code gate on `match_percentage` in Answer — duplicates the retrieval floor and drops usable hits the model can still refuse.
-
-**Trade-off we accepted:**
-
-- Cost: a model that ignores the score still needs the 6/8 caps.
-- Gain: stop/refuse is stated in the same 1–5 scale the prompt standard requires; retrieval floors stay in `conts.py`.
-- Constraint honored: filtering by the retrieval floor remains service logic; the prompt score does not replace it.
-
-### Retrieval floors stay in the retrieval service, split by store
-
-**Choice:** Drop matches below 0.35 in Facts and below 0.35 in Corpus, as two constants. Calibrated on GT union Top-5 after the sub-question rewrites: 0.30 kept FACTS noise and Q09 CORPUS false positives; 0.40 would kill the weakest gold FACTS hit (Q02 35.21) and the Q06 Guardian CORPUS hit (35.17). High-confidence status stays 0.40 and is not a drop filter. Live embeddings stay raw (no NVIDIA prefixes, no `input_type`); A/B/C measurements are in `tests/gt_union_topk_retrieval_report/README.md` and the README retrieval chapter.
+**Choice:** Gather may emit a tool call only when the next query would score 4 or 5 as useful; scores 1–3 stop with no tool calls. Answer no longer uses a 1–5 confidence band. Facts retrieval has no cosine drop floor and returns one chunk per hop. Corpus still drops below `RETRIEVAL_CORPUS_MIN_SIMILARITY` (0.35) and is unbound in this loop. Answer still has no second numeric `match_percentage` cutoff in code.
 
 **Chosen over:**
 
-- One shared `RETRIEVAL_MIN_SIMILARITY` — the stores have different hit/miss curves; they should be able to move separately.
-- NVIDIA `query:` / `passage:` prefixes or `extra_body input_type` — measured, did not improve Success or recall.
+- Keeping the 4–5 refuse band on Answer — it refused supported `No` and multi-hop conclusions that are not written in one snippet.
+- A code gate on `match_percentage` in Answer — duplicates retrieval filtering and drops usable hits the model can still refuse.
 
 **Trade-off we accepted:**
 
-- Cost: two constants that currently hold the same number.
-- Gain: each store can be retuned without retuning the other; the live floor sits just under the weakest gold hit we still need.
-- Constraint honored: Answer still does not apply a second numeric cutoff; this is retrieval only.
+- Cost: Gather can still ignore the score and hit the 6/8 caps. Answer sufficiency is prompt-judged plus the snippet/url citation filter.
+- Gain: Answer can return a supported `No` and a comparison that is inferred from two items.
+- Constraint honored: Facts keep the top-1 hit; Corpus filtering stays in the retrieval service if that store is queried.
+
+### Retrieval: Facts top-1, Corpus floor only, no rerank
+
+**Choice:** Facts return the single nearest chunk (`RETRIEVAL_TOP_K=1`) with no cosine drop. Corpus still drops below 0.35. High-confidence status stays 0.40 and is not a drop filter. There is no rerank between Gather and Answer. Path and rejected alternatives: `TASK-03-decisions.md` (Ranking path). Live proof: `tests/live_search_facts_gt_calls` `metrics_2026-08-27_22-25-11.csv`.
+
+**Chosen over:** a shared Facts/Corpus drop floor, Top-5 unions, and OpenRouter NVIDIA rerank. The Facts floor killed Q05/Q08 gold. Rerank scores were not a usable filter. Per-hop gold is already rank 1.
+
+**Trade-off we accepted:**
+
+- Cost: Q04/Q09 still emit one noise chunk per hop; cosine cannot delete them without deleting Q08 gold (25.3%).
+- Gain: answerable hops send only the gold sentence; Answer context is two or three facts, not a noisy union.
+- Constraint honored: Answer still does not apply a second numeric cutoff.
+
+### Answer prompt: OpenAI vendor shape, no eval leakage
+
+**Choice:** `src/prompts/answer_agent.md` follows OpenAI GPT developer-message order: `# Identity`, `# Instructions`, optional `# Examples` with `<user_query>` / `<assistant_response>`. The user JSON is `{"evidence": ..., "question": ...}` (evidence first). The prompt is short. Structured `AnswerResult` already constrains output, so the prompt does not ask for a markdown JSON block or a 1–5 score.
+
+**Chosen over:**
+
+- The project `[INSTRUCTIONS]` / `ROLE:` / `TASK:` / `RULES:` / `CONFIDENCE SCORE` template — written for a different outline; it fought GPT-4o-mini and the 4–5 band refused valid answers.
+- Claude-style XML instruction tags as the main outline — not this model's documented shape.
+- Few-shot from the 11 evaluation questions, or toy clones of those traps (coverage-change, `unspecified` + `while`) — that is exam leakage. A numeric 11/11 from that method is invalid.
+
+**Trade-off we accepted:**
+
+- Cost: Gather still uses the legacy `INSTRUCTIONS` template until a Gather prompt experiment. Answer examples, if any, must be invented format items (`example.test`), not exam rows.
+- Gain: Gate 3 oracle-Answer is 11/11 without eval items in the prompt (`tests/oracle_answer_gt` `metrics_2026-08-27_21-56-37.csv`, `21-58-37`, independent re-run `22-16-19`).
+- Constraint honored: prompt file in `prompts/`; no eval gold in the study guide.
+
+### Answer uses `published_at` and combines hops
+
+**Choice:** Treat `article_title` and `published_at` as facts. A conclusion may come from combining items; it need not appear in one snippet. For “A before B” / “A after B”, bind A/B to the clauses around the relation word, then compare those items’ `published_at` only (`before` ⇒ timestamp(A) < timestamp(B); `after` ⇒ timestamp(A) > timestamp(B); else `No`). Multi-clause: `Yes` only if every clause holds; a false clause makes the whole claim `No`. Empty evidence refuses. Citations copy `article_title`, `url`, and `snippet` exactly — orchestration keeps a citation only when `snippet` and `url` match an evidence item character-for-character.
+
+**Chosen over:**
+
+- “Answer only when the claim is stated in one snippet” — that refused temporal and cross-article items whose dates live in metadata.
+- Isomorphic few-shot of the remaining failing rows — leakage; deleted in round 2.
+- Matching citations by URL or title only — a paraphrased snippet could ship; the filter now requires the exact snippet string.
+
+**Trade-off we accepted:**
+
+- Cost: a paraphrased snippet is coerced to refuse even if the short answer was right. Temporal polarity on long “after” questions can still flip if the model binds A/B backwards; the clause-binding line is the mitigation, not a Gemini example.
+- Gain: supported `No`, before/after, and coverage change work from gold evidence without teaching the 11-item exam.
+- Constraint honored: Answer still sees only this-run evidence; no world knowledge.
 
 ---
 
 ## Open
 
-- none (prompt example source is asked before prompt files are written; examples are not invented).
+- Gather prompt still uses the legacy `[INSTRUCTIONS]` / `ROLE:` / `CONFIDENCE SCORE` template. Migrate it to the OpenAI vendor shape in a Gather experiment (Gate 4), not by copying Answer examples.
