@@ -1,0 +1,12 @@
+﻿question_id,unanswerable,hop_count,hops_with_dates,gold_url_count,gold_snippet_count,union_result_count,url_recall,snippet_recall,all_chunks_found,false_positive_url_count,missing_urls,missing_titles,statuses
+Q01,0,2,0,2,2,2,1.0,1.0,1,0,,,ok | ok
+Q02,0,2,0,2,2,2,1.0,1.0,1,0,,,ok | ok
+Q03,0,3,0,3,3,11,1.0,1.0,1,4,,,ok | ok | ok
+Q04,1,2,0,0,0,0,,,1,0,,,empty | empty
+Q05,0,3,0,3,3,4,0.6667,0.6667,0,1,https://www.theage.com.au/technology/is-google-search-better-than-the-rest-and-is-that-fair-20231012-p5ebsk.html?ref=rss&utm_medium=rss&utm_source=rss_technology,Is Google Search better than the rest? And is that fair?,ok | ok | empty
+Q06,0,2,0,2,2,2,1.0,1.0,1,0,,,ok | ok
+Q07,0,3,0,3,3,6,1.0,1.0,1,1,,,ok | ok | ok
+Q08,0,2,2,2,2,1,0.5,0.5,0,0,https://www.independent.co.uk/travel/skiing/best-ski-holidays-canada-b2432416.html,7 of the best ski holidays in Canada,ok | empty
+Q09,1,2,0,0,0,0,,,1,0,,,empty | invalid
+Q10,0,2,0,2,2,6,1.0,0.5,0,2,,ChatGPT: Everything you need to know about the AI-powered chatbot,invalid | ok
+Q11,0,2,0,2,2,5,1.0,1.0,1,2,,,ok | ok

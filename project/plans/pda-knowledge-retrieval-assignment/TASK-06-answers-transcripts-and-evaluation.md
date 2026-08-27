@@ -135,7 +135,7 @@ You do **not** have to finish retrieval on every question before touching Answer
 
 Each gate has a pass rule. A later gate is **not a fair exam** until the earlier one is green for that hop/question.
 
-#### Gate 0 — Freeze the target (GT audit)
+#### Gate 0 — Freeze the target (GT audit) — **Done** (2026-08-27)
 
 **What:** For each `Q01.json`–`Q11.json`, check that `answer`, `facts`/`corpus`, `citations`, `sub_questions`, and `expected_tool_calls` match the source files and the question text (especially temporal “before”/“after” and Yes/No conjunctions).
 
@@ -224,7 +224,7 @@ Work follows the ladder. Payoff from the 26 Aug run is used **inside** a gate (w
 
 #### Phase A — Honest scoreboard (no production prompt changes)
 
-1. Gate 0 GT audit notes (keep in this TASK or a short log under the eval test `README`, not a new SDD unless one is requested).
+1. [x] Gate 0 GT audit notes (keep in this TASK or a short log under the eval test `README`, not a new SDD unless one is requested). See “Gate 0 audit — 2026-08-27”.
 2. Gate 1 live tool-call test package; bind `search_corpus` in `as_langchain_tools()` so the agent can actually call it.
 3. Gate 3 oracle-Answer test package (inject GT facts).
 4. Fix the e2e stop scorer so same-batch parallel is not `too_late` (Q03). Do not treat Q10 `failure_stage=rag` as a retrieval bug when Gather URL recall is 1.0.
@@ -337,6 +337,47 @@ No Gather, no Answer, no `answers.json` writes.
 - Knowledge-graph bonus, MCP, TASK 07 README (except later documenting the real failure modes).
 - Using live e2e as the first Answer or first RAG test.
 
+---
+
+### Gate 0 audit — 2026-08-27
+
+**Status:** Complete. **Verdict: keep all 11.** No GT field changed.
+
+**Scope of this pass:** `questions.json` + `Q01.json`–`Q11.json` vs `src/data/facts.json` only. Corpus was not audited (product no longer uses it). `expected_tool_calls` rows that name `search_corpus` on Q04/Q09 were not treated as answer/gold defects.
+
+**Method:** Exact `url`+`fact` match into `facts.json` (title, source, category, `published_at` also compared). Citations checked against the same-file GT facts. Temporal items used gold `published_at`, not model output. Unanswerable items were grepped in `facts.json` for the named entities/outlets.
+
+**Mechanical result:** 11/11 question texts match `questions.json`. Every gold fact on the 9 answerable questions is an exact `facts.json` row (no title/source/date drift). Every citation title+snippet equals its GT fact. `facts.json` has 251 rows / 150 URLs.
+
+| ID | Answer | Verdict | Why |
+|---|---|---|---|
+| Q01 | Yes | keep | Both Sporting News hops are in the store. Cowboys beat Seattle in Week 13; Lions beat Green Bay 34–20 (TNF 28 Sep, Week 4 — the question does not require the same week). Conjunction holds. |
+| Q02 | Yes | keep | Flipboard/TechCrunch `2023-12-18T16:00:49Z` is before Verge ActivityPub structure `2023-12-19T13:00:00Z`. Snippets have no dates; the temporal claim is on `published_at`. That is an Answer-prompt issue later, not a GT error. |
+| Q03 | Sam Bankman-Fried | keep | Three hops name SBF / Bankman-Fried for the $14B instruction, alleged fraud, and Jane Street → Alameda/FTX recruit. |
+| Q04 | Insufficient information | keep | Gold empty. `facts.json` has no Pets Best, pet insurance, WSJ, or Forbes. The only NYT row is an unrelated NFL Athletic piece. Refusal is the labeled success. |
+| Q05 | Google | keep | Antitrust siphoning, Gemini Pro vs GPT-3.5, and Age “foul play on Google’s part” are all in the store under those URLs. |
+| Q06 | No | keep | Age: people with an Aboriginal ancestor are not the same as Aboriginal identity — “a very long and different journey.” Guardian: Indigenous people “need to be heard.” Same identification process? No. Guardian is not about the same axis, but Age already falsifies “the same.” |
+| Q07 | ChatGPT | keep | TechCrunch: general-purpose text chatbot; TechCrunch: debug code / compose music; Engadget: first anniversary. |
+| Q08 | Yes | keep | Independent Travel 13 Oct = global luxury listicle (Zermatt → Vail). 25 Oct = Canada holidays, Tremblant/Quebec section. Different destinations and angle after the named date. Yes is fair. Date windows on the GT tool rows match those UTC calendar days. |
+| Q09 | Insufficient information | keep | Gold empty. No Forerunner, space-exploration, Forbes, or BBC-space rows. The only BBC row is Taylor Swift / Entertainment & Arts. |
+| Q10 | No | keep | TechCrunch gold fact *specifies* Microsoft’s investment as “around $10 billion,” so “unspecified” is false and the conjunction is false. Age gold is founding in late 2015; the three store facts on that Age URL also have no dollar figures. |
+| Q11 | No | keep | Expected-Gemini TechCrunch `2023-11-30T14:10:43Z` is *before* lite Gemini Pro `2023-12-09T21:16:17Z`. “After the lite report” is false. |
+
+**Must-verify items (closed):**
+
+- Q02 “before”: Flipboard 18 Dec 16:00 UTC vs Verge 19 Dec 13:00 UTC — ~21h earlier. Keep Yes.
+- Q08 “did coverage change”: two different Independent Travel listicles (luxury worldwide vs Canada / Tremblant). Keep Yes. Not a GT re-label.
+- Q06/Q10 vs gold snippets: both `No` answers are supported by the store sentences, not by the agent’s refusals.
+- Q11 polarity: keep No.
+
+**Notes that are not GT edits:**
+
+- Q08 Tremblant gold sentence never contains the word “Tremblant” (“Quebec’s premier ski resort” / “eponymous mountain”). Title + URL identify it. Stronger snippet is optional later; answer stays Yes.
+- Q02/Q08/Q11 snippets omit dates. Gold `published_at` is what makes the temporal Yes/No true. Gate 3 prompt work, not Gate 0.
+- Q04/Q09 `expected_tool_calls` still list conditional `search_corpus`. Irrelevant to the short answer while the product is facts-only. Leave those rows unless a later gate changes tool-policy scoring.
+
+**GT edit rule this pass:** no fields changed.
+
 ## Success Criteria
 
 - Gate 1: both tools bound; GT argument payloads runnable against live stores.
@@ -348,7 +389,7 @@ No Gather, no Answer, no `answers.json` writes.
 
 ## Definition of Done (this continuation only)
 
-- [ ] Gate 0 audit recorded for all 11 questions.
+- [x] Gate 0 audit recorded for all 11 questions.
 - [ ] Gate 1 live tool-call test exists and passes; `search_corpus` is bound for Gather.
 - [ ] Gate 2 facts Success@5 is 9/9 or an irrecoverable miss is turned into a Gate 0 GT fix.
 - [ ] Gate 3 oracle-Answer test exists and is 11/11.
@@ -371,6 +412,6 @@ Revert prompt, bind-list, and retrieval changes on this branch; restore any GT J
 
 ## Open Questions (this continuation)
 
-- Whether Q08 “did coverage change” is fairly a Yes given two different listicles, or whether Gate 0 should re-label it after reading both articles.
-- Whether binding `search_corpus` on Q04/Q09 should be required for e2e (refusals already pass) or only for GT tool-policy completeness.
+- Q08 “did coverage change”: closed in Gate 0 — keep Yes (luxury worldwide 13 Oct vs Canada/Tremblant 25 Oct).
+- Whether Q04/Q09 `search_corpus` expected rows should be dropped from GT now that the product is facts-only (refusals already pass). Not an answer-label issue.
 - Prompt-experiment model/budget for Gate 3 — keep using the same cheap OpenRouter model as production, one hypothesis per run.
