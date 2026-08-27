@@ -88,6 +88,22 @@ def remove_stale_facts(records, task_data, flow_id):
         raise ValueError("Facts extra record cleanup failed")
 
 
+def store_source_catalog(records, task_data, flow_id):
+    source_names = []
+    for record in records:
+        source_name = record["metadata"]["source"]
+        if source_name not in source_names:
+            source_names.append(source_name)
+    embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": source_names}, flow_id)
+    if not embeddings or len(embeddings) != len(source_names):
+        raise ValueError("Source catalog embedding generation failed")
+    catalog_sources = []
+    for source_name, embedding in zip(source_names, embeddings):
+        catalog_sources.append({"name": source_name, "embedding": embedding})
+    if not FactsChromaRepository.write_source_catalog({**task_data, "source_catalog": {"sources": catalog_sources}}, flow_id):
+        raise ValueError("Source catalog storage failed")
+
+
 def run_facts_chroma_index(task_data, flow_id):
     LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     chroma_path = None
@@ -99,7 +115,9 @@ def run_facts_chroma_index(task_data, flow_id):
         prepare_facts_collection(task_data, flow_id)
         embedding_dimensions = embed_records(records, task_data, flow_id)
         remove_stale_facts(records, task_data, flow_id)
-        chroma_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
+        promoted_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
+        store_source_catalog(records, task_data, flow_id)
+        chroma_path = promoted_path
     except Exception as err:
         LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
     LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")

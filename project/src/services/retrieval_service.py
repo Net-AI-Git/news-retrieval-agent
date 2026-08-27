@@ -1,47 +1,55 @@
 from datetime import datetime
 
-from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_FACTS_MIN_SIMILARITY, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_INVALID, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K
+from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_FACTS_MIN_SIMILARITY, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_SOURCE_FILTERED_MIN_SIMILARITY, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_INVALID, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
 from ..repositories.local_logging_repository import LocalLoggingRepository
+from .source_resolve_service import run_resolve_source
 
 
 def create_query_embedding(task_data, flow_id):
     return OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": [task_data["question"]]}, flow_id)[0]
 
 
-def build_published_at_filter(task_data):
+def build_where_filter(task_data):
     conditions = []
     if task_data.get("published_from"):
         conditions.append({"published_at_epoch": {"$gte": int(datetime.fromisoformat(task_data["published_from"]).timestamp())}})
     if task_data.get("published_to"):
         conditions.append({"published_at_epoch": {"$lte": int(datetime.fromisoformat(task_data["published_to"]).timestamp())}})
-    if len(conditions) == 2:
+    if task_data.get("resolved_source"):
+        conditions.append({"source": task_data["resolved_source"]})
+    if len(conditions) > 1:
         return {"$and": conditions}
     if conditions:
         return conditions[0]
     return None
 
 
-def query_facts(task_data, flow_id, query_embedding, published_at_filter):
+def query_facts(task_data, flow_id, query_embedding, where_filter):
     if task_data.get("evidence_store") == RETRIEVAL_EVIDENCE_STORE_CORPUS:
         return []
-    query_result = FactsChromaRepository.query_records({**task_data, "chroma_path": task_data["facts_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id, query_embedding)
+    query_result = FactsChromaRepository.query_records({**task_data, "chroma_path": task_data["facts_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": where_filter}, flow_id, query_embedding)
     results = []
+    if not query_result or not query_result.get("documents") or not query_result["documents"][0]:
+        return results
+    min_similarity = RETRIEVAL_SOURCE_FILTERED_MIN_SIMILARITY if task_data.get("resolved_source") else RETRIEVAL_FACTS_MIN_SIMILARITY
     for document, metadata, distance in zip(query_result["documents"][0], query_result["metadatas"][0], query_result["distances"][0]):
         similarity = max(0.0, min(1.0, 1.0 - distance))
-        if similarity < RETRIEVAL_FACTS_MIN_SIMILARITY:
+        if similarity < min_similarity:
             continue
         results.append({"article_title": metadata["article_title"], "snippet": document, "url": metadata.get("url"), "published_at": metadata.get("published_at"), "match_percentage": round(similarity * RETRIEVAL_PERCENT_SCALE, 2)})
     return results
 
 
-def query_corpus(task_data, flow_id, query_embedding, published_at_filter):
+def query_corpus(task_data, flow_id, query_embedding, where_filter):
     if task_data.get("evidence_store") == RETRIEVAL_EVIDENCE_STORE_FACTS:
         return []
-    query_result = CorpusChromaRepository.query_records({**task_data, "chroma_path": task_data["corpus_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": published_at_filter}, flow_id, query_embedding)
+    query_result = CorpusChromaRepository.query_records({**task_data, "chroma_path": task_data["corpus_chroma_path"], "top_k": RETRIEVAL_TOP_K, "where": where_filter}, flow_id, query_embedding)
     results = []
+    if not query_result or not query_result.get("documents") or not query_result["documents"][0]:
+        return results
     for document, metadata, distance in zip(query_result["documents"][0], query_result["metadatas"][0], query_result["distances"][0]):
         similarity = max(0.0, min(1.0, 1.0 - distance))
         if similarity < RETRIEVAL_CORPUS_MIN_SIMILARITY:
@@ -71,10 +79,11 @@ def run_retrieval(task_data, flow_id):
     retrieval_result = {"status": RETRIEVAL_STATUS_INVALID, "question": task_data.get("question", ""), "facts": [], "corpus": []}
     try:
         validate_question(task_data)
-        published_at_filter = build_published_at_filter(task_data)
-        query_embedding = create_query_embedding(task_data, flow_id)
-        facts = query_facts(task_data, flow_id, query_embedding, published_at_filter)
-        corpus = query_corpus(task_data, flow_id, query_embedding, published_at_filter)
+        retrieval_task = {**task_data, "resolved_source": run_resolve_source(task_data, flow_id)}
+        where_filter = build_where_filter(retrieval_task)
+        query_embedding = create_query_embedding(retrieval_task, flow_id)
+        facts = query_facts(retrieval_task, flow_id, query_embedding, where_filter)
+        corpus = query_corpus(retrieval_task, flow_id, query_embedding, where_filter)
         retrieval_result = build_retrieval_result(task_data["question"], facts, corpus)
     except Exception as err:
         LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")

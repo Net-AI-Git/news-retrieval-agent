@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from solution import answer, build_index
-from src.conts import ANSWER_REFUSAL_TEXT, FACTS_CHROMA_PATH, LOCAL_LOG_FILE_PATH
+from src.conts import ANSWER_REFUSAL_TEXT, FACTS_CHROMA_PATH, LOCAL_LOG_FILE_PATH, WORKERS
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -112,7 +112,7 @@ def write_json(path, payload):
 def run_questions(index):
     results = []
     failures = []
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         futures = {}
         for question_data in QUESTIONS:
             futures[pool.submit(answer_one, index, question_data)] = question_data["id"]

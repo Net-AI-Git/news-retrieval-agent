@@ -103,10 +103,40 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         langchain_tools = RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).as_langchain_tools()
         schema_keys = set(langchain_tools[0].args_schema.model_json_schema()["properties"])
         self.assertEqual(["search_facts"], [tool.name for tool in langchain_tools])
-        self.assertEqual({"question", "published_from", "published_to"}, schema_keys)
+        self.assertEqual({"question", "published_from", "published_to", "source"}, schema_keys)
         self.assertEqual([FACT_ITEM], langchain_tools[0].invoke({"question": "Who won?"})["results"])
         self.assertEqual(RETRIEVAL_EVIDENCE_STORE_FACTS, run_retrieval_mock.call_args[0][0]["evidence_store"])
         self.assertEqual("facts", run_retrieval_mock.call_args[0][0]["facts_chroma_path"])
+
+    @patch("src.tools.retrieval_tools.run_retrieval")
+    def test_search_facts_passes_source(self, run_retrieval_mock):
+        run_retrieval_mock.return_value = {"status": "ok", "question": "Who won?", "facts": [FACT_ITEM], "corpus": []}
+        RetrievalTools({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4())).search_facts("Who won?", source="The Age")
+        self.assertEqual("The Age", run_retrieval_mock.call_args[0][0]["source"])
+
+    @patch("src.services.source_resolve_service.FactsChromaRepository.read_source_catalog")
+    @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
+    @patch("src.services.retrieval_service.FactsChromaRepository.query_records")
+    @patch("src.services.retrieval_service.CorpusChromaRepository.query_records")
+    def test_resolved_source_is_chroma_equality_filter(self, corpus_query, facts_query, generate_embeddings, read_source_catalog):
+        read_source_catalog.return_value = {"sources": [{"name": "The Age", "embedding": [1.0, 0.0]}]}
+        generate_embeddings.return_value = [[0.1, 0.2]]
+        facts_query.return_value = CHROMA_HIT
+        run_retrieval({"question": "Who won?", "source": "The Age", "facts_chroma_path": "facts", "corpus_chroma_path": "corpus", "evidence_store": RETRIEVAL_EVIDENCE_STORE_FACTS}, str(uuid4()))
+        self.assertEqual({"source": "The Age"}, facts_query.call_args[0][0]["where"])
+        generate_embeddings.assert_called_once()
+
+    @patch("src.services.source_resolve_service.FactsChromaRepository.read_source_catalog")
+    @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
+    @patch("src.services.retrieval_service.FactsChromaRepository.query_records")
+    @patch("src.services.retrieval_service.CorpusChromaRepository.query_records")
+    def test_source_filter_keeps_weak_similarity_hits(self, corpus_query, facts_query, generate_embeddings, read_source_catalog):
+        read_source_catalog.return_value = {"sources": [{"name": "The Age", "embedding": [1.0, 0.0]}]}
+        generate_embeddings.return_value = [[0.1, 0.2]]
+        facts_query.return_value = {"documents": [["A curated fact."]], "metadatas": [[{"article_title": "Fact Title", "url": "https://example.com/fact", "published_at": "2024-01-01T00:00:00"}]], "distances": [[0.8]]}
+        result = run_retrieval({"question": "Who won?", "source": "The Age", "facts_chroma_path": "facts", "corpus_chroma_path": "corpus", "evidence_store": RETRIEVAL_EVIDENCE_STORE_FACTS}, str(uuid4()))
+        self.assertEqual(1, len(result["facts"]))
+        self.assertEqual(20.0, result["facts"][0]["match_percentage"])
 
     def test_tools_module_reads_knowledge_only_through_run_retrieval(self):
         source = inspect.getsource(retrieval_tools_module)

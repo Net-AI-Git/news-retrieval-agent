@@ -73,7 +73,9 @@ project/local_logging_audit/audit_log/*
 project/local_logging_dashboard/dashboard.html
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
-project/vector_stores/
+project/vector_stores/**
+!project/vector_stores/facts_chroma/
+!project/vector_stores/facts_chroma/source_catalog.json
 
 # Local agent/rules tooling — not part of the assignment repo
 .agents/
