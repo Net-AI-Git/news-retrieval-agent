@@ -1,6 +1,8 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
+
+from ..conts import ANSWER_REFUSAL_TEXT
 
 
 class RetrievedItem(BaseModel):
@@ -43,3 +45,9 @@ class SolutionCitation(BaseModel):
 class SolutionAnswer(BaseModel):
     answer: str = ""
     citations: list[SolutionCitation] = []
+
+    @model_validator(mode="after")
+    def apply_refusal_answer(self):
+        if not self.answer.strip():
+            self.answer = ANSWER_REFUSAL_TEXT
+        return self

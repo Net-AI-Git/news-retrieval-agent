@@ -66,6 +66,7 @@ def gather_node(state, task_data, flow_id):
     task_data["model_text"] = gather_message.content
     task_data["tool_calls"] = extract_tool_calls(gather_message)
     task_data["next_route"] = route_after_gather({"messages": [gather_message], "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
+    task_data.setdefault("transcript_turns", []).append({"stage": "gather", "gather_count": task_data["gather_count"], "tool_calls": task_data["tool_calls"], "next_route": task_data["next_route"]})
     return {"messages": [gather_message], "gather_count": task_data["gather_count"]}
 
 
@@ -75,6 +76,7 @@ def tools_node(state, tool_node, task_data, flow_id):
     task_data["tool_calls"] = extract_tool_calls(state["messages"][-1])
     task_data["tool_count"] = state.get("tool_count", 0) + len(task_data["tool_calls"])
     task_data["evidence"] = (state.get("evidence") or []) + evidence
+    task_data.setdefault("transcript_turns", []).append({"stage": "tools", "tool_count": task_data["tool_count"], "tool_calls": task_data["tool_calls"], "evidence": evidence})
     return {"messages": tool_messages, "evidence": evidence, "tool_count": task_data["tool_count"]}
 
 
@@ -83,6 +85,7 @@ def answer_node(state, task_data, flow_id):
     answer_result = filter_answer_citations(run_answer({**task_data, "question": state["question"], "evidence": evidence}, flow_id), evidence)
     task_data["evidence"] = evidence
     task_data["answer_result"] = answer_result.model_dump()
+    task_data.setdefault("transcript_turns", []).append({"stage": "answer", "answer_result": task_data["answer_result"]})
     return {"answer_result": answer_result}
 
 
