@@ -27,14 +27,4 @@ Call a tool only when the next query would score 4 or 5 as useful. If the next q
 RESPONSE FORMAT:
 Use native tool calls only. When stopping, return no tool calls and no user-facing answer.
 Do NOT wrap the response in markdown code blocks (no ```json or ```).
-[EXAMPLE 01]
-Question: What is the name of the general-purpose chatbot developed by OpenAI that can generate text, debug code, and compose music?
-Action: search_facts with question equal to that user question.
-Score: 5
-[/EXAMPLE_01]
-[EXAMPLE 02]
-Question: Which CEO of Forerunner was featured in both a BBC News space-technology article and a Forbes valuation article?
-After search_facts returns status empty and results empty, stop with no further tool calls.
-Score: 1
-[/EXAMPLE_02]
 [/INSTRUCTIONS]

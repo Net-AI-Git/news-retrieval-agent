@@ -6,7 +6,6 @@ Single source of truth for all authored LLM instructions. Prompt text is version
 ## Contains
 - One active production prompt per consumer: `<consumer_module_name>.md`.
 - The filename matches the agent or GPT repository module stem exactly.
-- Static instructions, definitions, rules, response format, and examples.
 
 ## Placement and Loading
 - Python code loads the prompt file at runtime and passes dynamic input separately as structured user data.
@@ -15,51 +14,24 @@ Single source of truth for all authored LLM instructions. Prompt text is version
 - No authored instruction, role, rule, response-format text, or example may be duplicated in Python.
 - Do not create feature subdirectories, a second prompt location, or multiple prompt formats.
 
+## Prompt Structure
+- Match the consuming model's vendor prompt shape. Keep the prompt short.
+- For OpenAI GPT developer/system messages, sections appear in this order:
+  1. `# Identity`
+  2. `# Instructions`
+  3. `# Examples` (optional)
+- Context is not written into the prompt file. The consumer sends it as the user message.
+- Inside `# Examples`, use `<user_query>` … `</user_query>` and `<assistant_response>` … `</assistant_response>`.
+- Do not use `[INSTRUCTIONS]`, `ROLE:`, `TASK:`, `RULES:`, `CONFIDENCE SCORE`, or `[EXAMPLE 01]` as the outline.
+- Do not use Claude-style XML instruction tags such as `<role>` or `<decision_policy>` as the main outline.
+- Do not put evaluation-set questions, answers, gold citations, or isomorphic few-shot of those items in the prompt.
+- Prefer zero-shot. Add examples only for format (verbatim field copy, empty refuse), using invented data and fake URLs.
+
 ## Prompt Experiments
 - Control, candidates, datasets, runners, and results live in one named experiment under [`../../tests/`](../../tests/).
 - Production code never selects an experimental variant.
 - After approval, copy only the winning prompt content into the consumer's production prompt file.
 - Historical experiment inputs and results remain in [`../../tests/`](../../tests/).
-
-## Prompt Structure
-- Wrap the entire prompt in `[INSTRUCTIONS]...[/INSTRUCTIONS]`.
-- Sections appear in this order and use this exact wording:
-  1. `[DEFINITIONS]...[/DEFINITIONS]`
-  2. `ROLE:`
-  3. `TASK:`
-  4. `RULES:`
-  5. `CONFIDENCE SCORE (integer 1–5):`
-  6. `RESPONSE FORMAT:`
-  7. `[EXAMPLE 01]...[/EXAMPLE_01]`
-- Do not use alternate headings such as `STRICT RULES:`, `CRITICAL RULE:`, `ANSWER FORMAT:`, or `RESPONSE:`.
-
-## Definitions
-- Define only domain-specific terms the model cannot infer.
-- Domain terms appear in `UPPERCASE` throughout the prompt.
-- Terms not listed in `[DEFINITIONS]` are not uppercased as domain terms.
-
-## Examples
-- Use two-digit blocks: `[EXAMPLE 01]...[/EXAMPLE_01]`.
-- Include at least one empty or edge-case result.
-- Use realistic production-shaped English data and varying confidence scores, including a score below `4`.
-- Before adding examples, ask the user where approved real examples can be found. Never invent production examples.
-- Never include credentials, customer PII, or unapproved production content.
-
-## Confidence Score
-- Every result item includes an integer `score` from `1` to `5`.
-- The prompt defines the scale exactly:
-  - `5 = Certain — explicitly and clearly present in the input`
-  - `4 = High confidence — strong evidence supports this`
-  - `3 = Moderate — some evidence but ambiguous`
-  - `2 = Low — weak or indirect evidence`
-  - `1 = Very low — barely mentioned, speculative`
-- Filtering by the configured confidence threshold remains service business logic.
-
-## Response Format
-- Specify the exact output structure, keys, types, example, and empty-result form.
-- Forbid markdown wrappers: `Do NOT wrap the response in markdown code blocks (no ```json or ```).`
-- GPT repositories parse JSON immediately after the model call and return the full unfiltered result.
-- Plain-text consumers return the raw model text.
 
 ## Forbidden
 - No Python, YAML, JSON, Jinja, or generated prompt templates in this directory.

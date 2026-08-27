@@ -68,6 +68,24 @@ def hop_gold_item(ground_truth, call):
     return facts[index - 1]
 
 
+def unique_evidence_items(evidence):
+    unique_items = []
+    index_by_fact = {}
+    for item in evidence or []:
+        fact_key = " ".join((item.get("snippet") or "").split())
+        if not fact_key:
+            unique_items.append(item)
+            continue
+        if fact_key in index_by_fact:
+            existing_index = index_by_fact[fact_key]
+            if (item.get("match_percentage") or 0) > (unique_items[existing_index].get("match_percentage") or 0):
+                unique_items[existing_index] = item
+            continue
+        index_by_fact[fact_key] = len(unique_items)
+        unique_items.append(item)
+    return unique_items
+
+
 def first_matching_rank(results, gold_item, require_snippet):
     gold_url = gold_item.get("url") or ""
     gold_fact = gold_item.get("fact") or ""
@@ -100,15 +118,9 @@ def evaluate_hop(call, payload, gold_item):
 
 def union_results(hops):
     merged = []
-    seen = set()
     for hop in hops:
-        for item in hop["results"]:
-            key = ((item.get("url") or ""), (item.get("snippet") or ""))
-            if key in seen:
-                continue
-            seen.add(key)
-            merged.append(item)
-    return merged
+        merged.extend(hop["results"])
+    return unique_evidence_items(merged)
 
 
 def any_snippet_match(gold_fact, snippets):
@@ -161,7 +173,7 @@ def evaluate_question(project_root, question_data):
             sleep(LIVE_SEARCH_PAUSE_SECONDS)
         hops.append(evaluate_hop(call, search_facts.invoke(call.get("arguments") or {}), hop_gold_item(ground_truth, call)))
     union_hits = union_results(hops)
-    return {"question_id": question_data["id"], "hops": hops, "union_hits": union_hits, **question_metrics(ground_truth, hops, union_hits)}
+    return {"question_id": question_data["id"], "hops": hops, "union_hits": union_hits, "gold_items": ground_truth.get("facts") or [], **question_metrics(ground_truth, hops, union_hits)}
 
 
 def evaluate_all_questions(project_root, questions):
