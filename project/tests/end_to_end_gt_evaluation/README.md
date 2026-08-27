@@ -71,3 +71,5 @@ These did not get their own CSV column; several are already nested in the JSON c
 ## Status
 
 Active — full 11-question run 2026-08-26 (`outputs/stage_eval_2026-08-26_19-54-27.csv`). Smoke Q01 still `on_time` / `parallel`.
+
+Gate 0 GT audit (2026-08-27): keep all 11 vs `facts.json`; corpus not audited. Full write-up: `project/plans/pda-knowledge-retrieval-assignment/TASK-06-answers-transcripts-and-evaluation.md` (section “Gate 0 audit — 2026-08-27”).

@@ -1,0 +1,6 @@
+{
+  "elapsed_seconds": 0.78,
+  "embedding_length": 2048,
+  "error": "",
+  "model": "nvidia/nemotron-3-embed-1b:free"
+}
