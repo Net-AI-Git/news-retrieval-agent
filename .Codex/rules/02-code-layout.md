@@ -16,7 +16,7 @@
 - GPT repos: `repositories/gpt_<feature_name>_repository.py` — one file per feature.
 - Oracle DB: all features share `repositories/oracle_repository.py` (methods added to same class).
 - CRM: all features share `repositories/crm_repository.py`.
-- Shared infra: `redis_repository.py`, `local_logging_repository.py` in `repositories/`.
+- Shared infra: `redis_repository.py`, `local_logging_repository.py`, `local_telemetry_repository.py` in `repositories/`.
 - Pydantic schemas: all `BaseModel` classes MUST live under `schemas/`.
 - Prompt experiments: `tests/<experiment_name>/` — control, candidates, dataset, runner, and results stay outside runtime.
 - Do NOT create subdirectories per feature. Feature files are self-contained — all logic stays in its own file(s).
@@ -52,6 +52,7 @@
 - Orchestration calls agents or services only. It contains coordination policy, never prompts, tool implementations, business logic, or external access.
 - Agents call assigned tools or delegated agents only. Tools call services only. Services call repositories.
 - `task_data` and `flow_id` MUST flow through every invoked runtime layer. Each layer extracts only what it needs from `task_data`.
+- Agentic orchestration MUST preserve the active trace context across every agent, tool, service, delegated task, and parallel branch.
 
 **BAD:** `run_<feature_name>(field_a, field_b, flow_id)`
 **GOOD:** `run_<feature_name>(task_data, flow_id)`
