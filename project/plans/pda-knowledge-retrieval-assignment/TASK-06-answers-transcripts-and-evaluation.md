@@ -86,7 +86,7 @@ N/A — generated assignment artifacts can be regenerated from the merged system
 
 **Revision — 2026-08-27 — Path to 100% local-GT e2e**
 
-**Status:** In Progress — Gates 0–3 closed, including Gate 2 ranking (Top-1, no rerank). Gate 4 in progress: Gather/retrieve split, first-hop 8/11 (`metrics_2026-08-28_16-44-21.csv`). Gate 5 open.  
+**Status:** In Progress — Gates 0–3 closed, including Gate 2 ranking (Top-1, no rerank). Gate 4 in progress: isolated Retrieve tool-fill is closed at 11/11 twice; Gather decomposition/stop remains open. Gate 5 open.
 **Author:** N/A  
 **Created:** 2026-08-27  
 **Target Completion:** TBD  
@@ -272,15 +272,15 @@ Do not loosen citation copying. Orchestration already drops paraphrased snippets
 Only on hops that passed Gate 2.
 
 1. **Date filters on temporal questions** (Q08 required; Q02/Q11 may need dates in Answer even if Gather did not filter).
-2. **Stop after empty required facts** (Gather example 02 already says this; Q04 ran 6 facts calls and hit the turn cap; Q09 added a third). Bind corpus so the conditional GT path is possible, then stop if corpus is also empty.
+2. **Stop after empty required facts** (Q04 ran 6 facts calls and hit the turn cap; Q09 added a third). TASK 04 is facts-only: conditional Q04/Q09 `search_corpus` rows remain labeled `agent: "unbound"` and are excluded from the Retrieve-only board. Grade/stop must terminate after the bounded facts path instead of binding corpus here.
 3. **No extra tools turn after gold is complete** (Q02 date-rewrites, Q07 extra hops). Parallel first-turn batches stay allowed.
 4. **Decompose only where Gate 2 hits and the agent query misses.** Do not “improve overlap” on Q07’s packed query if gold is found.
 
 Prompt-only Gather stalled at 7/11. Grade after tools reached **9/11** (`metrics_2026-08-28_12-53-03.csv`). Standalone-retry track stopped at 7/11. First-hop prompt-only Gather (no Grade) peaked at **9/11** (`tests/live_gather_first_hop` `metrics_2026-08-28_14-44-01.csv`): Q05 copied `The Age` onto every hop; Q07 packed three abilities; Q01 rank-1 was noisy. Tightening vs relaxing `source` traded Q02 against Q05. A k=2 trial (`16-04-44` 9/11, `16-09-10` 10/11) closed some gold misses and left Q05 failing; **reverted to `RETRIEVAL_TOP_K=1`**.
 
-**Current Gate 4 work (2026-08-28):** Gather only decomposes; an isolated retrieve agent fills `source` / dates and calls `search_facts`. Catalog resolve stays in retrieval. First live first-hop score on the split: **8/11** (`metrics_2026-08-28_16-44-21.csv`). Q05 gold complete. Remaining first-hop misses: Q01 (source filled, gold not rank 1), Q04 (packed both outlets into one sub-question), Q07 (over-split, missing second TechCrunch fact). Decision log: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Isolated retrieve hop”. Spec history: [`gate4-gather-first-hop-prompt-goal.md`](../gate4-gather-first-hop-prompt-goal.md) (prompt-only Gather is superseded).
+**Current Gate 4 work (2026-08-28):** Gather only decomposes; an isolated retrieve agent fills `source` / dates and calls `search_facts`. Catalog resolve stays in retrieval. The split’s joint first-hop baseline was **8/11** (`metrics_2026-08-28_16-44-21.csv`): Q05 gold complete; Q01 was rank-1 retrieval, Q04 was packed Gather output, and Q07 was Gather over-splitting. Retrieve was then isolated from Gather, Chroma, Grade, and Answer in `tests/live_retrieve_gt`. After four clean short-prompt candidates (8/11, 10/11, 5/11, 2/11), a mandatory source-failure stop, and an explicitly reopened longer-prompt round, `candidate_ordered_fields_fictional_contrast.md` passed **11/11 twice** (`metrics_2026-08-28_18-12-29.csv`, `18-18-29`; 25/25 retrieve hops in each, `prompt_leak_hit=0`). Detailed experiment record and trade-offs: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Retrieve-only prompt evaluation and final prompt”. Spec: [`gate4-retrieve-isolated-hop-prompt-goal.md`](../gate4-retrieve-isolated-hop-prompt-goal.md).
 
-**Exit:** Stop `too_late` only when a later tools turn is real. Q05/Q08 `too_early` disappears once those hops retrieve gold. First-hop board still needs two consecutive 11/11 before treating Gate 4 as closed.
+**Exit:** Retrieve-only tool filling is met. Full Gate 4 is still open: stop `too_late` only when a later tools turn is real, and close Gather decomposition/stop without mixing in rank or Answer failures. The two Retrieve CSVs do not prove the joint Gather → retrieve → tools → Grade behavior.
 
 #### Phase E — Joint e2e and artifacts (Gate 5)
 
@@ -301,12 +301,12 @@ Regenerate root `answers.json` and transcripts via `solution.py`. Record remaini
 | Q01 | pass | none | Regression | Anything |
 | Q02 | fail | Gate 3 (gold complete, refused Yes) | Temporal Answer + stop extra date queries | RAG, decompose |
 | Q03 | pass | none (stop label was wrong) | Regression; fix scorer | Stop-policy “too late” |
-| Q04 | pass | Gate 1 bind + Gate 4 stop | Gather: one sub-question per named outlet (packed NYT+WSJ on first-hop 16-44-21); then stop after empty | Answer |
+| Q04 | pass | Gate 4 decompose + stop | Gather: one sub-question per named outlet (packed NYT+WSJ on first-hop 16-44-21); then stop after bounded empty facts. Conditional corpus remains unbound | Answer |
 | Q05 | fail | Gate 4 then Answer | First-hop Age-on-all is closed by retrieve isolation (`16-44-21` gold complete). Remaining e2e is Answer/citations if gold is in evidence | Answer string (already Google); do not put source fill back on Gather |
 | Q06 | fail | Gate 3 (gold complete, refused No) | Comparison Answer | RAG |
 | Q07 | pass | Gate 4 too_late / first-hop over-split | Gather: one hop per listed ability, no featured-in extras; Grade stop extra hops | Restore packed three-ability query |
 | Q08 | fail | Gate 4 (oracle RAG now hits Tremblant with source+dates) | Gather keeps the window in that sub-question text; retrieve fills ISO dates; then Answer if still refusing | Answer-first |
-| Q09 | pass | Gate 4 extra empty call | Stop policy; bind corpus | Answer |
+| Q09 | pass | Gate 4 extra empty call | Stop after bounded empty facts; conditional corpus remains unbound | Answer |
 | Q10 | fail | Gate 3 (Gather gold complete) | Comparison Answer; ignore CSV `rag` label | Index work as the e2e fix |
 | Q11 | fail | Gate 3 (gold + citations, Yes vs No) | Temporal polarity | RAG, citations |
 
@@ -410,7 +410,7 @@ This pass only added `agent` on each `expected_tool_calls` row: `retrieve` on re
 
 ## Success Criteria
 
-- Gate 1: both tools bound; GT argument payloads runnable against live stores.
+- Gate 1: required `search_facts` tool bound and GT argument payloads runnable against the live Facts store; conditional corpus rows explicitly unbound for this facts-only task.
 - Gate 2: 9/9 answerable gold-URL success on GT `search_facts` args.
 - Gate 3: 11/11 oracle-Answer (9 answers + 2 refusals), prompt free of eval items and of isomorphic few-shot.
 - Gate 5: 11/11 `e2e_success=1` on `end_to_end_gt_evaluation`.
@@ -424,6 +424,7 @@ This pass only added `agent` on each `expected_tool_calls` row: `retrieve` on re
 - [x] Gate 2 facts Success on GT `search_facts` args is 9/9. First close: Top-5 `metrics_2026-08-27_19-41-17.csv`. Ranking close: Top-1, no rerank, `metrics_2026-08-27_22-25-11.csv`.
 - [x] Gate 3 oracle-Answer test exists (`tests/oracle_answer_gt`).
 - [x] Gate 3 is 11/11 with a prompt that does not contain evaluation items or isomorphic few-shot of them (`21-56-37`, `21-58-37`, `22-16-19`).
+- [x] Gate 4 Retrieve-only tool-fill is 11/11 twice on unchanged, leak-free prompt text (`tests/live_retrieve_gt` `18-12-29`, `18-18-29`; 25/25 hops each).
 - [ ] Gate 4 stop/date/decompose changes only on hops that passed Gate 2.
 - [ ] Gate 5 e2e CSV is 11/11.
 - [ ] `answers.json` and transcripts regenerated from the public path.

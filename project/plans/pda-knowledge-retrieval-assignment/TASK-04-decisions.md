@@ -336,6 +336,46 @@ Retrieve owns only one `search_facts` fill. Input is one isolated `HumanMessage(
 
 Orchestration fans Gather’s list into sequential retrieve invokes, merges `tool_calls`, runs `ToolNode`, then Grade. Grade and Answer are out of this split.
 
+### Retrieve-only prompt evaluation and final prompt (Gate 4, 2026-08-28)
+
+**Why this gate exists:** ASSIGNMENT sections B/C require a small typed retrieval-tool surface and a genuinely agentic loop in which the LLM decides retrieval calls. The Gather/retrieve split made that responsibility testable: Gather chooses standalone information needs; retrieve receives one need and fills the typed `search_facts` arguments. A full first-hop or e2e score cannot isolate that fill from Gather packaging, Chroma rank, Grade, or Answer, so Retrieve was measured alone before returning to the joint loop.
+
+**Evaluation contract:** `tests/live_retrieve_gt` loads only GT `expected_tool_calls` rows labeled `agent: "retrieve"` (25 isolated hops across Q01–Q11). Rows labeled `agent: "unbound"` are excluded. The runner does not execute Gather, `search_facts`, Chroma, canonical source resolution, Grade, or Answer. A question passes only when all of its hops emit exactly one `search_facts` call, copy the isolated input verbatim into `question`, include `source` only when that string names a news publication, include an explicit-offset ISO-8601 publication window only when required, omit user-facing text, and keep `prompt_leak_hit=0`. Acceptance is two consecutive 11/11 metrics files on unchanged prompt text.
+
+**Experiment discipline:** one named prompt hypothesis per live run; snapshot every candidate; inspect failed hop CSV rows but never copy GT text into the prompt; reject evaluation questions and renamed/isomorphic clones; stay below 40 lines / 350 words and use the OpenAI `# Identity` → `# Instructions` → optional `# Examples` shape. Catalog canonicalization, rank-1, `RETRIEVAL_TOP_K`, Gather packaging, and `search_corpus` were explicitly out of scope.
+
+**Operational difficulty:** `uv sync` could not initialize `C:\Users\User\AppData\Local\uv\cache` because access was denied, so the existing `project/.venv` ran the same test module. The first sandboxed live attempt wrote [`metrics_2026-08-28_17-29-28.csv`](../../tests/live_retrieve_gt/outputs/metrics_2026-08-28_17-29-28.csv), but all 25 hops had `OpenAIConnectionError`; it was not counted as an honest prompt run. After explicit approval to send the isolated evaluation payload to OpenRouter, all honest runs completed without runtime errors.
+
+**Honest experiment record:**
+
+| Candidate | Named hypothesis | Result | Evidence and decision |
+| --- | --- | --- | --- |
+| [`candidate_control_initial.md`](../../tests/live_retrieve_gt/inputs/candidate_control_initial.md) | Current short zero-shot contract | 8/11 | [`metrics_2026-08-28_17-37-53.csv`](../../tests/live_retrieve_gt/outputs/metrics_2026-08-28_17-37-53.csv): Q06 removed outlet-attribution text from both `question` values; Q07 hop 3 and Q10 hop 2 omitted required `source`. No leakage, date, call, answer, or runtime failures. |
+| [`candidate_strict_verbatim_full_input.md`](../../tests/live_retrieve_gt/inputs/candidate_strict_verbatim_full_input.md) | Make the whole input immutable before optional-field decisions | 10/11 | [`metrics_2026-08-28_17-44-36.csv`](../../tests/live_retrieve_gt/outputs/metrics_2026-08-28_17-44-36.csv): Q06 was fixed; Q07 alone failed because all three required sources were empty. This became the best clean short prompt. |
+| [`candidate_outlet_role_disambiguation.md`](../../tests/live_retrieve_gt/inputs/candidate_outlet_role_disambiguation.md) | Infer publication status from reporting/coverage role instead of entity type | 5/11 | [`metrics_2026-08-28_17-51-28.csv`](../../tests/live_retrieve_gt/outputs/metrics_2026-08-28_17-51-28.csv): nine required sources were empty across Q01/Q04/Q05/Q07/Q10/Q11. No extra source was invented. The added inference increased hesitation. |
+| [`candidate_named_publication_requires_source.md`](../../tests/live_retrieve_gt/inputs/candidate_named_publication_requires_source.md) | State that any explicitly named publication requires `source` | 2/11 | [`metrics_2026-08-28_17-58-02.csv`](../../tests/live_retrieve_gt/outputs/metrics_2026-08-28_17-58-02.csv): eighteen required sources were empty across nine questions; Q07 still failed on the same three hops. No extra source was invented. |
+| [`candidate_ordered_fields_fictional_contrast.md`](../../tests/live_retrieve_gt/inputs/candidate_ordered_fields_fictional_contrast.md) | Separate `question`, `source`, and dates into ordered independent decisions, then show source-present/source-absent formats with invented examples | **11/11 twice** | [`metrics_2026-08-28_18-12-29.csv`](../../tests/live_retrieve_gt/outputs/metrics_2026-08-28_18-12-29.csv) / [`hops_2026-08-28_18-12-29.csv`](../../tests/live_retrieve_gt/outputs/hops_2026-08-28_18-12-29.csv) and [`metrics_2026-08-28_18-18-29.csv`](../../tests/live_retrieve_gt/outputs/metrics_2026-08-28_18-18-29.csv) / [`hops_2026-08-28_18-18-29.csv`](../../tests/live_retrieve_gt/outputs/hops_2026-08-28_18-18-29.csv): each has 11/11 questions and 25/25 hops, with zero rewritten questions, source/date/call failures, assistant text, runtime errors, or leakage. |
+
+**Stopping and reopening decision:** after the two dedicated source candidates left the same three Q07 hops with empty `source` and no improvement, the mandatory stop condition fired. Production was restored to the 10/11 strict-verbatim candidate rather than continuing to compress source heuristics or copy test structure. The round was reopened only after an explicit decision to test a longer prompt and require invented examples. The new hypothesis was not “more rules”; it was an ordered field-by-field scaffold that made copying `question`, classifying `source`, and classifying publication dates independent operations.
+
+**Why the examples are valid:** the two examples use the invented Mosswhistle/Lumen Pond public-art domain and the fictional `Mosswhistle Gazette`. One demonstrates an outlet present; one demonstrates no outlet. They contain no evaluation entity, fact, title, URL, date, multi-outlet sibling trap, company-as-outlet trap, or publication-date/event-date trap. Exact scanning found no invented name in `questions.json` or the GT files, and manual friend review rejected any isomorphic evaluation structure. They teach only argument presence/omission and verbatim field copying.
+
+**Final choice:** keep [`src/prompts/retrieve_agent.md`](../../src/prompts/retrieve_agent.md) equal to [`candidate_ordered_fields_fictional_contrast.md`](../../tests/live_retrieve_gt/inputs/candidate_ordered_fields_fictional_contrast.md). The prompt is 24 lines / 264 words, uses only the vendor headings and permitted example tags, and has SHA-256 `1BC47438306BCA700248E555BCA8C32ED482911060AD6C2B40F8F4DA2B39850E`. Both passing runs used that unchanged text.
+
+**Chosen over:**
+
+- Keeping the 10/11 short zero-shot prompt — shorter, but Q07 source omission repeated.
+- Adding more source taxonomies or stronger “required” wording — two such candidates worsened omission from 3 to 9 to 18 hops.
+- Evaluation-derived or renamed few-shot — invalid even if the score rises.
+- Fixing catalog names, Chroma rank, `k`, Gather, or Grade from this board — those layers were not executed and cannot explain a tool-fill failure here.
+
+**Trade-off we accepted:**
+
+- Cost: 264 words and two format-only examples instead of a 126-word zero-shot prompt; more prompt tokens and a larger review surface.
+- Gain: stable 11/11 tool filling twice, explicit separation of arguments, and a reproducible record showing that the improvement did not come from evaluation leakage.
+- Constraint honored: the LLM still fills typed `search_facts` arguments; orchestration only isolates/fans out hops; tools remain the only answer-time data path; canonicalization and ranking remain downstream.
+- Remaining boundary: this closes Retrieve-only tool filling, not full Gate 4. Gather decomposition/stop, Grade continuation, evidence sufficiency, citations/refusal, and Gate 5 e2e still need their own evidence.
+
 ### Gather-only chat model: `OPENAI_GATHER_MODEL` (2026-08-28)
 
 **Choice:** Gather reads `openai/gpt-4.1-mini` from `OPENAI_GATHER_MODEL`. Retrieve, Grade, and Answer keep `openai/gpt-4o-mini` from `OPENAI_MODEL`. Same OpenRouter key and base URL. `REQUIRED_SOLUTION_ENV_VARS` includes both slugs.
