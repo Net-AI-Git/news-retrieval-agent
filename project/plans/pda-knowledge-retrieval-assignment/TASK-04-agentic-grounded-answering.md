@@ -22,6 +22,10 @@ Gate 4 no longer uses one Gather agent that both splits the question and calls `
 
 First live first-hop score on the split: 8/11 (`tests/live_gather_first_hop` `metrics_2026-08-28_16-44-21.csv`). Q05 gold complete. Remaining: Q01 rank-1 (retrieval), Q04 packed (Gather), Q07 over-split (Gather).
 
+The isolated Retrieve tool-fill contract is now closed independently of Gather and Chroma. `tests/live_retrieve_gt` invoked all 25 GT rows labeled `agent: "retrieve"`, one standalone sub-question at a time, and checked one `search_facts` call, verbatim `question`, conditional outlet/date arguments, no assistant text, and no prompt leakage. The final ordered-field prompt with two invented format examples passed 11/11 twice without a prompt change (`metrics_2026-08-28_18-12-29.csv`, `18-18-29`; 25/25 hops in both). This proves that the LLM can fill the typed TASK 03 tool arguments from isolated hop context, as required by ASSIGNMENT sections B/C. It does not close Gather decomposition/stop behavior, evidence sufficiency, citations, refusal, or Gate 5 e2e.
+
+The full prompt experiment path, rejected candidates, failure modes, stopping decision, reopened round, and final trade-off are recorded in [`TASK-04-decisions.md`](TASK-04-decisions.md) under “Retrieve-only prompt evaluation and final prompt”. The production prompt is [`src/prompts/retrieve_agent.md`](../../src/prompts/retrieve_agent.md); the winning snapshot is [`tests/live_retrieve_gt/inputs/candidate_ordered_fields_fictional_contrast.md`](../../tests/live_retrieve_gt/inputs/candidate_ordered_fields_fictional_contrast.md).
+
 Follow-up optimization is two tasks, not one prompt: Gather decompose vs retrieve filter-fill. Do not merge them. Details: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Isolated retrieve hop”. Local-GT ladder: [`TASK-06-answers-transcripts-and-evaluation.md`](TASK-06-answers-transcripts-and-evaluation.md) Phase D.
 
 This remains TASK 04 work: the LLM still directs tool arguments; orchestration still owns budgets; `search_corpus` stays unbound.
