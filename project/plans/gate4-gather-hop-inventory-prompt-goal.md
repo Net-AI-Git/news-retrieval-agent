@@ -20,7 +20,7 @@
 1. **Leakage זה רמאות.** אסור לשים בפרומפט (`gather_agent.md`) שאלות ממערכת ההערכה, תשובות, כותרות מאמרים, קטעים, כתובות URL, תת-שאלות זהב, מחרוזות `question` של כלי, או «אותה שאלה עם שמות מזויפים». אם חומר הלימוד מכיל את המבחן, הציון לא תקף גם ב-11/11.
 2. **בלי דוגמאות של המבחן שלנו.** `# Examples` הוא אופציונלי ובדרך כלל לא נכון כאן. אם אתה רוצה דוגמאות, **אתה חייב לחפש ולבנות אותן לבד** בדומיין מומצא. אל תעתיק GT. אל תשכפל את Q01–Q11 עם שמות מוחלפים. אם מישהו שראה את 11 שאלות המבחן יזהה את הדוגמה אחרי שהסתרת שמות עצם, מחק אותה.
 3. **קצר.** `gather_agent.md` בפרודקשן חייב להישאר **מתחת ל-40 שורות** ו-**מתחת ל-350 מילים**. לקצר, לא להוסיף.
-4. **מבנה ספק בלבד. חובה לדבוק בזה.** המודל הוא `openai/gpt-4o-mini`. משתמשים במתווה developer-message של OpenAI ורק בו:
+4. **מבנה ספק בלבד. חובה לדבוק בזה.** המודל הוא `openai/gpt-4.1-mini` דרך `OPENAI_GATHER_MODEL`. משתמשים במתווה developer-message של OpenAI ורק בו:
    - `# Identity`
    - `# Instructions`
    - `# Examples` (אופציונלי; עדיף בלי)
@@ -165,7 +165,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_gather_hops.run_live_gather_hops
 ```
 
-צריך `.env` עם `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`.
+צריך `.env` עם `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`.
 
 **לא** צריך Chroma. **לא** קורא ל-Retrieve, Grade, Answer, או כלים. קריאת Gather אחת לכל שאלה. כמה דקות. בלי הדפסה לקונסול.
 
@@ -268,7 +268,7 @@ uv run python -m tests.live_gather_hops.run_live_gather_hops
 
 ## מבנה הפרומפט לפי הספק (חובה לדבוק)
 
-המודל הצרכן הוא OpenAI GPT (`openai/gpt-4o-mini`) דרך ChatOpenAI. פרומפטי פרודקשן חייבים להתאים למבנה הספק. ראה `project/src/prompts/AGENTS.md`.
+המודל הצרכן הוא OpenAI GPT (`openai/gpt-4.1-mini` ב-`OPENAI_GATHER_MODEL`) דרך ChatOpenAI. Retrieve / Grade / Answer נשארים על `OPENAI_MODEL`. פרומפטי פרודקשן חייבים להתאים למבנה הספק. ראה `project/src/prompts/AGENTS.md`.
 
 סדר הסעיפים הנדרש:
 

@@ -16,7 +16,7 @@ uv sync
 uv run python -m unittest tests.grounded_answering.test_grounded_answering
 ```
 
-Live cases call OpenRouter and the local Chroma stores. They need `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL`, plus existing `vector_stores/facts_chroma` and `vector_stores/corpus_chroma`.
+Live cases call OpenRouter and the local Chroma stores. They need `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`, and `OPENAI_MODEL`, plus existing `vector_stores/facts_chroma` and `vector_stores/corpus_chroma`.
 
 ## Inputs
 

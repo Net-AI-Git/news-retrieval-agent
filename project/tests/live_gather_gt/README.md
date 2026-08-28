@@ -17,7 +17,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_gather_gt.run_live_gather_gt
 ```
 
-Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_EMBEDDING_MODEL`) and `vector_stores/facts_chroma`. No console print; success is a new CSV trio.
+Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`, `OPENAI_MODEL`, `OPENAI_EMBEDDING_MODEL`) and `vector_stores/facts_chroma`. No console print; success is a new CSV trio.
 
 ## Inputs
 

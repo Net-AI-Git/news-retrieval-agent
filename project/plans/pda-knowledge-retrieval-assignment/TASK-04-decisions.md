@@ -336,6 +336,21 @@ Retrieve owns only one `search_facts` fill. Input is one isolated `HumanMessage(
 
 Orchestration fans Gather’s list into sequential retrieve invokes, merges `tool_calls`, runs `ToolNode`, then Grade. Grade and Answer are out of this split.
 
+### Gather-only chat model: `OPENAI_GATHER_MODEL` (2026-08-28)
+
+**Choice:** Gather reads `openai/gpt-4.1-mini` from `OPENAI_GATHER_MODEL`. Retrieve, Grade, and Answer keep `openai/gpt-4o-mini` from `OPENAI_MODEL`. Same OpenRouter key and base URL. `REQUIRED_SOLUTION_ENV_VARS` includes both slugs.
+
+**Chosen over:**
+
+- Raising `OPENAI_MODEL` for every agent — Grade and Answer would change with Gather.
+- Falling back from `OPENAI_GATHER_MODEL` to `OPENAI_MODEL` — a missing Gather slug would silently keep 4o-mini.
+
+**Trade-off we accepted:**
+
+- Cost: one extra env var and a stronger Gather slug.
+- Gain: Gather can use a stronger model without moving retrieve/Grade/Answer.
+- Constraint honored: no GPT repository; each agent still constructs `ChatOpenAI` from env.
+
 ---
 
 ## Open
