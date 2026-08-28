@@ -26,7 +26,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Gather with tools + Answer with no tools
 
-**Choice:** Two agents. `gather` has the `search_facts` allowlist and decides the next hop, reformulation, or stop. `answer` has no tools and sees only evidence accumulated in this run, then returns a name / `Yes` / `No` / refusal plus citations. Decomposition is gather prompt behavior, not a mandatory planner node.
+**Choice:** Two agents at first. `gather` has the `search_facts` allowlist. `answer` has no tools and sees only evidence accumulated in this run, then returns a name / `Yes` / `No` / refusal plus citations. Decomposition is gather prompt behavior, not a mandatory planner node. Stop-vs-rewrite later moved to Grade (see below).
 
 **Chosen over:**
 
@@ -72,7 +72,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### ChatOpenAI lives on the agent as runtime
 
-**Choice:** Gather and Answer each construct `ChatOpenAI` from `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL`. No `gpt_*_repository` for this feature. The LangChain chat model is the agent runtime (same class of dependency as LangGraph), not a one-shot GPT classification call.
+**Choice:** Gather, Grade, and Answer each construct `ChatOpenAI` from `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL`. No `gpt_*_repository` for this feature. The LangChain chat model is the agent runtime (same class of dependency as LangGraph), not a one-shot GPT classification call.
 
 **Chosen over:**
 
@@ -117,7 +117,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Gather stops when there are no tool_calls
 
-**Choice:** The graph routes Gather → tools while the model emits `tool_calls`, and Gather → Answer when it does not. Gather has no `done` schema. Sufficiency is Answer's: it answers or refuses from `evidence`. A step cap is a separate orchestration budget.
+**Choice:** The graph routes Gather → tools while the model emits `tool_calls`, and Gather → Answer when it does not. After a tools batch, Grade routes continue vs Answer (see below). Gather has no `done` schema. Sufficiency of the final claim is Answer's. A step cap is a separate orchestration budget.
 
 **Chosen over:**
 
@@ -178,7 +178,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Two prompts: Gather searches, Answer claims
 
-**Choice:** Two production prompt files, one per agent module, no prompt text in Python. Gather: do not answer the user; call `search_facts`; decompose into standalone information needs; stop with no `tool_calls` when enough or stuck. Answer: only the question plus this run's `evidence`; return an entity / `Yes` / `No` or refuse; cite only listed items; no world-knowledge fill-in. No third agent. No `search_corpus` in this loop.
+**Choice:** Two production prompt files, one per agent module, no prompt text in Python. Gather: do not answer the user; call `search_facts`; decompose into standalone information needs. Answer: only the question plus this run's `evidence`; return an entity / `Yes` / `No` or refuse; cite only listed items; no world-knowledge fill-in. `search_corpus` is not in this loop. Stop-vs-rewrite later moved to Grade (see below).
 
 **Chosen over:**
 
@@ -190,6 +190,22 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 - Cost: two files to keep in sync with graph behavior.
 - Gain: Gather cannot emit the final claim; Answer cannot search.
 - Constraint honored: filename stem matches the consuming agent module.
+
+### Grade after tools (Gate 4)
+
+**Choice:** After each tools batch, a Grade agent with no tools returns structured `enough` / `rewrite` / `missing_hop` / `empty_stop`. Orchestration routes continue (`rewrite` / `missing_hop`) back to Gather with a short note, or stop to Answer. Live Gather prompt experiments capped at 7/11 (`too_early` / missing gold on the same hops); a third prompt was not the next lever.
+
+**Chosen over:**
+
+- Another Gather-prompt round — three honest 7/11 runs, Q05/Q07 unchanged.
+- A supervisor/orchestrator LLM — extra hop, no new tool access split.
+- A planner node before any search — later hops still depend on retrieved entities.
+
+**Trade-off we accepted:**
+
+- Cost: one extra LLM call per tools batch.
+- Gain: stop vs rewrite is a separate judgment from query writing; Gather keeps `search_facts`.
+- Constraint honored: Grade has no tools; Answer still cannot search; `search_corpus` stays unbound.
 
 ### Gather uses FACTS only; corpus is out of this task
 
@@ -245,7 +261,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 **Trade-off we accepted:**
 
-- Cost: Gather still uses the legacy `INSTRUCTIONS` template until a Gather prompt experiment. Answer examples, if any, must be invented format items (`example.test`), not exam rows.
+- Cost: Gather is a short vendor prompt; stop-vs-rewrite is Grade after tools. Answer examples, if any, must be invented format items (`example.test`), not exam rows.
 - Gain: Gate 3 oracle-Answer is 11/11 without eval items in the prompt (`tests/oracle_answer_gt` `metrics_2026-08-27_21-56-37.csv`, `21-58-37`, independent re-run `22-16-19`).
 - Constraint honored: prompt file in `prompts/`; no eval gold in the study guide.
 
@@ -269,4 +285,4 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ## Open
 
-- Gather prompt still uses the legacy `[INSTRUCTIONS]` / `ROLE:` / `CONFIDENCE SCORE` template. Migrate it to the OpenAI vendor shape in a Gather experiment (Gate 4), not by copying Answer examples.
+- none

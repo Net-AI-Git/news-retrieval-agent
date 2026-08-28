@@ -14,10 +14,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PROJECT_ROOT / ".env")
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.agents import answer_agent, gather_agent
-from src.conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT
+from src.agents import answer_agent, gather_agent, grade_agent
+from src.conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GROUNDED_ANSWERING_RECURSION_LIMIT
 from src.orchestration import grounded_answering_workflow as workflow
-from src.schemas.agent import AnswerCitation, AnswerResult, SearchEvidenceOutput
+from src.schemas.agent import AnswerCitation, AnswerResult, GradeResult, SearchEvidenceOutput
 
 
 EVIDENCE_ITEM = {"article_title": "One year later, ChatGPT is still alive and kicking", "snippet": "ChatGPT can complete and debug code.", "url": "https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/", "published_at": "2023-11-30T14:10:43+00:00", "match_percentage": 82.0}
@@ -26,7 +26,7 @@ QUESTIONS = {item["id"]: item["question"] for item in json.loads((PROJECT_ROOT /
 
 def invoke_live_question(question_id):
     task_data = {"question": QUESTIONS[question_id], "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": CORPUS_CHROMA_PATH}
-    return workflow.build_grounded_answering_graph(task_data, str(uuid4())).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
+    return workflow.build_grounded_answering_graph(task_data, str(uuid4())).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
 
 
 def snippet_is_in_evidence(citation, evidence):
@@ -66,6 +66,11 @@ class GroundedAnsweringTests(unittest.TestCase):
         self.assertEqual("answer", workflow.route_after_gather({"gather_count": GATHER_MAX_LLM_TURNS, "tool_count": 0, "messages": [SimpleNamespace(tool_calls=[{"name": "search_facts"}])]}))
         self.assertEqual("answer", workflow.route_after_gather({"gather_count": 1, "tool_count": GATHER_MAX_TOOL_CALLS, "messages": [SimpleNamespace(tool_calls=[{"name": "search_facts"}])]}))
 
+    def test_route_after_grade_continues_or_answers(self):
+        self.assertEqual("gather", workflow.route_after_grade({"gather_count": 1, "tool_count": 2, "grade_verdict": GRADE_VERDICT_MISSING_HOP}))
+        self.assertEqual("answer", workflow.route_after_grade({"gather_count": 1, "tool_count": 2, "grade_verdict": GRADE_VERDICT_ENOUGH}))
+        self.assertEqual("answer", workflow.route_after_grade({"gather_count": GATHER_MAX_LLM_TURNS, "tool_count": 2, "grade_verdict": GRADE_VERDICT_MISSING_HOP}))
+
     def test_collect_tool_evidence_reads_tool_payload_results(self):
         payload = SearchEvidenceOutput(status="ok", question="Who?", results=[EVIDENCE_ITEM]).model_dump_json()
         evidence = workflow.collect_tool_evidence([SimpleNamespace(content=payload)])
@@ -76,20 +81,28 @@ class GroundedAnsweringTests(unittest.TestCase):
         self.assertNotIn("repositories", inspect.getsource(gather_agent))
         self.assertNotIn("services", inspect.getsource(answer_agent))
         self.assertNotIn("repositories", inspect.getsource(answer_agent))
+        self.assertNotIn("services", inspect.getsource(grade_agent))
+        self.assertNotIn("repositories", inspect.getsource(grade_agent))
 
     def test_prompts_exist_and_require_verbatim_snippet(self):
         prompts_dir = PROJECT_ROOT / "src" / "prompts"
         gather_prompt = (prompts_dir / "gather_agent.md").read_text(encoding="utf-8")
+        grade_prompt = (prompts_dir / "grade_agent.md").read_text(encoding="utf-8")
         answer_prompt = (prompts_dir / "answer_agent.md").read_text(encoding="utf-8")
-        self.assertIn("[INSTRUCTIONS]", gather_prompt)
+        self.assertIn("# Identity", gather_prompt)
+        self.assertIn("# Instructions", gather_prompt)
         self.assertIn("search_facts", gather_prompt)
-        self.assertIn("Do not request source files", gather_prompt)
+        self.assertNotIn("[INSTRUCTIONS]", gather_prompt)
+        self.assertNotIn("ROLE:", gather_prompt)
+        self.assertIn("# Identity", grade_prompt)
+        self.assertIn("# Instructions", grade_prompt)
+        self.assertNotIn("[INSTRUCTIONS]", grade_prompt)
         self.assertIn("# Identity", answer_prompt)
         self.assertIn("published_at", answer_prompt)
         self.assertIn("copy article_title, url, and snippet exactly", answer_prompt)
-        self.assertNotIn("Flipboard", answer_prompt)
-        self.assertNotIn("Forerunner", answer_prompt)
-        self.assertNotIn("Tremblant", answer_prompt)
+        self.assertNotIn("Flipboard", gather_prompt + grade_prompt + answer_prompt)
+        self.assertNotIn("Forerunner", gather_prompt + grade_prompt + answer_prompt)
+        self.assertNotIn("Tremblant", gather_prompt + grade_prompt + answer_prompt)
 
     def test_workflow_does_not_read_source_json(self):
         source = inspect.getsource(workflow)
@@ -98,6 +111,16 @@ class GroundedAnsweringTests(unittest.TestCase):
 
     def test_extract_tool_calls_keeps_name_and_args(self):
         self.assertEqual([{"name": "search_facts", "args": {"question": "Who?"}}], workflow.extract_tool_calls(SimpleNamespace(tool_calls=[{"name": "search_facts", "args": {"question": "Who?"}}])))
+
+    def test_prior_search_queries_reads_gather_turns_only(self):
+        self.assertEqual(["Who?"], workflow.prior_search_queries({"transcript_turns": [{"stage": "gather", "tool_calls": [{"args": {"question": "Who?"}}]}, {"stage": "tools", "tool_calls": [{"args": {"question": "Who?"}}]}]}))
+
+    @patch("src.orchestration.grounded_answering_workflow.run_grade")
+    def test_grade_node_appends_note_when_continuing(self, run_grade):
+        run_grade.return_value = GradeResult(verdict=GRADE_VERDICT_MISSING_HOP, note="search the named outlet")
+        result = workflow.grade_node({"question": "Who?", "evidence": [EVIDENCE_ITEM], "gather_count": 1, "tool_count": 1}, {}, str(uuid4()))
+        self.assertEqual(GRADE_VERDICT_MISSING_HOP, result["grade_verdict"])
+        self.assertEqual("search the named outlet", result["messages"][0].content)
 
     @patch("src.orchestration.grounded_answering_workflow.run_answer")
     def test_answer_node_sends_gathered_evidence(self, run_answer):

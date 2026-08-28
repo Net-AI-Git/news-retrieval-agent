@@ -38,6 +38,11 @@ class AnswerResult(BaseModel):
     citations: list[AnswerCitation] = []
 
 
+class GradeResult(BaseModel):
+    verdict: str
+    note: str = ""
+
+
 class SolutionCitation(BaseModel):
     article_title: str
     snippet: str

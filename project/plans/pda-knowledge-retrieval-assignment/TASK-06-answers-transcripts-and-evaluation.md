@@ -274,6 +274,8 @@ Only on hops that passed Gate 2.
 3. **No extra tools turn after gold is complete** (Q02 date-rewrites, Q07 extra hops). Parallel first-turn batches stay allowed.
 4. **Decompose only where Gate 2 hits and the agent query misses.** Do not “improve overlap” on Q07’s packed query if gold is found.
 
+Prompt-only Gather stalled at 7/11 (`too_early` / missing gold on Q05/Q07 across dedicated runs). A Grade node after tools now routes `enough` / `rewrite` / `missing_hop` / `empty_stop`. Decision: `TASK-04-decisions.md`.
+
 **Exit:** Stop `too_late` only when a later tools turn is real. Q05/Q08 `too_early` disappears once those hops retrieve gold.
 
 #### Phase E — Joint e2e and artifacts (Gate 5)
