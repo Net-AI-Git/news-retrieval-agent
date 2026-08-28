@@ -274,7 +274,7 @@ Only on hops that passed Gate 2.
 3. **No extra tools turn after gold is complete** (Q02 date-rewrites, Q07 extra hops). Parallel first-turn batches stay allowed.
 4. **Decompose only where Gate 2 hits and the agent query misses.** Do not “improve overlap” on Q07’s packed query if gold is found.
 
-Prompt-only Gather stalled at 7/11 (`too_early` / missing gold on Q05/Q07 across dedicated runs). A Grade node after tools now routes `enough` / `rewrite` / `missing_hop` / `empty_stop`. Decision: `TASK-04-decisions.md`.
+Prompt-only Gather stalled at 7/11. Grade after tools reached **9/11** (`metrics_2026-08-28_12-53-03.csv`). Standalone-retry track stopped at 7/11. Active Gather-only spec (first-hop gold facts, no Grade): [`gate4-gather-first-hop-prompt-goal.md`](../gate4-gather-first-hop-prompt-goal.md).
 
 **Exit:** Stop `too_late` only when a later tools turn is real. Q05/Q08 `too_early` disappears once those hops retrieve gold.
 

@@ -13,9 +13,9 @@ from langgraph.prebuilt import ToolNode
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 from local_logging_audit.local_logging_audit_client import export_audit_logs
-from src.agents.gather_agent import build_gather_tools
+from src.agents.retrieve_agent import build_retrieve_tools
 from src.conts import GROUNDED_ANSWERING_RECURSION_LIMIT
-from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, grade_node, route_after_gather, route_after_grade, tools_node
+from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, grade_node, retrieve_node, route_after_gather, route_after_grade, route_after_retrieve, tools_node
 from src.repositories.local_logging_repository import LocalLoggingRepository
 from src.schemas.agent import SearchEvidenceOutput
 
@@ -121,13 +121,15 @@ def annotate_agent_results(results, gold_by_tool, unanswerable):
 
 
 def build_gather_only_graph(task_data, flow_id):
-    tool_node = ToolNode(build_gather_tools(task_data, flow_id))
+    tool_node = ToolNode(build_retrieve_tools(task_data, flow_id))
     graph = StateGraph(GroundedAnsweringState)
     graph.add_node("gather", lambda state: gather_node(state, task_data, flow_id))
+    graph.add_node("retrieve", lambda state: retrieve_node(state, task_data, flow_id))
     graph.add_node("tools", lambda state: tools_node(state, tool_node, task_data, flow_id))
     graph.add_node("grade", lambda state: grade_node(state, task_data, flow_id))
     graph.set_entry_point("gather")
-    graph.add_conditional_edges("gather", route_after_gather, {"tools": "tools", "answer": END})
+    graph.add_conditional_edges("gather", route_after_gather, {"retrieve": "retrieve", "answer": END})
+    graph.add_conditional_edges("retrieve", route_after_retrieve, {"tools": "tools", "answer": END})
     graph.add_edge("tools", "grade")
     graph.add_conditional_edges("grade", route_after_grade, {"gather": "gather", "answer": END})
     return graph.compile()
@@ -139,7 +141,7 @@ def gather_one_question(project_root, question_data, flow_id):
         raise ValueError(f"Ground truth mismatch for {question_data['id']}")
     task_data = {"question": question_data["question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
     LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
-    graph_state = build_gather_only_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
+    graph_state = build_gather_only_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
     LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     calls, results = collect_agent_tool_trace(graph_state["messages"])
     return {"question_id": question_data["id"], "question": question_data["question"], "ground_truth": ground_truth, "flow_id": flow_id, "trace_id": LocalLoggingRepository.active_trace_id.get(), "agent_tool_calls": calls, "agent_tool_results": results}

@@ -32,4 +32,4 @@ This runner is a cheap stop/continue check. It is not 11/11 vs the exam set.
 
 ## Status
 
-Active — 2026-08-28. Spec: `project/plans/gate4-live-grade-prompt-goal.md`.
+Standalone-retry track stopped at 7/11. Best live pair is still Grade `literal_need_binding` (9/11). Spec: `project/plans/gate4-standalone-retry-prompt-goal.md`. Closed Grade-only spec: `project/plans/gate4-live-grade-prompt-goal.md`.

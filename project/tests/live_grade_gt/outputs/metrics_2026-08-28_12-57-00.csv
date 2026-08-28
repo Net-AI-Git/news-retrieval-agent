@@ -1,0 +1,7 @@
+﻿case_id,expected_route,predicted_verdict,predicted_route,route_match,note_repeats_prior,prompt_leak_hit,case_success,note,runtime_error
+stop_both_named_outlets_covered,stop,enough,stop,1,0,0,1,,
+stop_named_outlets_already_searched_no_cover,stop,empty_stop,stop,1,0,0,1,,
+continue_second_named_outlet_never_searched,continue,missing_hop,continue,1,0,0,1,Search for the winner of the spring pie contest.,
+continue_named_outlet_hit_is_the_wrong_site,continue,missing_hop,continue,1,0,0,1,Search for specific reports from Harbor Gazette regarding lighthouse repairs.,
+stop_after_later_batch_when_needs_already_covered,stop,enough,stop,1,0,0,1,,
+continue_dated_second_event_still_missing_do_not_repeat,continue,missing_hop,continue,1,0,0,1,Search for Maple City Times coverage of the sandbag update on 24 April 2022.,

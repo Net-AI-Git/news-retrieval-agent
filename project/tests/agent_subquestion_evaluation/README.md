@@ -6,7 +6,7 @@ Dump one CSV row per question with Gather tool calls, tool results, and gold-URL
 
 ## Scope
 
-Exercises `src/orchestration/grounded_answering_workflow.py` gather/tools loop only (answer routes to END), `src/agents/gather_agent.py`, `src/tools/retrieval_tools.py`, and `src/data/ground_truth/Q01.json` through `Q11.json`. Isolated RAG lives in `tests/gt_facts_union_topk` and `tests/gt_corpus_union_topk` and is not imported here. After the run, `local_logging_audit.export_audit_logs` writes a snapshot of events for the run `trace_id`.
+Exercises `src/orchestration/grounded_answering_workflow.py` gather/retrieve/tools loop only (answer routes to END), `src/agents/gather_agent.py`, `src/agents/retrieve_agent.py`, `src/tools/retrieval_tools.py`, and `src/data/ground_truth/Q01.json` through `Q11.json`. Isolated RAG lives in `tests/gt_facts_union_topk` and `tests/gt_corpus_union_topk` and is not imported here. After the run, `local_logging_audit.export_audit_logs` writes a snapshot of events for the run `trace_id`.
 
 ## How to run
 

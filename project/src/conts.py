@@ -4,6 +4,19 @@ from pathlib import Path
 OTEL_SERVICE_NAME = "news-retrieval-agent"
 LOCAL_LOGGER_NAME = "news-retrieval-agent"
 LOCAL_LOG_FILE_PATH = str(Path(__file__).resolve().parents[1] / "local_logging_audit" / "audit_log" / "events.jsonl")
+LOCAL_TELEMETRY_DIRECTORY_PATH = str(Path(__file__).resolve().parents[1] / "local_telemetry")
+TELEMETRY_FILE_PREFIX = "spans"
+TELEMETRY_FLOW_ID_ATTRIBUTE = "flow_id"
+TELEMETRY_EVENT_DETAILS_ATTRIBUTE = "details"
+TELEMETRY_REDACTED_VALUE = "[REDACTED]"
+TELEMETRY_SECRET_KEY_PARTS = ("api_key", "authorization", "credential", "exception.message", "exception.stacktrace", "password", "secret", "token")
+TELEMETRY_SECRET_VALUE_MARKERS = ("api_key", "authorization", "bearer ", "password", "secret", "sk-")
+TELEMETRY_WORKFLOW_OPERATION_NAME = "invoke_workflow"
+TELEMETRY_WORKFLOW_NAME = "grounded_answering"
+TELEMETRY_RETRIEVAL_OPERATION_NAME = "retrieval"
+TELEMETRY_RETRIEVAL_NAME = "knowledge"
+TELEMETRY_EMBEDDING_OPERATION_NAME = "embeddings"
+TELEMETRY_EMBEDDING_NAME = "openai"
 
 OPENAI_EMBEDDING_TIMEOUT_SECONDS = 60
 OPENAI_EMBEDDING_MAX_RETRIES = 3
