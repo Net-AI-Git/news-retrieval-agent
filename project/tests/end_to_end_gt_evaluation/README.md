@@ -17,7 +17,7 @@ uv run python -m tests.end_to_end_gt_evaluation.test_end_to_end_gt_evaluation --
 uv run python -m tests.end_to_end_gt_evaluation.test_end_to_end_gt_evaluation
 ```
 
-Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, and `OPENAI_EMBEDDING_MODEL`, plus existing `vector_stores/facts_chroma` and `vector_stores/corpus_chroma`. Live LLM and embedding calls. `--smoke` runs Q01 only.
+Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`, `OPENAI_MODEL`, and `OPENAI_EMBEDDING_MODEL`, plus existing `vector_stores/facts_chroma` and `vector_stores/corpus_chroma`. Live LLM and embedding calls. `--smoke` runs Q01 only.
 
 ## Inputs
 

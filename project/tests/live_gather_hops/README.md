@@ -17,7 +17,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_gather_hops.run_live_gather_hops
 ```
 
-Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`). Does not need Chroma. No console print; success is a new CSV trio.
+Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`). Does not need Chroma. No console print; success is a new CSV trio.
 
 ## Inputs
 

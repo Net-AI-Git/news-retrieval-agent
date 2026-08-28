@@ -131,7 +131,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_gather_first_hop.run_live_gather_first_hop
 ```
 
-Needs `.env`: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `OPENAI_EMBEDDING_MODEL`, and `vector_stores/facts_chroma`.
+Needs `.env`: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`, `OPENAI_MODEL`, `OPENAI_EMBEDDING_MODEL`, and `vector_stores/facts_chroma`.
 
 If `uuid_utils` fails to import on this machine, use the same `uuid_utils.compat.uuid7` shim already used on this workspace.
 
