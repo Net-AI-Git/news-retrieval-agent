@@ -9,6 +9,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "When did TechCrunch report that DeepMind was expected to release a next-generation chatbot named Gemini?",
@@ -18,6 +19,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "When did TechCrunch report that Google released only a lite version of the Gemini model known as Gemini Pro?",

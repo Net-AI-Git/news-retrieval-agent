@@ -9,6 +9,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "What aspect of ski resorts did The Independent - Travel cover on October 13, 2023, in its report featuring the Swiss slopes of Zermatt and the pistes of Vail in Colorado?",
@@ -20,6 +21,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "What aspect of Tremblant Ski Resort did The Independent - Travel cover on October 25, 2023?",

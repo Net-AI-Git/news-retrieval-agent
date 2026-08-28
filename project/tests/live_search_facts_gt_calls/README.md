@@ -2,7 +2,7 @@
 
 ## Goal
 
-Call `search_facts` the way Gather would — exact GT `expected_tool_calls` arguments, including Q08 date windows and outlet `source` when the sub-question names one — and measure whether every gold fact chunk is in the live tool results.
+Call `search_facts` with exact GT `expected_tool_calls` arguments (retrieve fills: Q08 date windows and outlet `source` when that isolated sub-question names one) — and measure whether every gold fact chunk is in the live tool results.
 
 ## Scope
 

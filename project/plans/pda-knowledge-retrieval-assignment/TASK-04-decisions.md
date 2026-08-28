@@ -326,7 +326,7 @@ Split Gather/retrieve, k=1, production prompts: 8/11 `metrics_2026-08-28_16-44-2
 - Q04: Gather packed NYT and WSJ into one sub-question; retrieve left `source` empty; unanswerable source-count failed.
 - Q07: seven hops, featured-in extras, missing the second TechCrunch gold URL.
 
-Working prompts: `src/prompts/gather_agent.md`, `src/prompts/retrieve_agent.md`. Snapshot: `tests/live_gather_first_hop/inputs/candidate_decompose_only.md`.
+Working prompts: `src/prompts/gather_agent.md`, `src/prompts/retrieve_agent.md`. Snapshot: `tests/live_gather_first_hop/inputs/candidate_decompose_only.md`. Local GT hop fields already matched this split (`sub_questions` vs required `search_facts` args). 2026-08-28 labeled each tool row `agent: retrieve` or `unbound`; answers/facts were not rewritten. See `src/data/ground_truth/README.md`.
 
 **Agent contracts (follow-up work splits here):**
 

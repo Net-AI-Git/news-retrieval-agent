@@ -396,9 +396,17 @@ Optional `source` on `search_facts`: catalog JSON next to Facts Chroma (unique o
 
 **GT `expected_tool_calls` only:** added `arguments.source` when that sub-question names an outlet (wording from the question, not a forced canonical string). Answers, facts, citations, and dates were not changed. Q03 hops name no outlet — no `source`. Q05 hops 1–2 name no outlet — `source` only on hop 3 (`The Age`). Q04/Q09 corpus rows unchanged.
 
-Reason per field: the named outlet is in the sub-question text, so the oracle tool call must pass `source` the same way Gather is instructed to.
+Reason per field: the named outlet is in the sub-question text, so the oracle tool call must pass `source` the same way retrieve is instructed to, after Gather copies that outlet into that hop’s string.
 
 Live `tests/live_search_facts_gt_calls`: `outputs/metrics_2026-08-27_19-41-17.csv` and `19-37-44` both 11/11 `all_chunks_found=1` (9/9 answerable). Q05 Age 30.7%, Q08 Tremblant 25.3%. An earlier `19-28-26` run already had those two hops but Q09–Q11 were `invalid` from OpenRouter 429; that is not a retrieval miss.
+
+### Agent-split hop labels — 2026-08-28
+
+**Status:** Complete. **Verdict: keep hop content; label ownership.**
+
+Gather/retrieve split did not change what gold evidence is. `sub_questions` were already standalone hop strings with the outlet in the claim it belongs to. Required `search_facts` `arguments.question` already copied those strings; `source` already only when that string names an outlet; Q08 already had ISO publication windows.
+
+This pass only added `agent` on each `expected_tool_calls` row: `retrieve` on required `search_facts`, `unbound` on Q04/Q09 conditional `search_corpus`. Answers, facts, citations, questions, and hop wording were not changed (would be matching a model, not the store). Schema note: [`src/data/ground_truth/README.md`](../../src/data/ground_truth/README.md).
 
 ## Success Criteria
 

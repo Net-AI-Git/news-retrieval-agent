@@ -9,6 +9,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Did Sporting News report that the Dallas Cowboys defeated the Seattle Seahawks in Week 13 of the NFL season?",
@@ -18,6 +19,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Did Sporting News report that the Detroit Lions defeated the Green Bay Packers?",
