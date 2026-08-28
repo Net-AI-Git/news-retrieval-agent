@@ -5,7 +5,7 @@ After cloning, replace every `<FILL_ME>` / `<project-name>` placeholder:
 1. `pyproject.toml` → `name` — set the service name.
 2. `README.md` clone commands below → replace `<project-name>` with the new repo name.
 3. `.env` → fill every `<FILL_ME>` value (copy from the template `.env`, see path at the bottom).
-4. `src/conts.py` → `OTEL_SERVICE_NAME` — set the OpenTelemetry service name used by OpenSearch.
+4. `src/conts.py` → `OTEL_SERVICE_NAME` — set the service name stored in local OpenTelemetry spans.
 
 #### Local Run
 - Copy the .env file to your local repo, this file contains the environment variables.
@@ -22,6 +22,8 @@ uv run uvicorn main:app
 
 
 - Verify the API works properly at http://127.0.0.1:8000/api/ping, and there are no errors in the console.
+
+- Agent executions write local OTLP JSONL traces under `local_telemetry/`. No Collector, Docker container, account, or network connection is required for telemetry export.
 
 
 - Clone the template into a new project 
