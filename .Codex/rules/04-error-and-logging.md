@@ -2,7 +2,7 @@
 
 > Code generated → [`02-code-layout.md`](02-code-layout.md) | Validated → [`03-code-quality.md`](03-code-quality.md)
 > Repos → [`project/src/repositories/AGENTS.md`](../../project/src/repositories/AGENTS.md)
-> **Scope:** Sections 1–4 govern services and repositories. Agent, tool, and orchestration lifecycle handling follows the target directory's `AGENTS.md` and MUST preserve framework interrupts, cancellations, checkpoints, and resumable state.
+> **Scope:** Sections 1–4 govern services and repositories except the foundational local logging and telemetry sinks named in Section 3. Agent, tool, and orchestration lifecycle handling follows the target directory's `AGENTS.md` and MUST preserve framework interrupts, cancellations, checkpoints, and resumable state. Section 8 governs every agentic workflow, agent, and tool.
 
 ## SECTION 1: THE SINGLE TRY/EXCEPT PATTERN
 
@@ -22,6 +22,7 @@
 ## SECTION 3: NO SILENT FAILURES
 - Every `except` MUST log through `LocalLoggingRepository` with `level="ERROR"`. No `except: pass` or `except: return`.
 - `LocalLoggingRepository.log_event` is the foundational sink: it does not emit its own STARTING/FINISHED events, and a file-write failure reports to stderr instead of recursively logging.
+- `local_telemetry_repository.py` is the foundational trace sink: its setup, processor, and write methods do not emit lifecycle logs, and instrumentation setup failures report to stderr instead of recursively tracing.
 - Error content MUST include `repr(err)` (preserves exception type name).
 - ERROR format: `content={"error": repr(err), "task_data": task_data}`.
 - Any failure = entire function fails. No partial execution or recovery.
@@ -37,7 +38,7 @@
 - Repositories: ONLY `STARTING`, `FINISHED`, `ERROR`. No intermediate statuses.
 - Services: ONLY `STARTING`, `FINISHED`, `ERROR`.
 - Orchestrator: ONLY `STARTING`, `FINISHED`, `ERROR`.
-- Agents, tools, and orchestration emit application lifecycle logs only at workflow boundaries.
+- Agents, tools, and orchestration emit application lifecycle logs only at workflow boundaries; detailed execution belongs to telemetry spans and span events.
 
 ## SECTION 6: LOG LEVEL POLICY
 - `level="INFO"`: for STARTING, FINISHED.
@@ -52,6 +53,27 @@
 - No manual `time.time()` or duration calculations — timestamps from infrastructure.
 - Pass `task_data` directly as `content` — no cherry-picked dicts or `{**base_ctx}` spreads.
 - STARTING/FINISHED: `content=task_data`. ERROR: `content={"error": repr(err), "task_data": task_data}`.
+
+## SECTION 8: LOCAL AGENT TELEMETRY
+
+> Why traces complement lifecycle logs: lifecycle events record application state, while one correlated span tree reconstructs the causal workflow, agent, model, retrieval, and tool execution without inventing intermediate log statuses.
+
+- Initialize one OpenTelemetry `TracerProvider` before any agent runtime is used; identify the service with stable resource attributes and register each instrumentor exactly once.
+- Every agentic execution MUST start one root workflow span at the orchestration entry point. Agent, model, retrieval, embedding, and tool operations MUST be descendants of that root span.
+- Use official framework instrumentation for supported operations. Add manual spans only for uncovered operations; never instrument the same operation twice.
+- Follow OpenTelemetry GenAI semantic conventions and standard operation names such as `invoke_workflow`, `invoke_agent`, `chat`, `embeddings`, `retrieval`, and `execute_tool`.
+- Span names MUST be stable and low-cardinality. Runtime IDs, user content, queries, and tool arguments belong in attributes, never span names.
+- Every span MUST inherit the active context and carry `flow_id`; lifecycle logs MUST derive `trace_id` from the active span. Never generate, copy, or calculate trace or span IDs manually.
+- Record full observable inputs and outputs after redaction: workflow and agent identity, model and provider, messages, token usage, finish reason, retrieval query and results, tool name, call ID, type, arguments, result, and outcome. Never record hidden chain-of-thought.
+- Independently timed work and retry attempts require child spans. Routing decisions, handoffs, budgets, checkpoints, approvals, and other timestamped occurrences require span events.
+- A failed operation MUST record the exception once on its owning span, set span status to `ERROR`, and set `error.type`; successful span status remains unset. Handled retries and framework interrupts or cancellations MUST NOT mark the completed root operation as failed.
+- API keys, authorization headers, credentials, session tokens, and secrets MUST never enter telemetry. Sensitive values MUST be redacted before span or event creation.
+- Export agent telemetry to append-only local OTLP JSONL through the official file exporter. Runtime telemetry MUST NOT require a Collector, server, Docker, account, or network connection.
+- Local tracing MUST sample every root trace and preserve the parent sampling decision; no agent span may be sampled out.
+- Use immediate span processing for short-lived jobs. Batch processing is allowed only when shutdown or `force_flush` is guaranteed on every process exit path.
+- OpenTelemetry API, SDK, framework instrumentation, semantic-convention, and file-exporter packages MUST be direct, version-compatible dependencies; never rely on a transitive telemetry dependency.
+- Telemetry files MUST rotate without dropping spans. Deletion or retention is an explicit operator action, never an implicit exporter behavior.
+- Auto-instrumented spans MUST NOT create additional lifecycle log events. Existing STARTING, FINISHED, and ERROR workflow-boundary logs remain unchanged and correlate through `trace_id`.
 
 ## REFERENCE EXAMPLES
 
@@ -104,3 +126,8 @@ def run_feature(task_data, flow_id):
 - [ ] Log calls on single line, no manual timestamps
 - [ ] `content=task_data` for STARTING/FINISHED — never cherry-picked dicts
 - [ ] Service entry functions return safe defaults (don't crash orchestrator)
+- [ ] One root workflow span owns one complete agentic execution
+- [ ] Agent, model, retrieval, embedding, and tool spans share the root `trace_id` and carry `flow_id`
+- [ ] Full observable content is captured after secret redaction; hidden chain-of-thought is never captured
+- [ ] Local OTLP JSONL export works without Collector, server, Docker, account, or network access
+- [ ] Short-lived processes flush every completed span before exit

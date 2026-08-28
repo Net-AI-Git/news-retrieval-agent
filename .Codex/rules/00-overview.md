@@ -7,7 +7,7 @@
 1. [`01-teach-lesson.md`](01-teach-lesson.md) — Phase 0: pointer index — what to read before building a feature, agent, tool, orchestration flow, prompt, repository, service, or external integration. Consult its Section 2 map to find the files that govern the task type at hand.
 2. [`02-code-layout.md`](02-code-layout.md) — Phase 1: file structure, naming conventions, layer placement, orchestrator + service entry-point contracts. Apply when **writing new code, creating files, or implementing a feature**.
 3. [`03-code-quality.md`](03-code-quality.md) — Phase 2: function size, formatting, variable hygiene, control flow, minimal code, data safety. Apply **after code is written**.
-4. [`04-error-and-logging.md`](04-error-and-logging.md) — Phase 3: single try/except pattern, local structured logging, no silent failures. Apply **after code works (hardening)**.
+4. [`04-error-and-logging.md`](04-error-and-logging.md) — Phase 3: single try/except pattern, local structured logging, local agent telemetry, no silent failures. Apply **after code works (hardening)**.
 
 ## Directory-Scoped Standards (nested AGENTS.md)
 

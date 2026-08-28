@@ -18,9 +18,9 @@ schemas/ define contracts; prompts/ hold production LLM instructions; tests/ hol
 For every task type below, read the listed files **in order** before writing code.
 
 - **New non-agent feature** → [`02-code-layout.md`](02-code-layout.md) Sections 1, 4, 5 → [`services/AGENTS.md`](../../project/src/services/AGENTS.md:1) → [`04-error-and-logging.md`](04-error-and-logging.md).
-- **New agentic feature** → [`02-code-layout.md`](02-code-layout.md) Sections 1, 3, 4 → [`orchestration/AGENTS.md`](../../project/src/orchestration/AGENTS.md:1) → [`agents/AGENTS.md`](../../project/src/agents/AGENTS.md:1) → [`tools/AGENTS.md`](../../project/src/tools/AGENTS.md:1) → [`prompts/AGENTS.md`](../../project/src/prompts/AGENTS.md:1).
-- **New agent** → [`agents/AGENTS.md`](../../project/src/agents/AGENTS.md:1) → [`prompts/AGENTS.md`](../../project/src/prompts/AGENTS.md:1).
-- **New agent tool** → [`tools/AGENTS.md`](../../project/src/tools/AGENTS.md:1) → [`services/AGENTS.md`](../../project/src/services/AGENTS.md:1).
+- **New agentic feature** → [`02-code-layout.md`](02-code-layout.md) Sections 1, 3, 4 → [`orchestration/AGENTS.md`](../../project/src/orchestration/AGENTS.md:1) → [`agents/AGENTS.md`](../../project/src/agents/AGENTS.md:1) → [`tools/AGENTS.md`](../../project/src/tools/AGENTS.md:1) → [`prompts/AGENTS.md`](../../project/src/prompts/AGENTS.md:1) → [`04-error-and-logging.md`](04-error-and-logging.md) Section 8.
+- **New agent** → [`agents/AGENTS.md`](../../project/src/agents/AGENTS.md:1) → [`prompts/AGENTS.md`](../../project/src/prompts/AGENTS.md:1) → [`04-error-and-logging.md`](04-error-and-logging.md) Section 8.
+- **New agent tool** → [`tools/AGENTS.md`](../../project/src/tools/AGENTS.md:1) → [`services/AGENTS.md`](../../project/src/services/AGENTS.md:1) → [`04-error-and-logging.md`](04-error-and-logging.md) Section 8.
 - **New orchestration flow** → [`orchestration/AGENTS.md`](../../project/src/orchestration/AGENTS.md:1) → [`04-error-and-logging.md`](04-error-and-logging.md).
 - **New or modified prompt** → [`prompts/AGENTS.md`](../../project/src/prompts/AGENTS.md:1) → consuming agent or GPT repository.
 - **New prompt experiment** → [`tests/AGENTS.md`](../../project/tests/AGENTS.md:1) → [`prompts/AGENTS.md`](../../project/src/prompts/AGENTS.md:1).
@@ -28,6 +28,7 @@ For every task type below, read the listed files **in order** before writing cod
 - **New service** → [`02-code-layout.md`](02-code-layout.md) Sections 4, 5 → [`services/AGENTS.md`](../../project/src/services/AGENTS.md:1) → [`04-error-and-logging.md`](04-error-and-logging.md).
 - **DB connection / new Oracle method** → [`repositories/AGENTS.md`](../../project/src/repositories/AGENTS.md:1) → [`02-code-layout.md`](02-code-layout.md) Section 3 (SQL placement).
 - **Local structured log** → [`04-error-and-logging.md`](04-error-and-logging.md) → [`local_logging_repository.py`](../../project/src/repositories/local_logging_repository.py:1).
+- **Local agent telemetry** → [`04-error-and-logging.md`](04-error-and-logging.md) Section 8 → [`local_telemetry_repository.py`](../../project/src/repositories/local_telemetry_repository.py:1) → [`orchestration/AGENTS.md`](../../project/src/orchestration/AGENTS.md:1) → [`agents/AGENTS.md`](../../project/src/agents/AGENTS.md:1) → [`tools/AGENTS.md`](../../project/src/tools/AGENTS.md:1).
 - **Local log audit or dashboard** → [`local_logging_audit_client.py`](../../project/local_logging_audit/local_logging_audit_client.py:1) (`local_logs` SQL view) → [`build_dashboard.py`](../../project/local_logging_dashboard/build_dashboard.py:1) → [`04-error-and-logging.md`](04-error-and-logging.md).
 - **Redis usage** → [`redis_repository.py`](../../project/src/repositories/redis_repository.py:1) → [`02-code-layout.md`](02-code-layout.md) Section 3 (constants placement).
 - **GPT / LLM repository** → [`repositories/AGENTS.md`](../../project/src/repositories/AGENTS.md:1) → [`reference/gpt_feature_name_repository.py`](reference/gpt_feature_name_repository.py:1).
