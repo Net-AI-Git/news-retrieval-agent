@@ -24,6 +24,16 @@ Each stored line has an infrastructure timestamp around the unchanged event cont
 
 `process` is auto-detected. An explicitly supplied `trace_id` is preserved; otherwise an active OpenTelemetry API span is used when available. The OpenTelemetry API does not export data or require a server.
 
+## Agent telemetry
+
+`src/repositories/local_telemetry_repository.py` initializes one sampled OpenTelemetry provider when `run_grounded_answering(...)` starts. It writes completed spans immediately through the official OTLP JSON file exporter to a unique append-only `local_telemetry/spans-<UTC>-<PID>.jsonl` file for each process. Starting a new process creates the next file; existing files are never overwritten or deleted automatically.
+
+The explicit root span is `invoke_workflow grounded_answering`. LangChain instrumentation creates its model, graph-node, and tool descendants. Retrieval and direct OpenAI embedding calls use manual child spans because they are outside the instrumented LangChain surface. `flow_id` is copied from OpenTelemetry baggage onto every span, and lifecycle logs read the active `trace_id`, so one flow can be reconstructed across both JSONL stores.
+
+Inputs, outputs, tool calls, evidence, routing decisions, token usage, and errors are retained. Keys that look like credentials, authorization values, API keys, passwords, secrets, or session tokens are replaced with `[REDACTED]`; hidden model reasoning is not captured. No Collector, server, Docker container, account, or network connection is used for telemetry export.
+
+Lifecycle logging remains explicit in the owning function. Telemetry uses one explicit workflow context and framework instrumentation rather than custom decorators, avoiding hidden safe-default behavior and duplicate spans.
+
 ## Audit queries
 
 Run from `project/`:

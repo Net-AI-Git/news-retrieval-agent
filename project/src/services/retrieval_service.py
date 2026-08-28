@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_INVALID, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K
+from ..conts import RETRIEVAL_CORPUS_MIN_SIMILARITY, RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY, RETRIEVAL_PERCENT_SCALE, RETRIEVAL_STATUS_EMPTY, RETRIEVAL_STATUS_INVALID, RETRIEVAL_STATUS_LOW_CONFIDENCE, RETRIEVAL_STATUS_OK, RETRIEVAL_TOP_K, TELEMETRY_RETRIEVAL_NAME, TELEMETRY_RETRIEVAL_OPERATION_NAME
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
 from ..repositories.local_logging_repository import LocalLoggingRepository
+from ..repositories.local_telemetry_repository import LocalTelemetryRepository
 from .source_resolve_service import run_resolve_source
 
 
@@ -72,17 +73,20 @@ def build_retrieval_result(question, facts, corpus):
 
 
 def run_retrieval(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     retrieval_result = {"status": RETRIEVAL_STATUS_INVALID, "question": task_data.get("question", ""), "facts": [], "corpus": []}
-    try:
-        validate_question(task_data)
-        retrieval_task = {**task_data, "resolved_source": run_resolve_source(task_data, flow_id)}
-        where_filter = build_where_filter(retrieval_task)
-        query_embedding = create_query_embedding(retrieval_task, flow_id)
-        facts = query_facts(retrieval_task, flow_id, query_embedding, where_filter)
-        corpus = query_corpus(retrieval_task, flow_id, query_embedding, where_filter)
-        retrieval_result = build_retrieval_result(task_data["question"], facts, corpus)
-    except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+    with LocalTelemetryRepository.start_span(TELEMETRY_RETRIEVAL_OPERATION_NAME, TELEMETRY_RETRIEVAL_NAME, flow_id, task_data) as retrieval_span:
+        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        try:
+            validate_question(task_data)
+            retrieval_task = {**task_data, "resolved_source": run_resolve_source(task_data, flow_id)}
+            where_filter = build_where_filter(retrieval_task)
+            query_embedding = create_query_embedding(retrieval_task, flow_id)
+            facts = query_facts(retrieval_task, flow_id, query_embedding, where_filter)
+            corpus = query_corpus(retrieval_task, flow_id, query_embedding, where_filter)
+            retrieval_result = build_retrieval_result(task_data["question"], facts, corpus)
+            LocalTelemetryRepository.record_output(retrieval_span, retrieval_result)
+        except Exception as err:
+            LocalTelemetryRepository.record_error(retrieval_span, err)
+            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return retrieval_result

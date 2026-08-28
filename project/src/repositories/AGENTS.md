@@ -7,7 +7,7 @@ All external-system access. Three repository categories live here, **never mixed
 - **Oracle DB** → single `oracle_repository.py` (shared by all features; add when first Oracle feature is needed).
 - **CRM** → single `crm_repository.py` (shared by all features; add when first CRM feature is needed).
 - **GPT / LLM** → one file per feature: `gpt_<feature_name>_repository.py`.
-- **Shared infra** → [`redis_repository.py`](redis_repository.py:1), [`local_logging_repository.py`](local_logging_repository.py:1). Optional vendor-client stubs shipped as reusable examples: [`pinecone_repository.py`](pinecone_repository.py:1), [`embeddings_repository.py`](embeddings_repository.py:1) — delete any your service does not use.
+- **Shared infra** → [`redis_repository.py`](redis_repository.py:1), [`local_logging_repository.py`](local_logging_repository.py:1), [`local_telemetry_repository.py`](local_telemetry_repository.py:1). Optional vendor-client stubs shipped as reusable examples: [`pinecone_repository.py`](pinecone_repository.py:1), [`embeddings_repository.py`](embeddings_repository.py:1) — delete any your service does not use.
 
 If a feature needs Oracle + CRM + GPT, the **service** coordinates between them — never the repositories themselves.
 
@@ -48,6 +48,7 @@ If a feature needs Oracle + CRM + GPT, the **service** coordinates between them 
 - Single top-level `try/except Exception` per method. STARTING log before `try`, ERROR log inside `except`, FINISHED log after the block (see [`.Codex/rules/04-error-and-logging.md`](../../../.Codex/rules/04-error-and-logging.md:1)).
 - ERROR log content: `{"error": repr(err), "task_data": task_data}`.
 - `LocalLoggingRepository.log_event` is the foundational shared sink and keeps its six-field event signature; it does not emit lifecycle events for its own write operation.
+- `local_telemetry_repository.py` is the foundational shared trace sink; its setup, processor, and write methods do not emit lifecycle logs or recursively trace themselves.
 
 ---
 

@@ -6,7 +6,7 @@ Run production Gather (LLM + live `search_facts`) on all 11 local-GT questions, 
 
 ## Scope
 
-`src/prompts/gather_agent.md`, `src/prompts/grade_agent.md`, gather → tools → grade routing, live facts Chroma. Answer and corpus are out of scope.
+`src/prompts/gather_agent.md`, `src/prompts/retrieve_agent.md`, `src/prompts/grade_agent.md`, gather → retrieve → tools → grade routing, live facts Chroma. Answer and corpus are out of scope.
 
 ## How to run
 
@@ -31,4 +31,4 @@ Pass for the prompt GOAL: 11/11 twice on the same prompt, short OpenAI-shaped fi
 
 ## Status
 
-Prompt track stopped at 7/11. Grade is in the graph. Spec: `project/plans/gate4-live-gather-prompt-goal.md`.
+Standalone-retry track stopped at 7/11. Active Gather-only spec: `project/plans/gate4-gather-first-hop-prompt-goal.md`.

@@ -13,9 +13,9 @@ from langgraph.prebuilt import ToolNode
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from src.agents.gather_agent import build_gather_tools
+from src.agents.retrieve_agent import build_retrieve_tools
 from src.conts import CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT
-from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, grade_node, route_after_gather, route_after_grade, tools_node
+from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, grade_node, retrieve_node, route_after_gather, route_after_grade, route_after_retrieve, tools_node
 
 
 METRIC_FIELDNAMES = ["question_id", "unanswerable", "required_facts_calls", "facts_call_count", "gold_url_count", "url_recall", "snippet_recall", "gold_complete", "stop_verdict", "gather_count", "tool_count", "gt_dated_required_count", "agent_dated_call_count", "gt_source_required_count", "agent_source_call_count", "extra_turn_after_gold", "prompt_leak_hit", "gather_success", "missing_urls", "missing_titles", "agent_queries", "runtime_error"]
@@ -121,13 +121,15 @@ def filter_counts(calls):
 
 
 def build_gather_only_graph(task_data, flow_id):
-    tool_node = ToolNode(build_gather_tools(task_data, flow_id))
+    tool_node = ToolNode(build_retrieve_tools(task_data, flow_id))
     graph = StateGraph(GroundedAnsweringState)
     graph.add_node("gather", lambda state: gather_node(state, task_data, flow_id))
+    graph.add_node("retrieve", lambda state: retrieve_node(state, task_data, flow_id))
     graph.add_node("tools", lambda state: tools_node(state, tool_node, task_data, flow_id))
     graph.add_node("grade", lambda state: grade_node(state, task_data, flow_id))
     graph.set_entry_point("gather")
-    graph.add_conditional_edges("gather", route_after_gather, {"tools": "tools", "answer": END})
+    graph.add_conditional_edges("gather", route_after_gather, {"retrieve": "retrieve", "answer": END})
+    graph.add_conditional_edges("retrieve", route_after_retrieve, {"tools": "tools", "answer": END})
     graph.add_edge("tools", "grade")
     graph.add_conditional_edges("grade", route_after_grade, {"gather": "gather", "answer": END})
     return graph.compile()
@@ -135,7 +137,7 @@ def build_gather_only_graph(task_data, flow_id):
 
 def run_gather_only(question):
     task_data = {"question": question, "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": CORPUS_CHROMA_PATH}
-    graph_state = build_gather_only_graph(task_data, str(uuid4())).invoke({"question": question, "messages": [HumanMessage(question)], "evidence": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
+    graph_state = build_gather_only_graph(task_data, str(uuid4())).invoke({"question": question, "messages": [HumanMessage(question)], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
     return task_data, graph_state
 
 
@@ -150,7 +152,7 @@ def call_arguments(tool_call):
 def flatten_calls(transcript_turns):
     calls = []
     for turn in transcript_turns or []:
-        if turn.get("stage") != "gather":
+        if turn.get("stage") != "retrieve":
             continue
         for tool_call in turn.get("tool_calls") or []:
             record = call_arguments(tool_call)
@@ -163,7 +165,7 @@ def extra_tools_turn_after_gold(transcript_turns, gold_url_set):
     collected = set()
     gold_already_complete = False
     for turn in transcript_turns or []:
-        if turn.get("stage") == "gather" and gold_already_complete and (turn.get("tool_calls") or []):
+        if turn.get("stage") == "retrieve" and gold_already_complete and (turn.get("tool_calls") or []):
             return True
         if turn.get("stage") != "tools":
             continue
@@ -314,7 +316,7 @@ def write_outputs(output_directory, timestamp, rows):
 def main():
     project_root = Path(__file__).resolve().parents[2]
     questions = json.loads((project_root / "src" / "data" / "questions.json").read_text(encoding="utf-8"))
-    leak_hit = prompt_leak_hit((project_root / "src" / "prompts" / "gather_agent.md").read_text(encoding="utf-8") + (project_root / "src" / "prompts" / "grade_agent.md").read_text(encoding="utf-8"), collect_exam_needles(project_root, questions))
+    leak_hit = prompt_leak_hit((project_root / "src" / "prompts" / "gather_agent.md").read_text(encoding="utf-8") + (project_root / "src" / "prompts" / "retrieve_agent.md").read_text(encoding="utf-8") + (project_root / "src" / "prompts" / "grade_agent.md").read_text(encoding="utf-8"), collect_exam_needles(project_root, questions))
     write_outputs(Path(__file__).resolve().parent / "outputs", datetime.now().astimezone(), evaluate_all_questions(project_root, questions, leak_hit))
 
 

@@ -1,0 +1,78 @@
+[
+  {
+    "case_id": "stop_both_named_outlets_covered",
+    "expected_route": "stop",
+    "question": "Did Harbor Gazette report that the ferry strike ended, and did North Shore Herald name the winner of the spring pie contest?",
+    "prior_queries": [
+      {"question": "Did Harbor Gazette report that the ferry strike ended?", "source": "Harbor Gazette", "published_from": "", "published_to": ""},
+      {"question": "Did North Shore Herald name the winner of the spring pie contest?", "source": "North Shore Herald", "published_from": "", "published_to": ""}
+    ],
+    "evidence": [
+      {"article_title": "Ferry crews return Monday", "snippet": "Harbor Gazette reports the three-day ferry strike ended Sunday night.", "url": "https://harbor-gazette.example/ferry-strike-ended", "published_at": "2022-03-08T09:00:00+00:00", "match_percentage": 81.0},
+      {"article_title": "Pie contest results posted", "snippet": "North Shore Herald named Lila Cho the winner of the spring pie contest.", "url": "https://north-shore-herald.example/pie-contest-winner", "published_at": "2022-03-09T14:00:00+00:00", "match_percentage": 79.0}
+    ]
+  },
+  {
+    "case_id": "stop_named_outlets_already_searched_no_cover",
+    "expected_route": "stop",
+    "question": "Which brass band did Maple City Times say would open the river festival, and which conductor did Harbor Gazette name?",
+    "prior_queries": [
+      {"question": "Which brass band did Maple City Times say would open the river festival?", "source": "Maple City Times", "published_from": "", "published_to": ""},
+      {"question": "Which conductor did Harbor Gazette name for the river festival?", "source": "Harbor Gazette", "published_from": "", "published_to": ""}
+    ],
+    "evidence": [
+      {"article_title": "Weekend mattress sale", "snippet": "City Ads lists a two-for-one mattress promo this weekend.", "url": "https://city-ads.example/mattress-sale", "published_at": "2022-05-01T11:00:00+00:00", "match_percentage": 22.0},
+      {"article_title": "Parking garage hours", "snippet": "The downtown garage stays open until midnight on Fridays.", "url": "https://city-ads.example/garage-hours", "published_at": "2022-05-01T12:00:00+00:00", "match_percentage": 19.0}
+    ]
+  },
+  {
+    "case_id": "continue_second_named_outlet_never_searched",
+    "expected_route": "continue",
+    "question": "Did Harbor Gazette report that the ferry strike ended, and did North Shore Herald name the winner of the spring pie contest?",
+    "prior_queries": [
+      {"question": "Did Harbor Gazette report that the ferry strike ended?", "source": "Harbor Gazette", "published_from": "", "published_to": ""}
+    ],
+    "evidence": [
+      {"article_title": "Ferry crews return Monday", "snippet": "Harbor Gazette reports the three-day ferry strike ended Sunday night.", "url": "https://harbor-gazette.example/ferry-strike-ended", "published_at": "2022-03-08T09:00:00+00:00", "match_percentage": 81.0}
+    ]
+  },
+  {
+    "case_id": "continue_named_outlet_hit_is_the_wrong_site",
+    "expected_route": "continue",
+    "question": "What did Harbor Gazette report about the lighthouse repairs?",
+    "prior_queries": [
+      {"question": "What did Harbor Gazette report about the lighthouse repairs?", "source": "", "published_from": "", "published_to": ""}
+    ],
+    "evidence": [
+      {"article_title": "Lighthouse closed for painting", "snippet": "Painters will scaffold the west face through Thursday.", "url": "https://maple-city-times.example/lighthouse-painting", "published_at": "2022-04-03T08:00:00+00:00", "match_percentage": 44.0}
+    ]
+  },
+  {
+    "case_id": "stop_after_later_batch_when_needs_already_covered",
+    "expected_route": "stop",
+    "question": "Did Harbor Gazette report that the ferry strike ended, and did North Shore Herald name the winner of the spring pie contest?",
+    "prior_queries": [
+      {"question": "Did Harbor Gazette report that the ferry strike ended?", "source": "Harbor Gazette", "published_from": "", "published_to": ""},
+      {"question": "Did North Shore Herald name the winner of the spring pie contest?", "source": "North Shore Herald", "published_from": "", "published_to": ""},
+      {"question": "Did Harbor Gazette add more ferry strike details?", "source": "Harbor Gazette", "published_from": "", "published_to": ""}
+    ],
+    "evidence": [
+      {"article_title": "Ferry crews return Monday", "snippet": "Harbor Gazette reports the three-day ferry strike ended Sunday night.", "url": "https://harbor-gazette.example/ferry-strike-ended", "published_at": "2022-03-08T09:00:00+00:00", "match_percentage": 81.0},
+      {"article_title": "Pie contest results posted", "snippet": "North Shore Herald named Lila Cho the winner of the spring pie contest.", "url": "https://north-shore-herald.example/pie-contest-winner", "published_at": "2022-03-09T14:00:00+00:00", "match_percentage": 79.0},
+      {"article_title": "Harbor camera outage", "snippet": "A traffic camera near the dock is offline until Friday.", "url": "https://harbor-gazette.example/camera-outage", "published_at": "2022-03-10T07:00:00+00:00", "match_percentage": 31.0}
+    ]
+  },
+  {
+    "case_id": "continue_dated_second_event_still_missing_do_not_repeat",
+    "expected_route": "continue",
+    "question": "Did Maple City Times change its river-flood coverage after the 12 April 2022 levee brief compared with its 24 April 2022 sandbag update?",
+    "prior_queries": [
+      {"question": "What did Maple City Times report about the levee on 12 April 2022?", "source": "Maple City Times", "published_from": "2022-04-12", "published_to": "2022-04-12"},
+      {"question": "What was Maple City Times coverage of the sandbag update on 24 April 2022?", "source": "Maple City Times", "published_from": "2022-04-24", "published_to": "2022-04-24"},
+      {"question": "What was Maple City Times coverage of the sandbag update on 24 April 2022?", "source": "Maple City Times", "published_from": "2022-04-24", "published_to": "2022-04-24"}
+    ],
+    "evidence": [
+      {"article_title": "Levee brief issued", "snippet": "Maple City Times said the west levee was inspected on 12 April 2022.", "url": "https://maple-city-times.example/levee-brief-12-april", "published_at": "2022-04-12T16:00:00+00:00", "match_percentage": 77.0}
+    ]
+  }
+]

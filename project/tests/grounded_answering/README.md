@@ -6,7 +6,7 @@ Verify that Answer copies the exact evidence snippet it used, that orchestration
 
 ## Scope
 
-Exercises `src/orchestration/grounded_answering_workflow.py`, `src/agents/gather_agent.py`, `src/agents/answer_agent.py`, `src/schemas/agent.py`, `src/prompts/`, and the retrieval tool surface through a live loop.
+Exercises `src/orchestration/grounded_answering_workflow.py`, `src/agents/gather_agent.py`, `src/agents/retrieve_agent.py`, `src/agents/answer_agent.py`, `src/schemas/agent.py`, `src/prompts/`, and the retrieval tool surface through a live loop.
 
 ## How to run
 
@@ -24,7 +24,7 @@ No files in `inputs/`. Filter fixtures reuse the ChatGPT TechCrunch fact already
 
 ## Expected outcome
 
-Answered results include at least one citation. A citation is kept only when `snippet` and `url` both match an evidence item from that run. A mismatched url or paraphrased snippet forces refusal. Gather routes to tools only while budget remains. Agents do not import services or repositories. The Answer prompt requires a verbatim evidence snippet on every answered citation. Live Q01 answers `Yes` with grounded snippets, live Q07 answers `ChatGPT` with grounded snippets, and live Q09 refuses.
+Answered results include at least one citation. A citation is kept only when `snippet` and `url` both match an evidence item from that run. A mismatched url or paraphrased snippet forces refusal. Gather routes to retrieve then tools only while budget remains. Agents do not import services or repositories. The Answer prompt requires a verbatim evidence snippet on every answered citation. Live Q01 answers `Yes` with grounded snippets, live Q07 answers `ChatGPT` with grounded snippets, and live Q09 refuses.
 
 ## Status
 

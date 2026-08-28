@@ -38,6 +38,10 @@ class AnswerResult(BaseModel):
     citations: list[AnswerCitation] = []
 
 
+class GatherResult(BaseModel):
+    sub_questions: list[str]
+
+
 class GradeResult(BaseModel):
     verdict: str
     note: str = ""

@@ -1,0 +1,7 @@
+﻿case_id,expected_route,predicted_verdict,predicted_route,route_match,note_repeats_prior,prompt_leak_hit,case_success,note,runtime_error
+stop_both_named_outlets_covered,stop,enough,stop,1,0,0,1,,
+stop_named_outlets_already_searched_no_cover,stop,missing_hop,continue,0,0,0,0,Which brass band did Maple City Times say would open the river festival? Which conductor did Harbor Gazette name for the river festival?,
+continue_second_named_outlet_never_searched,continue,missing_hop,continue,1,0,0,1,What did North Shore Herald report about the winner of the spring pie contest?,
+continue_named_outlet_hit_is_the_wrong_site,continue,missing_hop,continue,1,1,0,0,What did Harbor Gazette report about the lighthouse repairs?,
+stop_after_later_batch_when_needs_already_covered,stop,enough,stop,1,0,0,1,,
+continue_dated_second_event_still_missing_do_not_repeat,continue,missing_hop,continue,1,0,0,1,What did Maple City Times report about the sandbag update on 24 April 2022?,

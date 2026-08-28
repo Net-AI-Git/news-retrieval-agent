@@ -1,0 +1,22 @@
+﻿question_id,hop_index,gold_title,gold_url,url_in_evidence,snippet_in_evidence
+Q01,1,"NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06,1,1
+Q01,2,"Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437,1,1
+Q02,1,Flipboard becomes a federated app with support for ActivityPub,https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/,1,1
+Q02,2,2023 in social media: the case for the fediverse,https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub,1,1
+Q03,1,SBF Trial: The latest updates from the FTX collapse’s courtroom drama,https://techcrunch.com/2023/10/06/sbf-trial-the-latest-updates-from-the-ftx-collapses-courtroom-drama/,1,1
+Q03,2,"Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",https://techcrunch.com/2023/10/07/sam-altman-backs-a-teens-startup-google-unveils-the-pixel-8-and-tiktok-tests-an-ad-free-tier/,1,1
+Q03,3,Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand,https://fortune.com/crypto/2023/10/04/sam-bankman-fried-lawyers-opening-statements-witnesses-marc-antoine-julliard-adam-yedidia-ftx-commodities-trader-developer/,1,1
+Q05,1,"News publisher files class action antitrust suit against Google, citing AI’s harms to their bottom line",https://techcrunch.com/2023/12/15/news-publisher-files-class-action-antitrust-suit-against-google-citing-ais-harms-to-their-bottom-line/,0,0
+Q05,2,Early impressions of Google’s Gemini aren’t great,https://techcrunch.com/2023/12/07/early-impressions-of-googles-gemini-arent-great/,0,0
+Q05,3,Is Google Search better than the rest? And is that fair?,https://www.theage.com.au/technology/is-google-search-better-than-the-rest-and-is-that-fair-20231012-p5ebsk.html?ref=rss&utm_medium=rss&utm_source=rss_technology,0,0
+Q06,1,Author Melissa Lucashenko on playing with black and white binaries,https://www.theage.com.au/culture/books/author-melissa-lucashenko-on-playing-with-black-and-white-binaries-20230919-p5e5uy.html?ref=rss&utm_medium=rss&utm_source=rss_culture,0,0
+Q06,2,"‘I see myself as a royal’: artist Vincent Namatjira on colonialism, satire and his great-grandfather’s legacy",https://www.theguardian.com/artanddesign/2023/oct/17/i-see-myself-as-a-royal-artist-vincent-namatjira-on-colonialism-satire-and-his-great-grandfathers-legacy,0,0
+Q07,1,ChatGPT: Everything you need to know about the AI-powered chatbot,https://techcrunch.com/2023/09/28/chatgpt-everything-to-know-about-the-ai-chatbot/,0,0
+Q07,2,"One year later, ChatGPT is still alive and kicking",https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/,0,0
+Q07,3,How OpenAI's ChatGPT has changed the world in just a year,https://www.engadget.com/how-openais-chatgpt-has-changed-the-world-in-just-a-year-140050053.html?src=rss,0,0
+Q08,1,7 of the best luxury ski resorts for a five-star experience,https://www.independent.co.uk/travel/skiing/best-luxury-ski-resorts-b2427066.html,0,0
+Q08,2,7 of the best ski holidays in Canada,https://www.independent.co.uk/travel/skiing/best-ski-holidays-canada-b2432416.html,0,0
+Q10,1,ChatGPT: Everything you need to know about the AI-powered chatbot,https://techcrunch.com/2023/09/28/chatgpt-everything-to-know-about-the-ai-chatbot/,1,1
+Q10,2,How ego and fear fuelled the rise of artificial intelligence,https://www.theage.com.au/business/entrepreneurship/how-ego-and-fear-fuelled-the-rise-of-artificial-intelligence-20231205-p5ep7j.html?ref=rss&utm_medium=rss&utm_source=rss_business,1,1
+Q11,1,"One year later, ChatGPT is still alive and kicking",https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/,1,1
+Q11,2,"Google fakes an AI demo, Grand Theft Auto VI goes viral and Spotify cuts jobs",https://techcrunch.com/2023/12/09/google-fakes-an-ai-demo-grand-theft-auto-vi-goes-viral-and-spotify-cuts-jobs/,1,1

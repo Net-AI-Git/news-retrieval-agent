@@ -1,13 +1,13 @@
 # GOAL — Live Gather 11/11, no leakage
 
-**Status:** Prompt track stopped at 7/11 (rules #2 and #5). Grade is now in the graph. Re-run live Gather against production prompts; do not resume prompt-only looping unless Grade also stalls.  
+**Status:** Stopped — 7/11. Do not resume. Next Gather spec: [`gate4-gather-first-hop-prompt-goal.md`](gate4-gather-first-hop-prompt-goal.md)  
 **Author:** N/A  
 **Created:** 2026-08-27  
 **Target Completion:** TBD  
 **SDD(s) Impacted:** none  
 **Rollback:** `git checkout -- project/src/prompts/gather_agent.md`
 
-This file is the only spec. Do not read other plans for prompt wording. Do not copy the old Gather template.
+This Gather-only prompt track is closed. Do not resume it. Prompt-only Gather stalled at 7/11 (stop rules #2 and #5). Grade-only later reached 9/11 and is also closed. The next job is standalone `search_facts` queries on the first hop **and** on every retry.
 
 ---
 
@@ -118,6 +118,8 @@ Report: CSV paths, N/11 per candidate, remaining IDs and class, which rule fired
 
 ---
 
-## First message for the other chat
+## First message for the other chat (historical; do not start a new chat from this file)
+
+The active spec is [`gate4-standalone-retry-prompt-goal.md`](gate4-standalone-retry-prompt-goal.md).
 
 Read `project/plans/gate4-live-gather-prompt-goal.md` from the first heading to the end. Follow the friend-review checks. Write a short OpenAI-shaped Gather prompt. No evaluation questions and no lookalikes. 11/11 `gather_success` twice, or stop under section “When to stop”.
