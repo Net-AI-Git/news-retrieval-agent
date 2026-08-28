@@ -76,7 +76,3 @@ project/local_logging_dashboard/dashboard.html
 project/vector_stores/**
 !project/vector_stores/facts_chroma/
 !project/vector_stores/facts_chroma/source_catalog.json
-
-# Local agent/rules tooling — not part of the assignment repo
-.agents/
-.Codex/

@@ -10,7 +10,8 @@ from langgraph.prebuilt import ToolNode
 
 from ..agents.answer_agent import run_answer
 from ..agents.gather_agent import build_gather_tools, run_gather
-from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS
+from ..agents.grade_agent import run_grade
+from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_CONTINUE_VERDICTS, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GRADE_VERDICT_REWRITE, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS
 from ..repositories.local_logging_repository import LocalLoggingRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
 
@@ -21,6 +22,7 @@ class GroundedAnsweringState(TypedDict):
     evidence: Annotated[list, operator.add]
     gather_count: int
     tool_count: int
+    grade_verdict: Optional[str]
     answer_result: Optional[AnswerResult]
 
 
@@ -53,6 +55,36 @@ def route_after_gather(state):
     return "answer"
 
 
+def prior_search_queries(task_data):
+    queries = []
+    for turn in task_data.get("transcript_turns") or []:
+        if turn.get("stage") != "gather":
+            continue
+        for tool_call in turn.get("tool_calls") or []:
+            arguments = tool_call.get("args") if isinstance(tool_call.get("args"), dict) else {}
+            question = arguments.get("question") or ""
+            if question:
+                queries.append(question)
+    return queries
+
+
+def normalize_grade_verdict(verdict, gather_count, tool_count):
+    cleaned = (verdict or "").strip().lower()
+    if gather_count >= GATHER_MAX_LLM_TURNS or tool_count >= GATHER_MAX_TOOL_CALLS:
+        return GRADE_VERDICT_EMPTY_STOP
+    if cleaned in (GRADE_VERDICT_ENOUGH, GRADE_VERDICT_REWRITE, GRADE_VERDICT_MISSING_HOP, GRADE_VERDICT_EMPTY_STOP):
+        return cleaned
+    return GRADE_VERDICT_EMPTY_STOP
+
+
+def route_after_grade(state):
+    if state.get("gather_count", 0) >= GATHER_MAX_LLM_TURNS or state.get("tool_count", 0) >= GATHER_MAX_TOOL_CALLS:
+        return "answer"
+    if state.get("grade_verdict") in GRADE_CONTINUE_VERDICTS:
+        return "gather"
+    return "answer"
+
+
 def extract_tool_calls(message):
     tool_calls = []
     for tool_call in getattr(message, "tool_calls", None) or []:
@@ -80,6 +112,17 @@ def tools_node(state, tool_node, task_data, flow_id):
     return {"messages": tool_messages, "evidence": evidence, "tool_count": task_data["tool_count"]}
 
 
+def grade_node(state, task_data, flow_id):
+    grade_result = run_grade({**task_data, "question": state["question"], "evidence": state.get("evidence") or [], "prior_queries": prior_search_queries(task_data)}, flow_id)
+    verdict = normalize_grade_verdict(grade_result.verdict, state.get("gather_count", 0), state.get("tool_count", 0))
+    task_data["grade_verdict"] = verdict
+    task_data["grade_note"] = grade_result.note
+    task_data.setdefault("transcript_turns", []).append({"stage": "grade", "verdict": verdict, "note": grade_result.note})
+    if verdict in GRADE_CONTINUE_VERDICTS and grade_result.note:
+        return {"messages": [HumanMessage(grade_result.note)], "grade_verdict": verdict}
+    return {"grade_verdict": verdict}
+
+
 def answer_node(state, task_data, flow_id):
     evidence = state.get("evidence") or []
     answer_result = filter_answer_citations(run_answer({**task_data, "question": state["question"], "evidence": evidence}, flow_id), evidence)
@@ -94,10 +137,12 @@ def build_grounded_answering_graph(task_data, flow_id):
     graph = StateGraph(GroundedAnsweringState)
     graph.add_node("gather", lambda state: gather_node(state, task_data, flow_id))
     graph.add_node("tools", lambda state: tools_node(state, tool_node, task_data, flow_id))
+    graph.add_node("grade", lambda state: grade_node(state, task_data, flow_id))
     graph.add_node("answer", lambda state: answer_node(state, task_data, flow_id))
     graph.set_entry_point("gather")
     graph.add_conditional_edges("gather", route_after_gather, {"tools": "tools", "answer": "answer"})
-    graph.add_edge("tools", "gather")
+    graph.add_edge("tools", "grade")
+    graph.add_conditional_edges("grade", route_after_grade, {"gather": "gather", "answer": "answer"})
     graph.add_edge("answer", END)
     return graph.compile()
 
@@ -114,7 +159,7 @@ def run_grounded_answering(task_data, flow_id):
     answer_result = AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
     try:
         raise_if_missing_solution_env(task_data)
-        graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
+        graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
         answer_result = graph_state.get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
         task_data["answer_result"] = answer_result.model_dump()
     except Exception as err:
