@@ -9,6 +9,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "When did TechCrunch report on Flipboard's integration of the ActivityPub protocol?",
@@ -18,6 +19,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "When did The Verge discuss the structure of the ActivityPub protocol in social media contexts?",

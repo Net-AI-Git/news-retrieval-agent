@@ -10,6 +10,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Which general-purpose chatbot developed by OpenAI did TechCrunch report can generate text?",
@@ -19,6 +20,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Which chatbot did TechCrunch report can debug code and compose music?",
@@ -28,6 +30,7 @@
     },
     {
       "sub_question_index": 3,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Which OpenAI chatbot did Engadget cover on the first anniversary of its release?",

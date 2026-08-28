@@ -9,6 +9,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Which insurance companies and their CEOs are mentioned in the New York Times article about Pets Best?",
@@ -18,6 +19,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Which insurance companies and their CEOs are mentioned in the Wall Street Journal article about Pets Best?",
@@ -27,6 +29,7 @@
     },
     {
       "sub_question_index": 1,
+      "agent": "unbound",
       "tool": "search_corpus",
       "arguments": {
         "question": "Which insurance companies and their CEOs are mentioned in the New York Times article about Pets Best?"
@@ -36,6 +39,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "unbound",
       "tool": "search_corpus",
       "arguments": {
         "question": "Which insurance companies and their CEOs are mentioned in the Wall Street Journal article about Pets Best?"
