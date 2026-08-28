@@ -156,6 +156,8 @@ This is the working log for the assignment’s retrieval-reasoning requirement. 
 
 7. **Ship Top-1 per hop, no rerank.** `22-25-11`: 9/9 gold, 0 extra URLs on answerable questions. Q04/Q09 still send two noise facts. Filtering those is Gather/Answer (empty store for Pets Best / Forerunner), not a retrieval cutoff.
 
+8. **Tried Top-2, then reverted (2026-08-28).** First-hop Gather still missed gold on packed or rank-1-noisy hops. Set `RETRIEVAL_TOP_K=2` and re-ran `tests/live_gather_first_hop`: `metrics_2026-08-28_16-04-44.csv` 9/11, `16-09-10.csv` 10/11. Q01 and Q07 gold URL+snippet completed both times (second TechCrunch fact at rank 2 under a packed query). Q05 stayed 0.333 — `source=The Age` on all three calls, so the filter never saw the TechCrunch facts. k=2 does not fix a wrong outlet. Reverted to 1 so Answer still receives one Facts chunk per hop. Next lever was splitting Gather from retrieve, not a larger k.
+
 ---
 
 ## Open

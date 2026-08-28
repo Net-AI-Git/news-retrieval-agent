@@ -111,6 +111,18 @@ Prompts live in `src/prompts/gather_agent.md`, `src/prompts/retrieve_agent.md`, 
 
 The chat model is GPT-4o-mini, so Answer follows OpenAI's developer-message outline (`# Identity`, `# Instructions`, optional `# Examples`) instead of the older project `ROLE:` / `TASK:` / `RULES:` / confidence-score template. That older template, plus a 4–5 refuse band, treated a supported `No` and any conclusion that is not written in one snippet as a refusal. Putting the 11 evaluation questions (or toy clones of the same traps) into the prompt produces a fake 11/11 and is rejected. The production Answer prompt is short, uses only this-run evidence, treats `published_at` as the clock for before/after, allows combining hops, and requires verbatim `snippet` and `url` because orchestration drops any citation that is not an exact match. The one example is a fake-domain entity extract, not an exam item. Oracle Answer with gold facts injected is 11/11 on that prompt (`tests/oracle_answer_gt` metrics `2026-08-27_21-56-37`, `21-58-37`, `22-16-19`). Gather and retrieve use the same vendor outline. Decision log: `project/plans/pda-knowledge-retrieval-assignment/TASK-04-decisions.md`.
 
+### Agent loop: what we tried
+
+ASSIGNMENT.md asks for agent-loop reasoning, not only the final graph. We did not start with two retrieval agents.
+
+1. **One Gather with `search_facts`.** Decompose and fill `source` / dates in the same `bind_tools` turn. Grade after tools for stop vs rewrite. Prompt-only Gather stalled at 7/11; Gather+Grade reached 9/11 (`tests/live_gather_gt`). First-hop-only board (no Grade) peaked at 9/11 (`tests/live_gather_first_hop` `metrics_2026-08-28_14-44-01.csv`).
+2. **The pairing vs Q05 wall.** Instructing Gather to copy a named outlet onto every pairing call fixed Q02 and copied `The Age` onto Q05’s TechCrunch hops. Instructing it to omit `source` unless the clause names the outlet fixed Q05 and left `source` empty on “Did TechCrunch report…”. Same model, same context, opposite bugs.
+3. **Stronger model vs split.** Cross-claim leakage is structural. `OPENAI_MODEL` is shared with Grade and Answer. Kept `gpt-4o-mini` and split responsibility.
+4. **Top-2 Facts chunks.** Closed some rank-1 / packed-query gold misses (`16-04-44` 9/11, `16-09-10` 10/11). Did not fix Q05 (wrong `source` filter). Reverted to Top-1 so Answer still sees one fact per hop. Ranking path: `TASK-03-decisions.md`.
+5. **Isolated retrieve hop.** Gather emits standalone sub-questions and cannot call tools. Retrieve sees one sub-question, fills filters, calls `search_facts`. Source catalog resolve stays in retrieval (exact / unique substring / embedding among matches, drop if unresolved). First live first-hop score: 8/11 (`metrics_2026-08-28_16-44-21.csv`). Q05 gold complete. Remaining: Q01 rank-1 with `source` filled, Q04 packed two outlets into one string, Q07 over-split.
+
+Working log: `plans/pda-knowledge-retrieval-assignment/TASK-04-decisions.md`.
+
 ### Retrieval evaluation
 
 Retrieval is evaluated against the per-question ground truth by stable source URL. Document Precision@10 measures how many distinct returned sources are expected, Document Recall@10 measures how many expected sources were reached, and MRR@10 measures the rank of the first correct result. Facts additionally use Exact Fact Recall@10 after whitespace normalization. Q04 and Q09 have no supporting sources in GT. After Top-1, those hops still return the nearest store sentence; they do not pass as `empty`. Refusal on those questions is Answer's job, not a cosine floor.
