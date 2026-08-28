@@ -84,7 +84,9 @@ N/A — generated assignment artifacts can be regenerated from the merged system
 
 ## Revision — 2026-08-27 — Path to 100% local-GT e2e
 
-**Status:** In Progress — Gates 0–3 closed, including Gate 2 ranking (Top-1, no rerank). Gates 4–5 open.  
+**Revision — 2026-08-27 — Path to 100% local-GT e2e**
+
+**Status:** In Progress — Gates 0–3 closed, including Gate 2 ranking (Top-1, no rerank). Gate 4 in progress: Gather/retrieve split, first-hop 8/11 (`metrics_2026-08-28_16-44-21.csv`). Gate 5 open.  
 **Author:** N/A  
 **Created:** 2026-08-27  
 **Target Completion:** TBD  
@@ -274,9 +276,11 @@ Only on hops that passed Gate 2.
 3. **No extra tools turn after gold is complete** (Q02 date-rewrites, Q07 extra hops). Parallel first-turn batches stay allowed.
 4. **Decompose only where Gate 2 hits and the agent query misses.** Do not “improve overlap” on Q07’s packed query if gold is found.
 
-Prompt-only Gather stalled at 7/11. Grade after tools reached **9/11** (`metrics_2026-08-28_12-53-03.csv`). Standalone-retry track stopped at 7/11. Active Gather-only spec (first-hop gold facts, no Grade): [`gate4-gather-first-hop-prompt-goal.md`](../gate4-gather-first-hop-prompt-goal.md).
+Prompt-only Gather stalled at 7/11. Grade after tools reached **9/11** (`metrics_2026-08-28_12-53-03.csv`). Standalone-retry track stopped at 7/11. First-hop prompt-only Gather (no Grade) peaked at **9/11** (`tests/live_gather_first_hop` `metrics_2026-08-28_14-44-01.csv`): Q05 copied `The Age` onto every hop; Q07 packed three abilities; Q01 rank-1 was noisy. Tightening vs relaxing `source` traded Q02 against Q05. A k=2 trial (`16-04-44` 9/11, `16-09-10` 10/11) closed some gold misses and left Q05 failing; **reverted to `RETRIEVAL_TOP_K=1`**.
 
-**Exit:** Stop `too_late` only when a later tools turn is real. Q05/Q08 `too_early` disappears once those hops retrieve gold.
+**Current Gate 4 work (2026-08-28):** Gather only decomposes; an isolated retrieve agent fills `source` / dates and calls `search_facts`. Catalog resolve stays in retrieval. First live first-hop score on the split: **8/11** (`metrics_2026-08-28_16-44-21.csv`). Q05 gold complete. Remaining first-hop misses: Q01 (source filled, gold not rank 1), Q04 (packed both outlets into one sub-question), Q07 (over-split, missing second TechCrunch fact). Decision log: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Isolated retrieve hop”. Spec history: [`gate4-gather-first-hop-prompt-goal.md`](../gate4-gather-first-hop-prompt-goal.md) (prompt-only Gather is superseded).
+
+**Exit:** Stop `too_late` only when a later tools turn is real. Q05/Q08 `too_early` disappears once those hops retrieve gold. First-hop board still needs two consecutive 11/11 before treating Gate 4 as closed.
 
 #### Phase E — Joint e2e and artifacts (Gate 5)
 
@@ -297,11 +301,11 @@ Regenerate root `answers.json` and transcripts via `solution.py`. Record remaini
 | Q01 | pass | none | Regression | Anything |
 | Q02 | fail | Gate 3 (gold complete, refused Yes) | Temporal Answer + stop extra date queries | RAG, decompose |
 | Q03 | pass | none (stop label was wrong) | Regression; fix scorer | Stop-policy “too late” |
-| Q04 | pass | Gate 1 bind + Gate 4 stop | Bind corpus; stop after empty | Answer |
-| Q05 | fail | Gate 4 (oracle RAG now hits The Age) | Gather must pass `source` / keep the hop; then citations | Answer string (already Google) |
+| Q04 | pass | Gate 1 bind + Gate 4 stop | Gather: one sub-question per named outlet (packed NYT+WSJ on first-hop 16-44-21); then stop after empty | Answer |
+| Q05 | fail | Gate 4 then Answer | First-hop Age-on-all is closed by retrieve isolation (`16-44-21` gold complete). Remaining e2e is Answer/citations if gold is in evidence | Answer string (already Google); do not put source fill back on Gather |
 | Q06 | fail | Gate 3 (gold complete, refused No) | Comparison Answer | RAG |
-| Q07 | pass | Gate 4 too_late only | Stop extra hops | Decompose (gold was found) |
-| Q08 | fail | Gate 4 (oracle RAG now hits Tremblant with source+dates) | Gather source+dates, then Answer if still refusing | Answer-first |
+| Q07 | pass | Gate 4 too_late / first-hop over-split | Gather: one hop per listed ability, no featured-in extras; Grade stop extra hops | Restore packed three-ability query |
+| Q08 | fail | Gate 4 (oracle RAG now hits Tremblant with source+dates) | Gather keeps the window in that sub-question text; retrieve fills ISO dates; then Answer if still refusing | Answer-first |
 | Q09 | pass | Gate 4 extra empty call | Stop policy; bind corpus | Answer |
 | Q10 | fail | Gate 3 (Gather gold complete) | Comparison Answer; ignore CSV `rag` label | Index work as the e2e fix |
 | Q11 | fail | Gate 3 (gold + citations, Yes vs No) | Temporal polarity | RAG, citations |
@@ -332,7 +336,7 @@ No Gather, no Answer, no `answers.json` writes.
 
 - GT files under `project/src/data/ground_truth/` only after a Gate 0 written reason.
 - `project/src/tools/retrieval_tools.py` bind list; retrieval query/date/top-k behavior if Gate 2 requires it.
-- `project/src/prompts/answer_agent.md` and `gather_agent.md` via prompt experiments then promotion.
+- `project/src/prompts/answer_agent.md`, `gather_agent.md`, and `retrieve_agent.md` via prompt experiments then promotion.
 - New test packages under `project/tests/` for live tool calls and oracle Answer (each with `README.md`).
 - Existing `gt_facts_union_topk`, `gt_corpus_union_topk`, `end_to_end_gt_evaluation` runners/READMEs.
 - Regenerated root `answers.json` and transcripts after Gate 5.
