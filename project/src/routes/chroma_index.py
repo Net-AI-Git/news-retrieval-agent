@@ -15,10 +15,10 @@ facts_chroma_index_router = APIRouter(prefix="/facts-chroma-index", tags=["facts
 @corpus_chroma_index_router.post("/run", summary="Corpus Chroma Index", response_model=Response)
 def corpus_chroma_index():
     flow_id = str(uuid4())
-    return Response(content=run_corpus_chroma_index({"data_dir": DATA_DIR, "chroma_path": CORPUS_CHROMA_PATH}, flow_id) or "")
+    return Response(content=run_corpus_chroma_index({"data_dir": DATA_DIR, "chroma_path": CORPUS_CHROMA_PATH}, flow_id) or "", flow_id=flow_id)
 
 
 @facts_chroma_index_router.post("/run", summary="Facts Chroma Index", response_model=Response)
 def facts_chroma_index():
     flow_id = str(uuid4())
-    return Response(content=run_facts_chroma_index({"data_dir": DATA_DIR, "chroma_path": FACTS_CHROMA_PATH}, flow_id) or "")
+    return Response(content=run_facts_chroma_index({"data_dir": DATA_DIR, "chroma_path": FACTS_CHROMA_PATH}, flow_id) or "", flow_id=flow_id)

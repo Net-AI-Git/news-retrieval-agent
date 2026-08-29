@@ -20,11 +20,11 @@ Skill definitions live in [`.agents/skills/`](.agents/skills/). Each reads its r
 - `create-command` / `update-command` — redirect legacy command requests to repository skills.
 - `code-review` — validate changed files against every rule (read-only).
 - `sync-sdd` — reconcile code changes with a chosen SDD.
-- `create-local-logging-dashboard` — build a standalone dashboard from a service's emitted `LocalLoggingRepository.log_event` events.
+- `create-local-logging-dashboard` — build a standalone dashboard from a service's emitted `LoggingRepository.log_event` events.
 
 ## Directory-Scoped Standards
 
-Each subdirectory under [`project/src/`](project/src/) has a nested `AGENTS.md` that is binding inside that directory. Codex auto-loads a subdirectory's `AGENTS.md` when it reads files in that directory. Runtime agent boundaries live in `orchestration/`, `agents/`, `tools/`, and `prompts/`; external-system rules live in `repositories/`. Start at [`project/src/AGENTS.md`](project/src/AGENTS.md).
+Each subdirectory under [`project/src/`](project/src/) has a nested `AGENTS.md` that is binding inside that directory. Codex auto-loads a subdirectory's `AGENTS.md` when it reads files in that directory. Runtime agent boundaries live in `orchestration/`, `agents/`, `tools/`, and `prompts/`; external-system rules live in `repositories/`. Offline audit, dashboard, and telemetry artifacts live under [`project/observability/`](project/observability/). Start at [`project/src/AGENTS.md`](project/src/AGENTS.md).
 
 ## Communication & Behavior
 

@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from ..conts import FACTS_CHROMA_PATH, REQUIRED_SOLUTION_ENV_VARS
-from ..repositories.local_logging_repository import LocalLoggingRepository
+from ..repositories.logging_repository import LoggingRepository
 from .facts_chroma_index_service import run_facts_chroma_index
 
 
@@ -32,12 +32,12 @@ def facts_chroma_index_handle(task_data, flow_id, data_path):
 
 
 def run_solution_index(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     index = None
     try:
         raise_if_missing_solution_env(task_data)
         index = facts_chroma_index_handle(task_data, flow_id, resolved_solution_data_dir(task_data))
     except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return index

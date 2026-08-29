@@ -14,7 +14,7 @@ import httpx
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-from template_service.repositories.local_logging_repository import LocalLoggingRepository
+from template_service.repositories.logging_repository import LoggingRepository
 
 load_dotenv()
 
@@ -25,7 +25,7 @@ class GptFeatureNameRepository:
 
     @staticmethod
     def run_feature(items_list_text, source_text, flow_id):
-        LocalLoggingRepository.log_event(status="STARTING", content={"source_length": len(source_text)}, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="STARTING", content={"source_length": len(source_text)}, flow_id=flow_id, level="INFO")
         response_text = ""
         try:
             prompt_text = (Path(__file__).resolve().parents[3] / "project" / "src" / "prompts" / "gpt_feature_name_repository.md").read_text(encoding="utf-8")
@@ -55,6 +55,6 @@ class GptFeatureNameRepository:
             )
             response_text = response.choices[0].message.content
         except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err)}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content={"response_length": len(response_text)}, flow_id=flow_id, level="INFO")
+            LoggingRepository.log_event(status="ERROR", content={"error": repr(err)}, flow_id=flow_id, level="ERROR")
+        LoggingRepository.log_event(status="FINISHED", content={"response_length": len(response_text)}, flow_id=flow_id, level="INFO")
         return json.loads(response_text)

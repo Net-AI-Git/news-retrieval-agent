@@ -18,7 +18,7 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 from src.agents.retrieve_agent import build_retrieve_tools
 from src.conts import CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH, GATHER_MAX_TOOL_CALLS, GROUNDED_ANSWERING_RECURSION_LIMIT
 from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, cleaned_sub_questions, extract_tool_calls, route_after_gather, route_after_retrieve, tools_node
-from src.repositories.local_telemetry_repository import LocalTelemetryRepository
+from src.repositories.telemetry_repository import TelemetryRepository
 from src.schemas.agent import GatherResult
 
 
@@ -134,7 +134,7 @@ def gather_experiment_node(state, task_data, gather_prompt):
     task_data["sub_questions"] = sub_questions
     task_data["next_route"] = route_after_gather({"sub_questions": sub_questions, "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
     task_data.setdefault("transcript_turns", []).append({"stage": "gather", "gather_count": task_data["gather_count"], "sub_questions": sub_questions, "tool_calls": [], "next_route": task_data["next_route"]})
-    LocalTelemetryRepository.add_event("routing_decision", {"stage": "gather", "route": task_data["next_route"], "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
+    TelemetryRepository.add_event("routing_decision", {"stage": "gather", "route": task_data["next_route"], "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
     return {"sub_questions": sub_questions, "gather_count": task_data["gather_count"]}
 
 
@@ -151,7 +151,7 @@ def retrieve_once_node(state, task_data, flow_id, retrieve_prompt):
     task_data["tool_calls"] = extract_tool_calls(retrieve_message)
     task_data["next_route"] = route_after_retrieve({"messages": [retrieve_message], "gather_count": state.get("gather_count", 0), "tool_count": state.get("tool_count", 0)})
     task_data.setdefault("transcript_turns", []).append({"stage": "retrieve", "gather_count": state.get("gather_count", 0), "tool_calls": task_data["tool_calls"], "next_route": task_data["next_route"]})
-    LocalTelemetryRepository.add_event("routing_decision", {"stage": "retrieve", "route": task_data["next_route"], "tool_count": state.get("tool_count", 0)})
+    TelemetryRepository.add_event("routing_decision", {"stage": "retrieve", "route": task_data["next_route"], "tool_count": state.get("tool_count", 0)})
     return {"messages": [retrieve_message]}
 
 

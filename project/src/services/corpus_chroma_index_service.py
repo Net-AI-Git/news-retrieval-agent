@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_CHROMA_PATH, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS, DATA_DIR, PDA_ARTICLE_ID_PREFIX
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
-from ..repositories.local_logging_repository import LocalLoggingRepository
+from ..repositories.logging_repository import LoggingRepository
 
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
@@ -152,7 +152,7 @@ def remove_stale_corpus(records, task_data, flow_id):
 
 
 def run_corpus_chroma_index(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     chroma_path = None
     try:
         corpus = load_corpus(task_data)
@@ -166,8 +166,8 @@ def run_corpus_chroma_index(task_data, flow_id):
         remove_stale_corpus(records, task_data, flow_id)
         chroma_path = promote_corpus_collection(records, embedding_dimensions, task_data, flow_id)
     except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return chroma_path
 
 

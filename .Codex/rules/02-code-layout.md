@@ -16,7 +16,7 @@
 - GPT repos: `repositories/gpt_<feature_name>_repository.py` — one file per feature.
 - Oracle DB: all features share `repositories/oracle_repository.py` (methods added to same class).
 - CRM: all features share `repositories/crm_repository.py`.
-- Shared infra: `redis_repository.py`, `local_logging_repository.py`, `local_telemetry_repository.py` in `repositories/`.
+- Shared infra: `redis_repository.py`, `logging_repository.py`, `telemetry_repository.py` in `repositories/`.
 - Pydantic schemas: all `BaseModel` classes MUST live under `schemas/`.
 - Prompt experiments: `tests/<experiment_name>/` — control, candidates, dataset, runner, and results stay outside runtime.
 - Do NOT create subdirectories per feature. Feature files are self-contained — all logic stays in its own file(s).
