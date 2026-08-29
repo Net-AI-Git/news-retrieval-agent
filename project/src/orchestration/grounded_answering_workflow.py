@@ -12,7 +12,7 @@ from ..agents.answer_agent import run_answer
 from ..agents.gather_agent import run_gather
 from ..agents.grade_agent import run_grade
 from ..agents.retrieve_agent import build_retrieve_tools, run_retrieve
-from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_CONTINUE_VERDICTS, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GRADE_VERDICT_REWRITE, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS, TELEMETRY_WORKFLOW_NAME, TELEMETRY_WORKFLOW_OPERATION_NAME
+from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_CONTINUE_VERDICTS, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS, TELEMETRY_WORKFLOW_NAME, TELEMETRY_WORKFLOW_OPERATION_NAME
 from ..repositories.local_logging_repository import LocalLoggingRepository
 from ..repositories.local_telemetry_repository import LocalTelemetryRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
@@ -93,7 +93,7 @@ def normalize_grade_verdict(verdict, gather_count, tool_count):
     cleaned = (verdict or "").strip().lower()
     if gather_count >= GATHER_MAX_LLM_TURNS or tool_count >= GATHER_MAX_TOOL_CALLS:
         return GRADE_VERDICT_EMPTY_STOP
-    if cleaned in (GRADE_VERDICT_ENOUGH, GRADE_VERDICT_REWRITE, GRADE_VERDICT_MISSING_HOP, GRADE_VERDICT_EMPTY_STOP):
+    if cleaned in (GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GRADE_VERDICT_EMPTY_STOP):
         return cleaned
     return GRADE_VERDICT_EMPTY_STOP
 

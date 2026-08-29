@@ -9,18 +9,21 @@ from uuid import uuid4
 
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
+from langgraph.graph import END, StateGraph
+from pydantic import ValidationError
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PROJECT_ROOT / ".env")
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.agents import answer_agent, gather_agent, grade_agent, retrieve_agent
-from src.conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GROUNDED_ANSWERING_RECURSION_LIMIT
+from src.conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, CORPUS_CHROMA_PATH, FACTS_CHROMA_PATH, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GROUNDED_ANSWERING_RECURSION_LIMIT
 from src.orchestration import grounded_answering_workflow as workflow
 from src.schemas.agent import AnswerCitation, AnswerResult, GradeResult, SearchEvidenceOutput
 
 
 EVIDENCE_ITEM = {"article_title": "One year later, ChatGPT is still alive and kicking", "snippet": "ChatGPT can complete and debug code.", "url": "https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/", "published_at": "2023-11-30T14:10:43+00:00", "match_percentage": 82.0}
+UNRELATED_EVIDENCE_ITEM = {"article_title": "Other article", "snippet": "Unrelated details.", "url": "https://example.com/other", "published_at": "2023-11-29T10:00:00+00:00", "match_percentage": 12.0}
 QUESTIONS = {item["id"]: item["question"] for item in json.loads((PROJECT_ROOT / "src" / "data" / "questions.json").read_text(encoding="utf-8"))}
 
 
@@ -76,10 +79,24 @@ class GroundedAnsweringTests(unittest.TestCase):
         self.assertEqual("answer", workflow.route_after_grade({"gather_count": 1, "tool_count": 2, "grade_verdict": GRADE_VERDICT_ENOUGH}))
         self.assertEqual("answer", workflow.route_after_grade({"gather_count": GATHER_MAX_LLM_TURNS, "tool_count": 2, "grade_verdict": GRADE_VERDICT_MISSING_HOP}))
 
+    def test_removed_rewrite_verdict_is_rejected(self):
+        with self.assertRaises(ValidationError):
+            GradeResult(verdict="rewrite", note="try again")
+        self.assertEqual(GRADE_VERDICT_EMPTY_STOP, workflow.normalize_grade_verdict("rewrite", 1, 1))
+
     def test_collect_tool_evidence_reads_tool_payload_results(self):
         payload = SearchEvidenceOutput(status="ok", question="Who?", results=[EVIDENCE_ITEM]).model_dump_json()
         evidence = workflow.collect_tool_evidence([SimpleNamespace(content=payload)])
         self.assertEqual([EVIDENCE_ITEM], evidence)
+
+    def test_state_accumulates_every_evidence_chunk(self):
+        graph = StateGraph(workflow.GroundedAnsweringState)
+        graph.add_node("first", lambda state: {"evidence": [EVIDENCE_ITEM]})
+        graph.add_node("second", lambda state: {"evidence": [UNRELATED_EVIDENCE_ITEM]})
+        graph.set_entry_point("first")
+        graph.add_edge("first", "second")
+        graph.add_edge("second", END)
+        self.assertEqual([EVIDENCE_ITEM, UNRELATED_EVIDENCE_ITEM], graph.compile().invoke({"evidence": []})["evidence"])
 
     def test_cleaned_sub_questions_drops_blank_and_respects_limit(self):
         self.assertEqual(["Who won?"], workflow.cleaned_sub_questions(["", "Who won?", "  "], 8))
@@ -150,8 +167,9 @@ class GroundedAnsweringTests(unittest.TestCase):
     @patch("src.orchestration.grounded_answering_workflow.run_answer")
     def test_answer_node_sends_gathered_evidence(self, run_answer):
         run_answer.return_value = AnswerResult(status=ANSWER_STATUS_ANSWERED, answer="Yes", citations=[AnswerCitation(article_title=EVIDENCE_ITEM["article_title"], url=EVIDENCE_ITEM["url"], snippet=EVIDENCE_ITEM["snippet"])])
-        result = workflow.answer_node({"question": "Who?", "evidence": [EVIDENCE_ITEM]}, {}, str(uuid4()))
-        self.assertEqual([EVIDENCE_ITEM], run_answer.call_args[0][0]["evidence"])
+        accumulated_evidence = [EVIDENCE_ITEM, UNRELATED_EVIDENCE_ITEM]
+        result = workflow.answer_node({"question": "Who?", "evidence": accumulated_evidence}, {}, str(uuid4()))
+        self.assertEqual(accumulated_evidence, run_answer.call_args[0][0]["evidence"])
         self.assertEqual(ANSWER_STATUS_ANSWERED, result["answer_result"].status)
 
     def test_live_q01_answers_yes_with_grounded_snippets(self):

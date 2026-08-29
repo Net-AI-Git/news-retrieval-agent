@@ -378,7 +378,7 @@ Orchestration fans Gather’s list into sequential retrieve invokes, merges `too
 
 ### Gather-only chat model: `OPENAI_GATHER_MODEL` (2026-08-28)
 
-**Choice:** Gather reads `openai/gpt-4.1-mini` from `OPENAI_GATHER_MODEL`. Retrieve, Grade, and Answer keep `openai/gpt-4o-mini` from `OPENAI_MODEL`. Same OpenRouter key and base URL. `REQUIRED_SOLUTION_ENV_VARS` includes both slugs.
+**Choice:** Gather reads `openai/gpt-4.1` from `OPENAI_GATHER_MODEL`. Retrieve, Grade, and Answer keep `openai/gpt-4o-mini` from `OPENAI_MODEL`. Same OpenRouter key and base URL. `REQUIRED_SOLUTION_ENV_VARS` includes both slugs.
 
 **Chosen over:**
 

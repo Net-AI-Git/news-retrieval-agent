@@ -27,8 +27,8 @@ Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`, `OPENA
 
 `outputs/metrics_*.csv`, `hops_*.csv`, `calls_*.csv`. `first_hop_success=1` when `prompt_leak_hit=0`, first-batch gold URL+snippet are complete (or an unanswerable row filled `source` for each named outlet), and dated calls meet `gt_dated_required_count` when the user named publication dates.
 
-Pass: two consecutive newest metrics files, same Gather and retrieve prompts, `first_hop_success=1` on all 11 rows, vendor-shaped prompts, no exam text and no lookalikes.
+Pass: two consecutive newest metrics files, same Gather prompt (retrieve frozen), `first_hop_success=1` on all 11 rows, vendor-shaped Gather prompt, no exam text and no lookalikes. Sub-question wording need not match GT; gold is every `facts` URL+sentence in the first-batch hits (or sourced calls on unanswerable rows).
 
 ## Status
 
-Active — 2026-08-28. Gather emits standalone sub-questions; `retrieve_agent` fills `source` / dates and calls `search_facts`. First live score `metrics_2026-08-28_16-44-21.csv` is 8/11. Q05 gold complete (`The Age` only on that hop). Misses: Q01 gold miss at top-1 with `Sporting News` filled; Q04 packed both outlets into one sub-question so `source` stayed empty; Q07 over-split and missed the second TechCrunch fact. Spec: `project/plans/gate4-gather-first-hop-prompt-goal.md`.
+Active — 2026-08-28. Spec: `project/plans/gate4-gather-gold-chunks-prompt-goal.md`. Gather must fit frozen isolated Retrieve; never edit `retrieve_agent.md`. Production Gather is 10/11 (`metrics_2026-08-28_22-22-14.csv`); remaining miss Q07 (debug/music on Engadget). Do not score `live_gather_retrieve_once`.

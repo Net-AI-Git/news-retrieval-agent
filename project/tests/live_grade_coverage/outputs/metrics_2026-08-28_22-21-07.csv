@@ -1,0 +1,13 @@
+﻿case_id,class,expected_verdict,predicted_verdict,verdict_match,expected_route,predicted_route,route_match,note_empty,note_repeats_prior,prompt_leak_hit,case_success,note,runtime_error
+grade_enough_flipboard_and_activitypub,enough,enough,enough,1,stop,stop,1,1,0,0,1,,
+grade_enough_complete_plus_nfl_noise,enough,enough,enough,1,stop,stop,1,1,0,0,1,,
+grade_enough_zermatt_and_chatgpt,enough,enough,enough,1,stop,stop,1,1,0,0,1,,
+grade_missing_hop_second_outlet_never_searched,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,Search for TechCrunch report on ChatGPT’s web portal unique visitors in October.,
+grade_missing_hop_unused_publish_date,missing_hop,missing_hop,empty_stop,0,continue,stop,0,1,0,0,0,,
+grade_missing_hop_second_named_outlet,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,Check The Guardian for Vincent Namatjira winning the Archibald prize for a portrait of Adam Goodes.,
+grade_rewrite_keyword_overlap,rewrite,rewrite,empty_stop,0,continue,stop,0,1,0,0,0,,
+grade_rewrite_wrong_outlet,rewrite,rewrite,empty_stop,0,continue,stop,0,1,0,0,0,,
+grade_rewrite_off_topic_entities,rewrite,rewrite,empty_stop,0,continue,stop,0,1,0,0,0,,
+grade_empty_stop_unrelated_hits,empty_stop,empty_stop,empty_stop,1,stop,stop,1,1,0,0,1,,
+grade_empty_stop_amount_not_in_snippet,empty_stop,empty_stop,empty_stop,1,stop,stop,1,1,0,0,1,,
+grade_empty_stop_two_outlets_no_cover,empty_stop,empty_stop,missing_hop,0,stop,continue,0,0,0,0,0,Find a source that explicitly names the engineer credited by both TechCrunch and Engadget for designing the 2023 Pixel Fold hinge.,

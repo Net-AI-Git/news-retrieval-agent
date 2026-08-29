@@ -1,0 +1,13 @@
+﻿case_id,class,expected_verdict,predicted_verdict,verdict_match,expected_route,predicted_route,route_match,note_empty,note_repeats_prior,prompt_leak_hit,case_success,note,runtime_error
+grade_enough_flipboard_and_activitypub,enough,enough,enough,1,stop,stop,1,1,0,0,1,,
+grade_enough_complete_plus_nfl_noise,enough,enough,enough,1,stop,stop,1,1,0,0,1,,
+grade_enough_zermatt_and_chatgpt,enough,enough,enough,1,stop,stop,1,1,0,0,1,,
+grade_missing_hop_second_outlet_never_searched,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,No evidence found for TechCrunch reporting ChatGPT’s web portal visitors; search needed for TechCrunch outlet and October visitor data.,
+grade_missing_hop_unused_publish_date,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,No evidence from The Independent - Travel on 25 October 2023 about Tremblant; need targeted search for that date and topic.,
+grade_missing_hop_second_named_outlet,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,Need evidence from The Guardian about Vincent Namatjira winning the Archibald prize for a portrait of Adam Goodes.,
+grade_missing_hop_keyword_overlap,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,Search Sporting News specifically for a report on the Lions beating the Packers 34-20.,
+grade_missing_hop_wrong_outlet,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,"Search specifically for The Age's report on Vincent Namatjira winning the Archibald prize for a portrait of Adam Goodes, including publication date filters.",
+grade_missing_hop_off_topic_entities,missing_hop,missing_hop,missing_hop,1,continue,continue,1,0,0,0,1,Add a search with a publication date filter or more specific query to find the exact investment amount by Paradigm in FTX from TechCrunch.,
+grade_empty_stop_unrelated_hits,empty_stop,empty_stop,missing_hop,0,stop,continue,0,0,0,0,0,Add a publication date range to the search to find relevant TechCrunch articles about the 2023 Artemis lunar landing commander.,
+grade_empty_stop_amount_not_in_snippet,empty_stop,empty_stop,missing_hop,0,stop,continue,0,0,0,0,0,Search specifically for the cash prize amount Vincent Namatjira received for winning the Archibald in The Guardian.,
+grade_empty_stop_two_outlets_no_cover,empty_stop,empty_stop,missing_hop,0,stop,continue,0,0,0,0,0,No evidence snippets from TechCrunch or Engadget mention the engineer who designed the 2023 Pixel Fold hinge.,

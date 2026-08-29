@@ -31,4 +31,4 @@ Pass for the prompt GOAL: 11/11 twice on the same prompt, short OpenAI-shaped fi
 
 ## Status
 
-Standalone-retry track stopped at 7/11. Active Gather-only spec: `project/plans/gate4-gather-first-hop-prompt-goal.md`.
+Standalone-retry track stopped at 7/11. Active Gather chunk spec: `project/plans/gate4-gather-gold-chunks-prompt-goal.md` (score with `tests.live_gather_first_hop`, not this loop).
