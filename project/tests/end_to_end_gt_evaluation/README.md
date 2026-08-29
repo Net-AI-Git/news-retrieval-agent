@@ -2,11 +2,11 @@
 
 ## Goal
 
-Run the full Gather → tools → Answer pipeline on all 11 questions, score every stage against `src/data/ground_truth`, and write one CSV row per question so a failure can be attributed to decomposition, RAG, Gather, Answer, or citations — without an LLM-as-a-judge.
+Run the full Gather → retrieve → tools → Answer pipeline on all 11 questions, score every stage against `src/data/ground_truth`, and write one CSV row per question so a failure can be attributed to decomposition, RAG, Gather, Answer, or citations — without an LLM-as-a-judge.
 
 ## Scope
 
-Exercises `src/orchestration/grounded_answering_workflow.py`, `src/agents/gather_agent.py`, `src/agents/answer_agent.py`, `src/tools/retrieval_tools.py`, `src/services/retrieval_service.py`, and `src/data/ground_truth/Q01.json`–`Q11.json`. Isolated RAG already living in `tests/gt_facts_union_topk` is not imported; this runner re-queries facts with the GT sub-questions only to split “agent asked a bad query” from “the retriever cannot surface gold”.
+Exercises `src/orchestration/grounded_answering_workflow.py`, `src/agents/gather_agent.py`, `src/agents/retrieve_agent.py`, `src/agents/answer_agent.py`, `src/tools/retrieval_tools.py`, `src/services/retrieval_service.py`, and `src/data/ground_truth/Q01.json`–`Q11.json`. Isolated RAG already living in `tests/gt_facts_union_topk` is not imported; this runner re-queries facts with the GT sub-questions only to split “agent asked a bad query” from “the retriever cannot surface gold”.
 
 ## How to run
 
@@ -17,7 +17,7 @@ uv run python -m tests.end_to_end_gt_evaluation.test_end_to_end_gt_evaluation --
 uv run python -m tests.end_to_end_gt_evaluation.test_end_to_end_gt_evaluation
 ```
 
-Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, and `OPENAI_EMBEDDING_MODEL`, plus existing `vector_stores/facts_chroma` and `vector_stores/corpus_chroma`. Live LLM and embedding calls. `--smoke` runs Q01 only.
+Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_AGENT_MODEL`, `OPENAI_GRADE_AGENT_MODEL`, `OPENAI_ANSWER_AGENT_MODEL`, `OPENAI_RETRIEVE_AGENT_MODEL`, and `OPENAI_EMBEDDING_MODEL`, plus existing `output_for_mission/facts_chroma` and `vector_stores/corpus_chroma`. Live LLM and embedding calls. `--smoke` runs Q01 only.
 
 ## Inputs
 
@@ -71,3 +71,5 @@ These did not get their own CSV column; several are already nested in the JSON c
 ## Status
 
 Active — full 11-question run 2026-08-26 (`outputs/stage_eval_2026-08-26_19-54-27.csv`). Smoke Q01 still `on_time` / `parallel`.
+
+Gate 0 GT audit (2026-08-27): keep all 11 vs `facts.json`; corpus not audited. Full write-up: `project/plans/pda-knowledge-retrieval-assignment/TASK-06-answers-transcripts-and-evaluation.md` (section “Gate 0 audit — 2026-08-27”).

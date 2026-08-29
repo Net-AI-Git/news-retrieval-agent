@@ -14,6 +14,7 @@ Business capability execution. Each file owns one feature end-to-end. Services c
 - Max 2 levels deep (entry-point + direct sub-functions). No `A → B → C → D` chains — flatten.
 - Sub-functions have **no** `try/except` — errors bubble to the entry-point's single top-level handler (see [`.Codex/rules/04-error-and-logging.md`](../../../.Codex/rules/04-error-and-logging.md:1) Section 1-2).
 - Entry-point returns a safe default on error (`[]`, `""`, `None`) — never re-raises.
+- The logging dashboard service may call `observability.logging_dashboard.build_dashboard`.
 - Confidence-score filtering for GPT results happens **here**, not in the GPT repository.
 
 ## Forbidden in this directory

@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from solution import answer, build_index
 from src.routes.grounded_answering import grounded_answering
@@ -21,7 +21,10 @@ class SolutionInterfaceTests(unittest.TestCase):
         self.assertTrue(callable(answer))
 
     def test_live_endpoint_returns_answer_and_citations(self):
-        payload = json.loads(grounded_answering(Request(content=QUESTIONS["Q01"])).content)
+        response = grounded_answering(Request(content=QUESTIONS["Q01"]))
+        payload = json.loads(response.content)
+        self.assertTrue(response.flow_id)
+        self.assertTrue(response.trace_id)
         self.assertIn("answer", payload)
         self.assertIn("citations", payload)
         self.assertIsInstance(payload["answer"], str)

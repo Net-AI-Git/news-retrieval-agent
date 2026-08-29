@@ -82,3 +82,7 @@ N/A — no production deployment is part of this assignment.
 ## Open Questions
 
 - none
+
+## Ranking decisions (2026-08-27)
+
+Recorded in `TASK-03-decisions.md` (Ranking path) and `project/README.md` (Ranking: what we tried). Closed for this layer: `RETRIEVAL_TOP_K=1`, no Facts cosine drop, no reranker. Live proof: `tests/live_search_facts_gt_calls` `metrics_2026-08-27_22-25-11.csv`.

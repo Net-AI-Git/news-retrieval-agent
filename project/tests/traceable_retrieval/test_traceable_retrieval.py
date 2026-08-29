@@ -9,10 +9,10 @@ import chromadb
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from solution import build_index
-from src.conts import FACTS_ACTIVE_COLLECTION, RETRIEVAL_EVIDENCE_STORE_FACTS
+from src.conts import FACTS_ACTIVE_COLLECTION, FACTS_CHROMA_PATH, RETRIEVAL_EVIDENCE_STORE_FACTS
 from src.services.retrieval_service import run_retrieval
 
 
@@ -22,7 +22,7 @@ class TraceableRetrievalTests(unittest.TestCase):
         project_root = Path(__file__).resolve().parents[2]
         with (project_root / "src" / "data" / "questions.json").open(encoding="utf-8") as questions_file:
             question = next(item["question"] for item in json.load(questions_file) if item["id"] == "Q01")
-        result = run_retrieval({"question": question, "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}, str(uuid4()))
+        result = run_retrieval({"question": question, "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}, str(uuid4()))
         self.assertEqual("ok", result["status"])
         self.assertLessEqual(len(result["facts"]), 10)
         self.assertLessEqual(len(result["corpus"]), 10)

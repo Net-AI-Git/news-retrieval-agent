@@ -9,17 +9,21 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
-        "question": "According to The Age, what process do people with an Aboriginal ancestor follow to identify with their Aboriginal heritage?"
+        "question": "According to The Age, what process do people with an Aboriginal ancestor follow to identify with their Aboriginal heritage?",
+        "source": "The Age"
       },
       "expectation": "required"
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
-        "question": "According to The Guardian, what stance do Indigenous people express about cultural identity?"
+        "question": "According to The Guardian, what stance do Indigenous people express about cultural identity?",
+        "source": "The Guardian"
       },
       "expectation": "required"
     }

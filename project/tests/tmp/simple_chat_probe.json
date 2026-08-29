@@ -1,0 +1,11 @@
+{
+  "chat_model": "openai/gpt-4o-mini",
+  "http_status": 200,
+  "elapsed_seconds": 1.08,
+  "response_body": {
+    "id": "gen-1787832604-drvlMKDaM3nXohxXcDus",
+    "model": "openai/gpt-4o-mini",
+    "content": "Ok."
+  },
+  "error": ""
+}

@@ -25,12 +25,14 @@ Chosen earlier. Facts first for compact answers; Corpus for follow-up and cross-
 **Trade-off we accepted:**
 
 - Cost: `langchain-core` in the tools layer, used only as a schema/adapter, not as retrieval or prompts.
-- Gain: the LLM sees `question` + optional dates only; one instance per question run; tests can bind a fake `task_data` without globals.
+- Gain: one instance per question run; tests can bind a fake `task_data` without globals. The LLM schema later also includes optional `source` (see below).
 - Constraint honored: tools still call `run_retrieval` only; wrappers add no business logic.
 
 **Not implemented until the remaining TASK 03 choices below are closed.**
 
 ### Parameters: question + optional dates only
+
+**Superseded in part:** optional `source` was added later (see “Optional `source`” below). `limit`, `category`, entity, and pagination stayed out.
 
 **Choice:** Do not add `limit`, `source`, `category`, entity, or pagination to the LLM-facing tools.
 
@@ -107,6 +109,54 @@ Chosen earlier. Facts first for compact answers; Corpus for follow-up and cross-
 **Choice:** Record the tool surface, statuses, LangGraph wrappers, no-MCP, and answer-time-only access in the existing retrieval section of `project/README.md`. This log stays the working decision file, not the evaluator-facing doc.
 
 **Chosen over:** a separate SDD (duplication) or documenting only here (evaluators will not open this file).
+
+### Optional `source` on `search_facts` (supersedes “dates only”)
+
+**Choice:** Add optional `source` to the LLM-facing Facts tool. Resolve the string against a catalog written at facts index time (exact name → unique substring → nearest catalog embedding with a similarity floor and a margin). Then Chroma `where source == canonical`. Unresolved names drop the filter. GT `expected_tool_calls` pass `source` only when that sub-question names an outlet.
+
+**Chosen over:** keeping the earlier “question + dates only” schema. That schema could not isolate The Age or Independent Travel; cosine alone ranked Q05 Age at 30.7% and Q08 Tremblant at 25.3%, below a 0.35 drop floor.
+
+**Trade-off we accepted:**
+
+- Cost: a wrong outlet string used to look like “no evidence”; resolve-or-drop avoids that.
+- Gain: Gate 2 hit Q05 and Q08 on the GT query (`metrics_2026-08-27_19-41-17.csv`).
+- Later: cosine floor on Facts was removed entirely (below), so source is a narrowing aid, not the only way a weak gold survives.
+
+### Facts: no cosine drop floor; one chunk per hop; no reranker
+
+**Choice:** `search_facts` returns `RETRIEVAL_TOP_K=1` with no Facts cosine drop. Corpus still drops below `RETRIEVAL_CORPUS_MIN_SIMILARITY=0.35` (unbound in this loop). There is no rerank stage. Answer sees the concatenated top-1 Facts hits from Gather hops. Q04/Q09 still return one non-gold chunk per hop; that is not a retrieval-score problem.
+
+**Chosen over:** Top-5 + cosine floor, Top-5 with no floor then NVIDIA rerank, one-fact-per-URL collapse, and any absolute `relevance_score` cutoff. The path and measurements are in “Ranking path” below.
+
+**Trade-off we accepted:**
+
+- Cost: unanswerable hops still emit a first-ranked noise sentence (Q04 NFL/Flexport, Q09 Taylor Swift/OpenAI). Cosine cannot drop those without also dropping Q08 gold (25.3%).
+- Gain: live GT args `metrics_2026-08-27_22-25-11.csv` — 9/9 answerable gold URL+snippet at rank 1, 0 false-positive URLs on those questions, two or three facts sent to Answer instead of a 8–22 union.
+- Constraint honored: ranking stays in retrieval; Gather/Answer still judge sufficiency. No second numeric gate in Answer.
+
+---
+
+## Ranking path (what we tried)
+
+This is the working log for the assignment’s retrieval-reasoning requirement. Evaluator-facing summary: `project/README.md` (Traceable Retrieval Indexes). Live numbers: `tests/live_search_facts_gt_calls/outputs/`.
+
+1. **Top-5 + 0.35 Facts floor.** Needed for a first bounded list. Failed Gate 2 on Q05 Age (30.7%) and Q08 Tremblant (25.3%). Cosine vs the hop sub-question is not a success rate; a floor at 0.35 threw gold.
+
+2. **Source filter + relax floor after a resolved source.** Closed those two hops at Top-5 (`19-41-17` / `19-37-44`, 9/9 recall). Union per question was still large (often 8–22 facts) because every hop kept five rows.
+
+3. **Drop the Facts cosine floor entirely.** Weak golds must survive even when Gather omits `source`. Corpus keeps 0.35. Status `ok` vs `low_confidence` still uses 0.40 and is not a drop.
+
+4. **Rerank the Gather union vs the original question.** Local MiniLM / FlashRank were rejected (wanted a free API). The only free dedicated rerank on OpenRouter was `nvidia/llama-nemotron-rerank-vl-1b-v2:free` (`POST /rerank`, one request, not a chat prompt). After Gather stopped: unique snippets → rerank → keep 8, `min_score=0`. API failure kept the gathered list.
+
+   NVIDIA `relevance_score` sat around `1e-5`–`0.17` and was not a confidence. The weakest gold (Q06, `0.00024`) scored below 31/74 noise rows across questions. Keep-8 by embedding cosine already retained every gold snippet on this GT; rerank did not add recall. It helped order Q01/Q05/Q11 weak golds and buried a Q03 gold (embedding rank 3 → rerank rank 7). Q04/Q09 still forwarded all retrieved noise. **Removed.** Tests live under `tests/_archive/rerank_evidence/`.
+
+5. **Dedup.** Repeated *titles* in the rerank CSV were different sentences from the same article, which is allowed. Collapsing to one fact per URL (`20-55-40`) was the wrong fix and was reverted. Same *snippet text* from two hops is sent once.
+
+6. **Inspect rank inside each hop, not the union.** Every answerable gold fact is rank 1 of *its* sub-question (`hops_2026-08-27_21-52-47.csv` and `22-10-43.csv`). The “16.75% Lions” score was Cowboys-hop retrieving the other hop’s gold as rank 4. Union cosine is the wrong ranking unit.
+
+7. **Ship Top-1 per hop, no rerank.** `22-25-11`: 9/9 gold, 0 extra URLs on answerable questions. Q04/Q09 still send two noise facts. Filtering those is Gather/Answer (empty store for Pets Best / Forerunner), not a retrieval cutoff.
+
+8. **Tried Top-2, then reverted (2026-08-28).** First-hop Gather still missed gold on packed or rank-1-noisy hops. Set `RETRIEVAL_TOP_K=2` and re-ran `tests/live_gather_first_hop`: `metrics_2026-08-28_16-04-44.csv` 9/11, `16-09-10.csv` 10/11. Q01 and Q07 gold URL+snippet completed both times (second TechCrunch fact at rank 2 under a packed query). Q05 stayed 0.333 — `source=The Age` on all three calls, so the filter never saw the TechCrunch facts. k=2 does not fix a wrong outlet. Reverted to 1 so Answer still receives one Facts chunk per hop. Next lever was splitting Gather from retrieve, not a larger k.
 
 ---
 

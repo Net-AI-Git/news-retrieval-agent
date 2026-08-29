@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from src.conts import RETRIEVAL_TOP_K
+from src.conts import FACTS_CHROMA_PATH, RETRIEVAL_TOP_K
 from src.services.retrieval_service import run_retrieval
 
 
@@ -79,7 +79,7 @@ def run_evaluation(project_root, questions, timestamp):
         ground_truth = json.loads((project_root / "src" / "data" / "ground_truth" / f"{question_data['id']}.json").read_text(encoding="utf-8"))
         if ground_truth["id"] != question_data["id"] or ground_truth["question"] != question_data["question"]:
             raise ValueError(f"Ground truth mismatch for {question_data['id']}")
-        task_data = {"question": question_data["question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
+        task_data = {"question": question_data["question"], "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
         evaluations.append(evaluate_question(question_data, ground_truth, run_retrieval(task_data, str(uuid4()))))
     return {"timestamp": timestamp.isoformat(timespec="seconds"), "top_k": RETRIEVAL_TOP_K, "summary": build_summary(evaluations), "questions": evaluations}
 

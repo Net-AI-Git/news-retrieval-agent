@@ -12,10 +12,11 @@ from langgraph.prebuilt import ToolNode
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-from local_logging_audit.local_logging_audit_client import export_audit_logs
-from src.agents.gather_agent import build_gather_tools
-from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, route_after_gather, tools_node
-from src.repositories.local_logging_repository import LocalLoggingRepository
+from observability.logging_audit.logging_audit_client import export_audit_logs
+from src.agents.retrieve_agent import build_retrieve_tools
+from src.conts import FACTS_CHROMA_PATH, GROUNDED_ANSWERING_RECURSION_LIMIT
+from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, grade_node, retrieve_node, route_after_gather, route_after_grade, route_after_retrieve, tools_node
+from src.repositories.logging_repository import LoggingRepository
 from src.schemas.agent import SearchEvidenceOutput
 
 
@@ -120,13 +121,17 @@ def annotate_agent_results(results, gold_by_tool, unanswerable):
 
 
 def build_gather_only_graph(task_data, flow_id):
-    tool_node = ToolNode(build_gather_tools(task_data, flow_id))
+    tool_node = ToolNode(build_retrieve_tools(task_data, flow_id))
     graph = StateGraph(GroundedAnsweringState)
     graph.add_node("gather", lambda state: gather_node(state, task_data, flow_id))
+    graph.add_node("retrieve", lambda state: retrieve_node(state, task_data, flow_id))
     graph.add_node("tools", lambda state: tools_node(state, tool_node, task_data, flow_id))
+    graph.add_node("grade", lambda state: grade_node(state, task_data, flow_id))
     graph.set_entry_point("gather")
-    graph.add_conditional_edges("gather", route_after_gather, {"tools": "tools", "answer": END})
-    graph.add_edge("tools", "gather")
+    graph.add_conditional_edges("gather", route_after_gather, {"retrieve": "retrieve", "answer": END})
+    graph.add_conditional_edges("retrieve", route_after_retrieve, {"tools": "tools", "answer": END})
+    graph.add_edge("tools", "grade")
+    graph.add_conditional_edges("grade", route_after_grade, {"gather": "gather", "answer": END})
     return graph.compile()
 
 
@@ -134,12 +139,12 @@ def gather_one_question(project_root, question_data, flow_id):
     ground_truth = json.loads((project_root / "src" / "data" / "ground_truth" / f"{question_data['id']}.json").read_text(encoding="utf-8"))
     if ground_truth["id"] != question_data["id"] or ground_truth["question"] != question_data["question"]:
         raise ValueError(f"Ground truth mismatch for {question_data['id']}")
-    task_data = {"question": question_data["question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
-    graph_state = build_gather_only_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": 32})
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+    task_data = {"question": question_data["question"], "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    graph_state = build_gather_only_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     calls, results = collect_agent_tool_trace(graph_state["messages"])
-    return {"question_id": question_data["id"], "question": question_data["question"], "ground_truth": ground_truth, "flow_id": flow_id, "trace_id": LocalLoggingRepository.active_trace_id.get(), "agent_tool_calls": calls, "agent_tool_results": results}
+    return {"question_id": question_data["id"], "question": question_data["question"], "ground_truth": ground_truth, "flow_id": flow_id, "trace_id": LoggingRepository.active_trace_id.get(), "agent_tool_calls": calls, "agent_tool_results": results}
 
 
 def build_inspect_row(gathered_item):
@@ -164,7 +169,7 @@ def write_csv(path, fieldnames, rows):
 
 
 def pull_run_audit(trace_id):
-    audit_path = export_audit_logs(f"SELECT * FROM local_logs WHERE trace_id = '{trace_id}' ORDER BY time")
+    audit_path = export_audit_logs(f"SELECT * FROM logs WHERE trace_id = '{trace_id}' ORDER BY time")
     if audit_path is None:
         raise RuntimeError("Audit pull failed")
     if not json.loads(audit_path.read_text(encoding="utf-8")):
@@ -187,12 +192,12 @@ def selected_questions(questions):
 def run_agent_subquestion_evaluation(project_root, questions):
     timestamp = datetime.now().astimezone()
     run_trace_id = str(uuid4())
-    trace_token = LocalLoggingRepository.active_trace_id.set(run_trace_id)
+    trace_token = LoggingRepository.active_trace_id.set(run_trace_id)
     try:
         write_csv(Path(__file__).resolve().parent / "outputs" / f"gather_inspect_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.csv", CSV_FIELDNAMES, run_gather_inspect(project_root, questions))
         pull_run_audit(run_trace_id)
     finally:
-        LocalLoggingRepository.active_trace_id.reset(trace_token)
+        LoggingRepository.active_trace_id.reset(trace_token)
 
 
 def main():

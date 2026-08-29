@@ -1,39 +1,38 @@
 import chromadb
 
 from ..conts import CHROMA_DISTANCE_METRIC, CHROMA_QUERY_INCLUDE, CORPUS_ACTIVE_COLLECTION, CORPUS_PREVIOUS_COLLECTION, CORPUS_STAGING_COLLECTION
-from .local_logging_repository import LocalLoggingRepository
+from .logging_repository import LoggingRepository
 
 
 class CorpusChromaRepository:
 
     @staticmethod
     def prepare_collection(task_data, flow_id):
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         prepared = False
         try:
             chromadb.PersistentClient(path=task_data["chroma_path"]).get_or_create_collection(CORPUS_STAGING_COLLECTION, configuration={"hnsw": {"space": CHROMA_DISTANCE_METRIC}}, embedding_function=None)
             prepared = True
         except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return prepared
 
     @staticmethod
     def upsert_records(task_data, flow_id):
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         stored = False
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_STAGING_COLLECTION, embedding_function=None)
-            collection.upsert(ids=[record["id"] for record in task_data["records"]], documents=[record["document"] for record in task_data["records"]], metadatas=[record["metadata"] for record in task_data["records"]], embeddings=task_data["embeddings"])
+            chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_STAGING_COLLECTION, embedding_function=None).upsert(ids=[record["id"] for record in task_data["records"]], documents=[record["document"] for record in task_data["records"]], metadatas=[record["metadata"] for record in task_data["records"]], embeddings=task_data["embeddings"])
             stored = True
         except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return stored
 
     @staticmethod
     def delete_extra_records(task_data, flow_id):
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         cleaned = False
         try:
             collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_STAGING_COLLECTION, embedding_function=None)
@@ -46,13 +45,13 @@ class CorpusChromaRepository:
                 collection.delete(ids=extra_ids)
             cleaned = True
         except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return cleaned
 
     @staticmethod
     def promote_collection(task_data, flow_id):
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         promoted = False
         try:
             chroma_client = chromadb.PersistentClient(path=task_data["chroma_path"])
@@ -72,18 +71,17 @@ class CorpusChromaRepository:
                 chroma_client.delete_collection(CORPUS_PREVIOUS_COLLECTION)
             promoted = True
         except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return promoted
 
     @staticmethod
     def query_records(task_data, flow_id, query_embedding):
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         query_result = None
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_ACTIVE_COLLECTION, embedding_function=None)
-            query_result = collection.query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=CHROMA_QUERY_INCLUDE)
+            query_result = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_ACTIVE_COLLECTION, embedding_function=None).query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=CHROMA_QUERY_INCLUDE)
         except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return query_result

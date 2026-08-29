@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
+from src.conts import FACTS_CHROMA_PATH
 from src.services.retrieval_service import run_retrieval
 
 
@@ -29,7 +30,7 @@ def build_markdown(question_data, retrieval_result, timestamp):
 def run_export(project_root, questions, output_directory, timestamp):
     output_directory.mkdir(parents=True, exist_ok=True)
     for question_data in questions:
-        task_data = {"question": question_data["question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
+        task_data = {"question": question_data["question"], "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
         retrieval_result = run_retrieval(task_data, str(uuid4()))
         output_path = output_directory / f"{question_data['id']}_{timestamp.strftime('%Y-%m-%d_%H-%M-%S')}.md"
         output_path.write_text(build_markdown(question_data, retrieval_result, timestamp), encoding="utf-8")

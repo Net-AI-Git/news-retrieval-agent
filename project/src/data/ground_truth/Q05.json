@@ -10,6 +10,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Which company is at the center of concerns from news publishers about anticompetitive practices?"
@@ -18,6 +19,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Which company's product was compared with OpenAI's GPT-3.5 in terms of performance?"
@@ -26,9 +28,11 @@
     },
     {
       "sub_question_index": 3,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
-        "question": "Which company did The Age report that the public was willing to suspect of potential foul play?"
+        "question": "Which company did The Age report that the public was willing to suspect of potential foul play?",
+        "source": "The Age"
       },
       "expectation": "required"
     }

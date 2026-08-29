@@ -10,6 +10,7 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Who instructed Caroline Ellison to use $14 billion of customer funds to repay debts in connection with the FTX collapse?"
@@ -18,6 +19,7 @@
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Who was alleged to have committed fraud for personal gain in connection with the FTX collapse?"
@@ -26,6 +28,7 @@
     },
     {
       "sub_question_index": 3,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
         "question": "Who persuaded a former colleague from Jane Street to join ventures at Alameda and FTX?"

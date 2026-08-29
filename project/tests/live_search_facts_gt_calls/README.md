@@ -1,0 +1,37 @@
+# Live search_facts GT calls
+
+## Goal
+
+Call `search_facts` with exact GT `expected_tool_calls` arguments (retrieve fills: Q08 date windows and outlet `source` when that isolated sub-question names one) — and measure whether every gold fact chunk is in the live tool results.
+
+## Scope
+
+Exercises `src/tools/retrieval_tools.py` (`as_langchain_tools` → `search_facts`) against `output_for_mission/facts_chroma`. Queries come from required `search_facts` rows in `src/data/ground_truth/Q01.json`–`Q11.json`. Corpus is out of scope.
+
+## How to run
+
+```text
+cd project
+uv sync
+uv run python -m tests.live_search_facts_gt_calls.run_live_search_facts_gt_calls
+```
+
+Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_EMBEDDING_MODEL`, plus an existing `output_for_mission/facts_chroma` and `output_for_mission/facts_chroma/source_catalog.json` (written at the end of facts indexing). The runner pauses `LIVE_SEARCH_PAUSE_SECONDS` between hops so a full 11-question pass stays under the OpenRouter free-tier embedding rate.
+
+## Inputs
+
+No files in `inputs/`. The runner loads `src/data/questions.json` and the matching ground-truth file for each id.
+
+## Expected outcome
+
+`outputs/` receives timestamped utf-8-sig CSVs:
+
+- `metrics_*.csv` — one row per question: union of that question’s required `search_facts` calls vs all GT fact chunks (`url_recall`, `snippet_recall`, `all_chunks_found`).
+- `hops_*.csv` — one row per required tool call: whether that sub-question retrieved its own gold URL and gold snippet, with ranks, date filters, and `source`.
+- `chunks_*.csv` — every returned result, marked gold-URL / gold-snippet. Each hop returns at most `RETRIEVAL_TOP_K` (1) chunk.
+
+`all_chunks_found=1` means every GT fact URL and every GT fact sentence appeared in the union. Q04 and Q09 have empty gold: `all_chunks_found=1` if the required facts calls ran (empty results are expected). A hop `snippet_hit=0` with `url_hit=1` means the right article came back but not the gold sentence.
+
+## Status
+
+Active — last full run 2026-08-27 (`outputs/metrics_2026-08-27_22-25-11.csv`). Top-1 per hop: 9/9 answerable `all_chunks_found=1` and 0 false-positive URLs. Q04/Q09 still return one non-gold chunk per hop.

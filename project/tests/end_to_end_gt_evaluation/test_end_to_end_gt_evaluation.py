@@ -524,7 +524,7 @@ def invoke_question(question_data, flow_id):
     workflow.run_answer = capturing_run_answer(original_run_answer, captured)
     task_data = {"question_id": question_data["id"], "question": question_data["question"], "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": CORPUS_CHROMA_PATH}
     try:
-        graph_state = workflow.build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "gather_count": 0, "tool_count": 0, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
+        graph_state = workflow.build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
     finally:
         workflow.run_answer = original_run_answer
     return {"question_id": question_data["id"], "question": question_data["question"], "flow_id": flow_id, "graph_state": graph_state, "raw_answer": captured.get("raw_answer"), "transcript_turns": task_data.get("transcript_turns") or [], "gather_count": graph_state.get("gather_count", 0), "tool_count": graph_state.get("tool_count", 0)}

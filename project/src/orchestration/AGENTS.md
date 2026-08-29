@@ -31,4 +31,4 @@ The system-level control plane for multi-agent flows. This layer owns execution 
 - [`../tools/AGENTS.md`](../tools/AGENTS.md) — agent-callable business adapters.
 - [`../prompts/AGENTS.md`](../prompts/AGENTS.md) — external instructions.
 - [`../schemas/AGENTS.md`](../schemas/AGENTS.md) — workflow state contracts.
-- [`../../docs/local_logging.md`](../../docs/local_logging.md) — local event storage and trace correlation.
+- [`../../docs/logging.md`](../../docs/logging.md) — local event storage and trace correlation.

@@ -3,8 +3,9 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from ..conts import OPENAI_EMBEDDING_MAX_RETRIES, OPENAI_EMBEDDING_TIMEOUT_SECONDS
-from .local_logging_repository import LocalLoggingRepository
+from ..conts import OPENAI_EMBEDDING_MAX_RETRIES, OPENAI_EMBEDDING_TIMEOUT_SECONDS, TELEMETRY_EMBEDDING_NAME, TELEMETRY_EMBEDDING_OPERATION_NAME
+from .logging_repository import LoggingRepository
+from .telemetry_repository import TelemetryRepository
 
 load_dotenv()
 
@@ -16,11 +17,14 @@ class OpenAIEmbeddingsRepository:
 
     @staticmethod
     def generate_embeddings(task_data, flow_id):
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         embeddings = []
-        try:
-            embeddings = [item.embedding for item in sorted(OpenAIEmbeddingsRepository.client.embeddings.create(input=task_data["texts"], model=OpenAIEmbeddingsRepository.model_name, encoding_format="float").data, key=lambda item: item.index)]
-        except Exception as err:
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        with TelemetryRepository.start_span(TELEMETRY_EMBEDDING_OPERATION_NAME, TELEMETRY_EMBEDDING_NAME, flow_id, task_data) as embedding_span:
+            LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+            try:
+                embeddings = [item.embedding for item in sorted(OpenAIEmbeddingsRepository.client.embeddings.create(input=task_data["texts"], model=OpenAIEmbeddingsRepository.model_name, encoding_format="float").data, key=lambda item: item.index)]
+                TelemetryRepository.record_output(embedding_span, embeddings)
+            except Exception as err:
+                TelemetryRepository.record_error(embedding_span, err)
+                LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+            LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
         return embeddings

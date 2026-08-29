@@ -15,12 +15,12 @@ METRIC_FIELDNAMES = ["question_id", "unanswerable", "gold_article_count", "retur
 CHUNK_FIELDNAMES = ["question_id", "rank", "is_hit", "match_percentage", "article_title", "url", "source_sub_questions", "snippet"]
 
 
-from src.conts import RETRIEVAL_EVIDENCE_STORE_FACTS
+from src.conts import FACTS_CHROMA_PATH, RETRIEVAL_EVIDENCE_STORE_FACTS
 from src.services.retrieval_service import run_retrieval
 
 
 def retrieve_facts_hits(project_root, question):
-    task_data = {"question": question, "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma"), "evidence_store": RETRIEVAL_EVIDENCE_STORE_FACTS}
+    task_data = {"question": question, "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma"), "evidence_store": RETRIEVAL_EVIDENCE_STORE_FACTS}
     return run_retrieval(task_data, str(uuid4()))["facts"]
 
 
