@@ -1,58 +1,81 @@
-### Template AI Microservice API
+# Knowledge retrieval and question answering
 
-#### Template Setup — fill these before first run
-After cloning, replace every `<FILL_ME>` / `<project-name>` placeholder:
-1. `pyproject.toml` → `name` — set the service name.
-2. `README.md` clone commands below → replace `<project-name>` with the new repo name.
-3. `.env` → fill every `<FILL_ME>` value (copy from the template `.env`, see path at the bottom).
-4. `src/conts.py` → `OTEL_SERVICE_NAME` — set the service name stored in local OpenTelemetry spans.
+Python 3.11+ agent that indexes a news corpus, exposes typed retrieval tools, and answers 11 evaluation questions with grounded citations or an explicit refusal.
 
-#### Local Run
-- Copy the .env file to your local repo, this file contains the environment variables.
+This directory is the assignment package: `solution.py`, `pyproject.toml`, source data under `src/data/`, and generated answers under `output_for_mission/`.
 
-- Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then install the project dependencies:
+## Quickstart
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/). From this `project` directory:
+
 ```bash
-uv sync
+cp .env.example .env
 ```
 
-- Run the uvicorn server:
+Set `OPENAI_API_KEY` in `.env`. Defaults already point at OpenRouter (`OPENAI_BASE_URL=https://openrouter.ai/api/v1`) and the models used in the recorded run. Do not put a key in any committed file.
+
+```bash
+uv sync
+uv run python solution.py
+```
+
+That command:
+
+1. Loads environment variables from `.env`.
+2. Builds or reuses the Facts Chroma index from `src/data/` (`build_index`).
+3. Calls `answer` once per row in `src/data/questions.json`.
+4. Writes `output_for_mission/answers.json` and `output_for_mission/transcripts.json`.
+
+A Facts index is required before answering. If `output_for_mission/facts_chroma` is missing, `build_index` creates it (embedding API calls). If it already exists for the configured embedding model, that handle is reused.
+
+Optional HTTP ping (not required by the harness):
+
 ```bash
 uv run uvicorn main:app
 ```
 
+Then open `http://127.0.0.1:8000/api/ping`. Agent runs also write local JSONL traces under `observability/telemetry/`.
 
-- Verify the API works properly at http://127.0.0.1:8000/api/ping, and there are no errors in the console.
+### Environment variables
 
-- Agent executions write local OTLP JSONL traces under `observability/telemetry/`. No Collector, Docker container, account, or network connection is required for telemetry export.
+All LLM credentials come from the environment. Required names (`REQUIRED_SOLUTION_ENV_VARS` in `src/conts.py`):
 
+| Variable | Role |
+| --- | --- |
+| `OPENAI_API_KEY` | API credential (OpenRouter or compatible) |
+| `OPENAI_BASE_URL` | OpenAI-compatible base URL |
+| `OPENAI_EMBEDDING_MODEL` | Embedding model for index and query |
+| `OPENAI_GATHER_AGENT_MODEL` | Gather (decompose) |
+| `OPENAI_GRADE_AGENT_MODEL` | Grade (enough / missing hop / empty stop) |
+| `OPENAI_ANSWER_AGENT_MODEL` | Answer / refuse |
+| `OPENAI_RETRIEVE_AGENT_MODEL` | Retrieve (`search_facts` arguments) |
 
-- Clone the template into a new project 
-```bash
-# 1. Clone the existing repository
-git clone https://github.com/<organization>/<project-name>.git
- 
-# 2. Move into the cloned repository directory
-cd <project-name>
- 
-# 3. Remove the old remote
-git remote remove origin
- 
-# 4. (Create a new repository in GitHub manually)
- 
-# 5. Add the new remote
-git remote add origin https://github.com/<organization>/<new-repo>.git
- 
-# 6. Push all branches to the new repo
-git push --all origin
- 
-# 7. Push all tags to the new repo
-git push --tags origin
- 
-# 8. Verify remotes (optional)
-git remote -v
-```
+Copy `project/.env.example`. Missing required variables fail at runtime without printing the secret.
 
-- Copy `.env.example` to `.env` in the project root and fill every placeholder.
+### Public interface
+
+`solution.py` exposes the harness contract:
+
+- `build_index(data_dir) -> object` — opaque Facts-index handle.
+- `answer(index, question_id, question) -> dict` — `{ "answer": str, "citations": [ { "article_title": str, "snippet": str } ] }`.
+
+At answer time the loop does not read `corpus.json` or `facts.json` into the prompt. Knowledge arrives only through the bound `search_facts` tool.
+
+### Assignment artifacts
+
+| File | What it is |
+| --- | --- |
+| `output_for_mission/answers.json` | 11 public answers and citations |
+| `output_for_mission/transcripts.json` | Gather / retrieve / tool / grade / answer turns for those runs |
+| `pyproject.toml` | Dependency manifest (`uv sync`) |
+
+Recorded local-GT quality for the public path: `tests/live_e2e_gt` `TOTAL.task_success` = 100 on `outputs/metrics_2026-08-29_15-36-04.csv` (and earlier 11/11 on `13-52-52` / `14-09-32`). Schema audit: `tests/answers_transcripts_evaluation`.
+
+### Selected inputs
+
+Both `facts.json` and `corpus.json` are indexed. Answer-time retrieval in the agent loop uses **Facts only** (`search_facts`). Facts are sentence-level, already aligned to `article_title` / `url`, and cheap to rank. Corpus passages exist as a second store for rebuild and for the unused `search_corpus` tool. They are not bound in the answering loop: on this 11-question set, gold evidence for answerable items is in Facts, and unanswerable items (Q04, Q09) have no supporting facts. Binding corpus would add nearest-passage noise without a gold sentence.
+
+Citation contract on every retrieved item: `article_title`, `snippet` (stored document), plus `url` and `published_at` for filtering and Answer’s clock. The public `answer` dict copies only `article_title` and `snippet`.
 
 ## Traceable Retrieval Indexes
 
@@ -112,6 +135,53 @@ Prompts live in `src/prompts/gather_agent.md`, `src/prompts/retrieve_agent.md`, 
 Answer and retrieve stay on GPT-4o-mini; Gather uses GPT-4.1. Production prompts follow OpenAI's developer-message outline (`# Identity`, `# Instructions`, optional `# Examples`) instead of the older project `ROLE:` / `TASK:` / `RULES:` / confidence-score template. That older template, plus a 4–5 refuse band, treated a supported `No` and any conclusion that is not written in one snippet as a refusal. Putting the 11 evaluation questions (or toy clones of the same traps) into the prompt produces a fake 11/11 and is rejected. The production Answer prompt is short, uses only this-run evidence, treats `published_at` as the clock for before/after, allows combining hops, and requires verbatim `snippet` and `url` because orchestration drops any citation that is not an exact match. The one example is a fake-domain entity extract, not an exam item. Oracle Answer with gold facts injected is 11/11 on that prompt (`tests/oracle_answer_gt` metrics `2026-08-27_21-56-37`, `21-58-37`, `22-16-19`). Gather and retrieve use the same vendor outline.
 
 Retrieve uses an ordered field-by-field prompt: copy the isolated user message into `question` before independently deciding `source` and publication dates. Two contrastive format examples are deliberately fictional (Mosswhistle/Lumen Pond): one contains a fictional newspaper and one contains no outlet. They contain no evaluation entity, fact, URL, date, or renamed decision trap. This longer 24-line / 264-word prompt was chosen over the best 10/11 short zero-shot prompt because two stronger source-wording candidates made omissions worse. On `tests/live_retrieve_gt`, the final prompt passed 11/11 twice (`metrics_2026-08-28_18-12-29.csv`, `18-18-29`; 25/25 isolated retrieve hops in each, zero leakage or argument failures). Gather then passed first-hop gold coverage 11/11 twice against that frozen Retrieve (`tests/live_gather_first_hop` `metrics_2026-08-29_11-16-45.csv`, `11-19-10.csv`): standalone strings, no invented outlets, 3+ abilities on the first named outlet, non-ability event on the second. That closes first-batch gold facts, not Grade stop, citations/refusal, or e2e. Full decision and experiment log: `project/plans/pda-knowledge-retrieval-assignment/TASK-04-decisions.md`.
+
+## How refusal works
+
+The public refusal string is exactly `Insufficient information`. An empty `answer` from the loop is rewritten to that string at the `solution.py` boundary.
+
+Answer sees only this-run `evidence` (Top-1 Facts hits). It does not read `facts.json` or `corpus.json`. It refuses when that list is empty or a needed fact is missing. A supported `No` is an answer, not a refusal.
+
+Orchestration then keeps a citation only when both `snippet` and `url` match an evidence item from the same run. If the model marks `answered` but no citation survives, or it already marked `refused`, the run is coerced to `refused` and `citations` is cleared. The assignment allows leftover citations on a refusal; this implementation does not keep them.
+
+Q04 and Q09 have no supporting facts in the store. Retrieval still returns the nearest sentence (`RETRIEVAL_TOP_K=1`, no Facts cosine drop). Refusal on those questions is Answer’s job, not a retrieval floor.
+
+## Known failure modes
+
+- **Q09 extra gather/retrieve turns.** Grade asks for another hop after the first batch. Live e2e scores this `stop_verdict=too_late` (`grade_success` 0), including after the Chroma query lock (`metrics_2026-08-29_16-09-55.csv`, 4 gather turns / 5 tool calls). The public answer is still `Insufficient information`.
+
+A previous Q01 false refusal came from concurrent `PersistentClient` construction on chromadb 1.5.9, not from Gather/Retrieve. `query_records` now reuses one client per path and serializes sqlite/rust access. That crash did not recur on `16-09-55`.
+
+## What I'd do with two more days
+
+- Cut end-to-end latency (fewer serial waits, cheaper hops, less extra Grade looping).
+- Retry Gather / Grade / Retrieve / Answer on smaller or `:free` OpenRouter models and keep a candidate only if live e2e stays at 11/11.
+- Write additional ground-truth questions (same corpus, not the current 11) and run the same boards, so the prompts are not tuned to one exam set.
+- Run the existing local logs and OTLP JSONL behind Docker so traces are easier to browse than raw files and the HTML dashboard.
+
+## Cost-aware LLM usage
+
+Numbers below use the dashboard rate table in `observability/logging_dashboard/build_dashboard.py` (`MODEL_USD_PER_MILLION`) on the 11 `flow_id`s from `tests/live_e2e_gt/outputs/metrics_2026-08-29_16-09-55.csv`. That is an estimate, not an OpenRouter invoice. The Cost tab’s 20-minute window was not used: it mixes runs and prices spans with no `model` at a fallback $1 / $3 per million tokens (workflow, tools, retrieval char counts). Those rows are omitted here.
+
+Embeddings in that run are the free Nemotron model (`OPENAI_EMBEDDING_MODEL`); the table rates them at $0. Chat was Gather `openai/gpt-4.1`, Grade `openai/gpt-4.1-mini`, Retrieve and Answer `openai/gpt-4o-mini`.
+
+| Slice | Est. USD | Notes |
+| --- | --- | --- |
+| All 11 questions | $0.023 | Sum of chat spans with a model id |
+| Mean per question | $0.002 | $0.023 / 11; range $0.0012 (Q10) – $0.0067 (Q09) |
+| Full answering pass | $0.023 over 141 s | First to last span among those 11 flows; question `duration_ms` sums to 105 s |
+
+Q09 is the expensive question because Grade kept looping. No reranker. No `search_corpus` in the loop. Index text is not pasted into prompts. These 11 flows include per-hop query embeddings only (rated $0), not a Facts/Corpus rebuild.
+
+By chat agent on that pass: Gather $0.015, Grade $0.004, Answer $0.002, Retrieve $0.002.
+
+## Working at 100× scale
+
+At ~25k facts and ~760k passages, a local Chroma/SQLite store plus a process lock on `query_records` cannot serve parallel hops. Replace it with a vector index that allows concurrent queries.
+
+A full rebuild would embed ~100× more passages. Do it in batches off the request path, not as one synchronous `build_index` with a free-tier embedding model.
+
+Top-1 cosine per hop gets noisier as the store grows. Add lexical/hybrid search (or a bounded Top-k), not a single nearest fact.
 
 ### Agent loop: what we tried
 
@@ -252,13 +322,25 @@ The manifest intentionally excludes vector values so a different embedding model
 
 ### Rebuild
 
-Set these values in `.env`:
+Copy `.env.example` to `.env` and set these values:
 
 ```dotenv
 OPENAI_API_KEY=<FILL_ME>
 OPENAI_BASE_URL=https://openrouter.ai/api/v1
 OPENAI_EMBEDDING_MODEL=nvidia/nemotron-3-embed-1b:free
+OPENAI_GATHER_AGENT_MODEL=openai/gpt-4.1
+OPENAI_GRADE_AGENT_MODEL=openai/gpt-4.1-mini
+OPENAI_ANSWER_AGENT_MODEL=openai/gpt-4o-mini
+OPENAI_RETRIEVE_AGENT_MODEL=openai/gpt-4o-mini
 ```
+
+- `OPENAI_API_KEY` is the OpenRouter (or compatible) credential.
+- `OPENAI_BASE_URL` is the OpenAI-compatible API endpoint.
+- `OPENAI_EMBEDDING_MODEL` embeds index text and query text.
+- `OPENAI_GATHER_AGENT_MODEL` decomposes a question into standalone sub-questions.
+- `OPENAI_GRADE_AGENT_MODEL` judges whether retrieved evidence is enough to stop gathering.
+- `OPENAI_ANSWER_AGENT_MODEL` writes the final answer or refusal from this-run evidence.
+- `OPENAI_RETRIEVE_AGENT_MODEL` fills `search_facts` arguments for one sub-question.
 
 From the `project` directory, install dependencies and rebuild either store:
 

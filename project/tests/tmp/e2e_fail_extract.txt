@@ -1,0 +1,30 @@
+ERROR 2abe8674 query_records err=AttributeError("'RustBindingsAPI' object has no attribute 'bindings'")
+  chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma q=What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers?
+ERROR 2abe8674 query_records err=KeyError('C:\\Users\\User\\Desktop\\candidate_bundle\\project\\vector_stores\\facts_chroma')
+  chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma q=What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?
+FIN query 2abe8674 chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN query 2abe8674 chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 2abe8674 q=What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers? path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 2abe8674 q=What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks i path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN workflow 2abe8674 evidence_n=0 urls=[] answer={'status': 'refused', 'answer': '', 'citations': []}
+ERROR 5ea633fa query_records err=KeyError('C:\\Users\\User\\Desktop\\candidate_bundle\\project\\vector_stores\\facts_chroma')
+  chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma q=What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?
+FIN query 5ea633fa chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 5ea633fa q=What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks i path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+ERROR 5ea633fa query_records err=AttributeError("'RustBindingsAPI' object has no attribute 'bindings'")
+  chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma q=What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers?
+FIN query 5ea633fa chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 5ea633fa q=What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers? path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN workflow 5ea633fa evidence_n=0 urls=[] answer={'status': 'refused', 'answer': '', 'citations': []}
+FIN query 68158d16 chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 68158d16 q=What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks i path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN query 68158d16 chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 68158d16 q=What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers? path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN workflow 68158d16 evidence_n=2 urls=['https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06', 'https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437'] answer={'status': 'answered', 'answer': 'Yes', 'citations': [{'article_title': 'NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season', 'url': 'https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06', 'snippet': 'The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14.'}, {'article_title': "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game", 'url': 'https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437', 'snippet': 'Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay.'}]}
+FIN query 1e43aa0b chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 1e43aa0b q=What did BBC News report about the latest advancements in space technology by Forerunner? path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN query 1e43aa0b chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 1e43aa0b q=What did Forbes report about the financial growth and market expansion of Forerunner? path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN query 1e43aa0b chroma=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN retrieval 1e43aa0b q=Which CEO was featured in both BBC News and Forbes articles about Forerunner's space technology adva path=C:\Users\User\Desktop\candidate_bundle\project\vector_stores\facts_chroma
+FIN workflow 1e43aa0b evidence_n=3 urls=['https://www.bbc.co.uk/news/entertainment-arts-66910595?at_medium=RSS&at_campaign=KARANGA', 'https://fortune.com/2023/12/03/beyonce-tops-box-office-concert-film-renaissance/', 'https://www.bbc.co.uk/news/entertainment-arts-66910595?at_medium=RSS&at_campaign=KARANGA'] answer={'status': 'refused', 'answer': '', 'citations': []}

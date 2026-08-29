@@ -44,5 +44,107 @@
         "snippet": "And after Bankman-Fried left Jane Street, the high-frequency trading firm where the former billionaire got his start in finance after MIT, he persuaded Yedidia to join him as a trader at Alameda and then as a developer at FTX."
       }
     ]
+  },
+  {
+    "id": "Q04",
+    "answer": "Insufficient information",
+    "citations": []
+  },
+  {
+    "id": "Q05",
+    "answer": "Google",
+    "citations": [
+      {
+        "article_title": "News publisher files class action antitrust suit against Google, citing AI’s harms to their bottom line",
+        "snippet": "The case, filed by Arkansas-based publisher Helena World Chronicle, argues that Google “siphons off” news publishers’ content, their readers and ad revenue through anticompetitive means."
+      },
+      {
+        "article_title": "Early impressions of Google’s Gemini aren’t great",
+        "snippet": "Google compared the performance of Gemini Pro to GPT-4’s predecessor, GPT-3.5, a model that’s around a year old."
+      },
+      {
+        "article_title": "Is Google Search better than the rest? And is that fair?",
+        "snippet": "Wired removed the article for not meeting its standards, but the degree to which it was shared on social media and boosted in write-ups at other outlets shows just how willing people are to accept foul play on Google’s part."
+      }
+    ]
+  },
+  {
+    "id": "Q06",
+    "answer": "No",
+    "citations": [
+      {
+        "article_title": "Author Melissa Lucashenko on playing with black and white binaries",
+        "snippet": "Lucashenko says there’s a “whole demographic of people who have an Aboriginal ancestor, who sometimes think they’re Aboriginal, but actually, regardless of skin colour, they’re white people and they have to go on a very long and different journey if they’re going to become Aboriginal”."
+      },
+      {
+        "article_title": "‘I see myself as a royal’: artist Vincent Namatjira on colonialism, satire and his great-grandfather’s legacy",
+        "snippet": "To show our tradition and culture, and art – also to show the rest of the world that Indigenous people, we need to be heard."
+      }
+    ]
+  },
+  {
+    "id": "Q07",
+    "answer": "ChatGPT",
+    "citations": [
+      {
+        "article_title": "ChatGPT: Everything you need to know about the AI-powered chatbot",
+        "snippet": "ChatGPT is a general-purpose chatbot that uses artificial intelligence to generate text after a user enters a prompt, developed by tech startup OpenAI."
+      },
+      {
+        "article_title": "One year later, ChatGPT is still alive and kicking",
+        "snippet": "ChatGPT can complete and debug code, compose music and essays, answer test questions, generate business ideas, write poetry and song lyrics, translate and summarize text and even emulate a computer running Linux."
+      },
+      {
+        "article_title": "How OpenAI's ChatGPT has changed the world in just a year",
+        "snippet": "On the first anniversary of its release, let’s take a look back on the year of ChatGPT that brought us here."
+      }
+    ]
+  },
+  {
+    "id": "Q08",
+    "answer": "Yes",
+    "citations": [
+      {
+        "article_title": "7 of the best luxury ski resorts for a five-star experience",
+        "snippet": "From the Swiss slopes of Zermatt to the pistes of Vail in Colorado, it’s not just the snow that sparkles."
+      },
+      {
+        "article_title": "7 of the best ski holidays in Canada",
+        "snippet": "Quebec’s premier ski resort sits at the foot of the eponymous mountain, whose pistes cater well to all abilities."
+      }
+    ]
+  },
+  {
+    "id": "Q09",
+    "answer": "Insufficient information",
+    "citations": []
+  },
+  {
+    "id": "Q10",
+    "answer": "No",
+    "citations": [
+      {
+        "article_title": "ChatGPT: Everything you need to know about the AI-powered chatbot",
+        "snippet": "The size of Microsoft’s investment is believed to be around $10 billion, a figure we confirmed with our source."
+      },
+      {
+        "article_title": "How ego and fear fuelled the rise of artificial intelligence",
+        "snippet": "OpenAI was founded in late 2015, just a few months after he met with Altman at the Rosewood hotel in Silicon Valley."
+      }
+    ]
+  },
+  {
+    "id": "Q11",
+    "answer": "No",
+    "citations": [
+      {
+        "article_title": "One year later, ChatGPT is still alive and kicking",
+        "snippet": "DeepMind, Google’s premier AI research lab, is expected to debut a next-gen chatbot, Gemini, before the end of the year."
+      },
+      {
+        "article_title": "Google fakes an AI demo, Grand Theft Auto VI goes viral and Spotify cuts jobs",
+        "snippet": "But it didn’t release the full model, Gemini Ultra — only a “lite” version called Gemini Pro."
+      }
+    ]
   }
 ]

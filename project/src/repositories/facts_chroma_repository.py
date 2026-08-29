@@ -1,4 +1,5 @@
 import json
+import threading
 from pathlib import Path
 
 import chromadb
@@ -8,6 +9,9 @@ from .logging_repository import LoggingRepository
 
 
 class FactsChromaRepository:
+    lock = threading.Lock()
+    client = None
+    client_path = None
 
     @staticmethod
     def prepare_collection(task_data, flow_id):
@@ -83,16 +87,20 @@ class FactsChromaRepository:
         LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         query_result = None
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(FACTS_ACTIVE_COLLECTION, embedding_function=None)
-            where_filter = task_data.get("where")
-            if where_filter:
-                match_count = len(collection.get(where=where_filter, limit=task_data["top_k"]).get("ids") or [])
-            else:
-                match_count = min(task_data["top_k"], collection.count())
-            if not match_count:
-                query_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
-            else:
-                query_result = collection.query(query_embeddings=[query_embedding], n_results=match_count, where=where_filter, include=CHROMA_QUERY_INCLUDE)
+            with FactsChromaRepository.lock:
+                if FactsChromaRepository.client is None or FactsChromaRepository.client_path != task_data["chroma_path"]:
+                    FactsChromaRepository.client = chromadb.PersistentClient(path=task_data["chroma_path"])
+                    FactsChromaRepository.client_path = task_data["chroma_path"]
+                collection = FactsChromaRepository.client.get_collection(FACTS_ACTIVE_COLLECTION, embedding_function=None)
+                where_filter = task_data.get("where")
+                if where_filter:
+                    match_count = len(collection.get(where=where_filter, limit=task_data["top_k"]).get("ids") or [])
+                else:
+                    match_count = min(task_data["top_k"], collection.count())
+                if not match_count:
+                    query_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+                else:
+                    query_result = collection.query(query_embeddings=[query_embedding], n_results=match_count, where=where_filter, include=CHROMA_QUERY_INCLUDE)
         except Exception as err:
             LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
         LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")

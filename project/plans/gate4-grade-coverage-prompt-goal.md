@@ -1,12 +1,12 @@
 # GOAL — Grade in three verdicts with accumulated evidence
 
-**Status:** Implemented — live verification failing at 9/12  
+**Status:** Superseded — 2026-08-29. Frozen 12-case coverage board stalled at 9/12. Next Grade spec: [`gate4-grade-e2e-visits-prompt-goal.md`](gate4-grade-e2e-visits-prompt-goal.md).  
 **Author:** N/A  
 **Created:** 2026-08-28  
 **Updated:** 2026-08-29  
 **SDD(s) Impacted:** none; the user explicitly approved continuing without an existing SDD  
 
-This file is the only specification for the current Grade work. Do not use old Grade plans for prompt wording.
+This file is closed. Do not resume it. Do not use it for prompt wording. The active Grade-only spec is [`gate4-grade-e2e-visits-prompt-goal.md`](gate4-grade-e2e-visits-prompt-goal.md).
 
 ---
 
