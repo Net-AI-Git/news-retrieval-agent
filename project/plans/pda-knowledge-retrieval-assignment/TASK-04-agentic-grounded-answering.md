@@ -10,7 +10,7 @@
 
 Implement a genuinely agentic answering flow in which an LLM chooses retrieval tools, performs follow-up calls when evidence requires multiple hops, evaluates sufficiency, and returns a grounded short answer or an honest refusal.
 
-## Current approach (2026-08-28)
+## Current approach (2026-08-29)
 
 Gate 4 no longer uses one Gather agent that both splits the question and calls `search_facts`. That one-agent design hit a pairing-vs-Q05 wall: the same context either copied a named outlet onto every hop (Q05 Age-on-TechCrunch) or omitted `source` on pairing questions. Prompt-only first-hop peaked at 9/11. k=2 raised some gold ranks and left Q05 failing. Production loop:
 
@@ -20,13 +20,15 @@ Gate 4 no longer uses one Gather agent that both splits the question and calls `
 4. **Grade** — stop vs rewrite vs missing hop. Continue returns to Gather with `grade_note`.
 5. **Answer** — claim or refuse from this-run evidence.
 
-First live first-hop score on the split: 8/11 (`tests/live_gather_first_hop` `metrics_2026-08-28_16-44-21.csv`). Q05 gold complete. Remaining: Q01 rank-1 (retrieval), Q04 packed (Gather), Q07 over-split (Gather).
+First live first-hop score on the split: 8/11 (`tests/live_gather_first_hop` `metrics_2026-08-28_16-44-21.csv`). Q05 gold complete.
 
-The isolated Retrieve tool-fill contract is now closed independently of Gather and Chroma. `tests/live_retrieve_gt` invoked all 25 GT rows labeled `agent: "retrieve"`, one standalone sub-question at a time, and checked one `search_facts` call, verbatim `question`, conditional outlet/date arguments, no assistant text, and no prompt leakage. The final ordered-field prompt with two invented format examples passed 11/11 twice without a prompt change (`metrics_2026-08-28_18-12-29.csv`, `18-18-29`; 25/25 hops in both). This proves that the LLM can fill the typed TASK 03 tool arguments from isolated hop context, as required by ASSIGNMENT sections B/C. It does not close Gather decomposition/stop behavior, evidence sufficiency, citations, refusal, or Gate 5 e2e.
+The isolated Retrieve tool-fill contract is closed independently of Gather and Chroma (`tests/live_retrieve_gt`, 11/11 twice, `metrics_2026-08-28_18-12-29.csv` + `18-18-29`). That proves the LLM can fill typed TASK 03 `search_facts` arguments from isolated hop context (ASSIGNMENT sections B/C).
 
-The full prompt experiment path, rejected candidates, failure modes, stopping decision, reopened round, and final trade-off are recorded in [`TASK-04-decisions.md`](TASK-04-decisions.md) under “Retrieve-only prompt evaluation and final prompt”. The production prompt is [`src/prompts/retrieve_agent.md`](../../src/prompts/retrieve_agent.md); the winning snapshot is [`tests/live_retrieve_gt/inputs/candidate_ordered_fields_fictional_contrast.md`](../../tests/live_retrieve_gt/inputs/candidate_ordered_fields_fictional_contrast.md).
+First-hop **gold `facts` coverage** on the joint Gather → isolated Retrieve → tools batch is closed 2026-08-29: 11/11 twice, same Gather prompt, Retrieve unchanged (`tests/live_gather_first_hop` `metrics_2026-08-29_11-16-45.csv`, `11-19-10.csv`). Production Gather: [`src/prompts/gather_agent.md`](../../src/prompts/gather_agent.md). Experiment record: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Gather first-hop gold chunks”. Spec: [`gate4-gather-gold-chunks-prompt-goal.md`](../gate4-gather-gold-chunks-prompt-goal.md). This does not close Grade stop vs rewrite, citations/refusal, or Gate 5 e2e.
 
-Follow-up optimization is two tasks, not one prompt: Gather decompose vs retrieve filter-fill. Do not merge them. Details: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Isolated retrieve hop”. Local-GT ladder: [`TASK-06-answers-transcripts-and-evaluation.md`](TASK-06-answers-transcripts-and-evaluation.md) Phase D.
+The full Retrieve prompt experiment path remains under [`TASK-04-decisions.md`](TASK-04-decisions.md) “Retrieve-only prompt evaluation and final prompt”. The production Retrieve prompt is [`src/prompts/retrieve_agent.md`](../../src/prompts/retrieve_agent.md).
+
+Follow-up is Grade/stop and e2e, not merging Gather and retrieve. Details: [`TASK-04-decisions.md`](TASK-04-decisions.md). Local-GT ladder: [`TASK-06-answers-transcripts-and-evaluation.md`](TASK-06-answers-transcripts-and-evaluation.md) Phase D.
 
 This remains TASK 04 work: the LLM still directs tool arguments; orchestration still owns budgets; `search_corpus` stays unbound.
 
@@ -76,7 +78,7 @@ The developer chooses the LLM provider, model, agent framework, loop implementat
 
 ## Definition of Done
 
-- [ ] The LLM controls hop decomposition (Gather) and `search_facts` arguments (retrieve).
+- [x] The LLM controls hop decomposition (Gather) and `search_facts` arguments (retrieve).
 - [ ] The loop supports multiple `search_facts` calls. Corpus is out of this task.
 - [ ] Raw corpus and facts are never inserted directly into the answer-time prompt.
 - [ ] Evidence-sufficiency and refusal behavior are implemented and tested.

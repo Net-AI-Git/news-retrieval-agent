@@ -1,9 +1,9 @@
 # GOAL — Gather שליפת כל קטעי הזהב 11/11 מול Retrieve הקפוא, בלי leakage
 
-**Status:** In Progress  
+**Status:** Done — 2026-08-29. Production: [`src/prompts/gather_agent.md`](../src/prompts/gather_agent.md). Pass: [`metrics_2026-08-29_11-16-45.csv`](../tests/live_gather_first_hop/outputs/metrics_2026-08-29_11-16-45.csv) + [`11-19-10.csv`](../tests/live_gather_first_hop/outputs/metrics_2026-08-29_11-19-10.csv). Working log: [`pda-knowledge-retrieval-assignment/TASK-04-decisions.md`](pda-knowledge-retrieval-assignment/TASK-04-decisions.md) “Gather first-hop gold chunks”. No SDD.  
 **Author:** N/A  
 **Created:** 2026-08-28  
-**Target Completion:** TBD  
+**Target Completion:** 2026-08-29  
 **SDD(s) Impacted:** none  
 **Rollback:** `git checkout -- project/src/prompts/gather_agent.md`
 
@@ -356,7 +356,13 @@ uv run python -m tests.live_gather_first_hop.run_live_gather_first_hop
 
 ---
 
-## מצב נוכחי — 2026-08-28 (חובה לקרוא לפני עריכה)
+## תוצאה — 2026-08-29 (סגור)
+
+11/11 `first_hop_success` פעמיים, אותו Gather, Retrieve קפוא, `prompt_leak_hit=0`, `# Examples` סינטטי. מועמד: `candidate_featured_in_abilities_first_outlet.md`. אל תמשיך את לוח הקטעים כציון; Grade/עצירה ו-e2e הם השלב הבא.
+
+---
+
+## מצב נוכחי — 2026-08-28 (ארכיון לפני הסגירה)
 
 ### מה כבר סגור (לא לגעת)
 
@@ -381,7 +387,7 @@ uv run python -m tests.live_gather_first_hop.run_live_gather_first_hop
 | `21-58-01` | `abilities_keep_first_outlet` | 10/11 | אריזת כל היכולות + clone |
 | `22-04-21` | `split_abilities_second_outlet_event` | 10/11 | פיצול-יתר 8 קריאות, כפל לכל עיתון |
 | `22-10-33` | `no_cross_product_pair_abilities` | 10/11 | זוג debug/music נכון, **עיתונים הפוכים** |
-| `22-22-14` | `abilities_first_outlet_example` **(פרודקשן)** | 10/11 | generate→TC; debug/music→Engadget; anniversary→Engadget |
+| `22-22-14` | `abilities_first_outlet_example` (פרודקשן עד הסגירה) | 10/11 | generate→TC; debug/music→Engadget; anniversary→Engadget |
 | `22-30-09` | אותו Gather + באצ' Retrieve | 8/11 | אל תחזור |
 
 עוברים ב-10/11: Q01–Q06, Q08–Q11.  
@@ -416,20 +422,7 @@ Q01 ב-10/11 עובד עם מחרוזות «What did the Sporting News report ab
 
 ---
 
-## הודעה ראשונה לצ'אט הבא (להדביק את זה)
+## הודעה לצ'אט הבא (הלוח הזה סגור)
 
-קרא את `project/plans/gate4-gather-gold-chunks-prompt-goal.md` מהכותרת הראשונה עד הסוף, כולל «מצב נוכחי — 2026-08-28». עבור על בדיקות friend-review.
+אל תמשיך את `live_gather_first_hop` כציון. Gather קטעי זהב בבאצ' הראשון סגור (11/11 פעמיים). Retrieve נשאר קפוא. השלב הבא הוא Grade/עצירה ו-e2e, לא עריכת `gather_agent.md` בשביל הלוח הזה.
 
-אתה ממשיך עבודה, לא מתחיל מאפס. הציון הוא קטעי `facts` בבאצ' `search_facts` הראשון, לא מלאי הופים. Gather חייב להתאים ל-**Retrieve הקפוא**: הוף מבודד, מעתיק את המחרוזת מילה במילה, ממלא `source`/תאריכים רק ממנה. **אסור לגעת ב-`retrieve_agent.md`.** הפרומפט היחיד שמותר לערוך: `gather_agent.md`.
-
-הפרודקשן הוא 10/11 (`metrics_2026-08-28_22-22-14.csv`). נשאר Q07: debug/music רצו עם Engadget במקום TechCrunch. באצ' Retrieve נכשל 8/11 — לא לחזור עליו.
-
-מנקד **רק** עם:
-
-```text
-cd project
-$env:OTEL_SDK_DISABLED="true"
-uv run python -m tests.live_gather_first_hop.run_live_gather_first_hop
-```
-
-מודל Gather: `openai/gpt-4.1`. **אין כלל עצירה.** רץ עד 11/11 `first_hop_success` פעמיים. בלי data leakage ובלי חיקויי מבחן.

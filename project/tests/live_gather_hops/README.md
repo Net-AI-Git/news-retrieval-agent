@@ -31,4 +31,4 @@ Pass for the (superseded) hop-inventory GOAL was two consecutive newest metrics 
 
 ## Status
 
-Superseded — 2026-08-28. Active spec: `project/plans/gate4-gather-gold-chunks-prompt-goal.md`. Score gold `facts` chunks with `tests.live_gather_first_hop.run_live_gather_first_hop`, not this board.
+Superseded — 2026-08-28. Gold-chunks board is **Done** 2026-08-29: `project/plans/gate4-gather-gold-chunks-prompt-goal.md`. Do not score hop inventory with this board.
