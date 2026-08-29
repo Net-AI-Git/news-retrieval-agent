@@ -6,7 +6,7 @@ Call `search_facts` with exact GT `expected_tool_calls` arguments (retrieve fill
 
 ## Scope
 
-Exercises `src/tools/retrieval_tools.py` (`as_langchain_tools` → `search_facts`) against `vector_stores/facts_chroma`. Queries come from required `search_facts` rows in `src/data/ground_truth/Q01.json`–`Q11.json`. Corpus is out of scope.
+Exercises `src/tools/retrieval_tools.py` (`as_langchain_tools` → `search_facts`) against `output_for_mission/facts_chroma`. Queries come from required `search_facts` rows in `src/data/ground_truth/Q01.json`–`Q11.json`. Corpus is out of scope.
 
 ## How to run
 
@@ -16,7 +16,7 @@ uv sync
 uv run python -m tests.live_search_facts_gt_calls.run_live_search_facts_gt_calls
 ```
 
-Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_EMBEDDING_MODEL`, plus an existing `vector_stores/facts_chroma` and `vector_stores/facts_chroma/source_catalog.json` (written at the end of facts indexing). The runner pauses `LIVE_SEARCH_PAUSE_SECONDS` between hops so a full 11-question pass stays under the OpenRouter free-tier embedding rate.
+Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_EMBEDDING_MODEL`, plus an existing `output_for_mission/facts_chroma` and `output_for_mission/facts_chroma/source_catalog.json` (written at the end of facts indexing). The runner pauses `LIVE_SEARCH_PAUSE_SECONDS` between hops so a full 11-question pass stays under the OpenRouter free-tier embedding rate.
 
 ## Inputs
 

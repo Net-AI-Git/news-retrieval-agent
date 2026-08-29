@@ -67,7 +67,7 @@ def write_assignment_file(path, payload):
 def write_assignment_artifacts():
     index = build_index(DATA_DIR)
     for question_data in json.loads((Path(DATA_DIR) / "questions.json").read_text(encoding="utf-8")):
-        recorded_answer(index, question_data["id"], question_data["question"])
+        answer(index, question_data["id"], question_data["question"])
 
 
 if __name__ == "__main__":

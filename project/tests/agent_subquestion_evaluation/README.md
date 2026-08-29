@@ -29,7 +29,7 @@ uv run python -m tests.gt_corpus_union_topk.run_gt_corpus_union_topk
 
 ## Inputs
 
-No files in `inputs/`. The runner loads `src/data/questions.json` and matching ground-truth files. Vector stores are `vector_stores/facts_chroma` and `vector_stores/corpus_chroma`. `--smoke` runs Q01 only.
+No files in `inputs/`. The runner loads `src/data/questions.json` and matching ground-truth files. Vector stores are `output_for_mission/facts_chroma` and `vector_stores/corpus_chroma`. `--smoke` runs Q01 only.
 
 ## Expected outcome
 

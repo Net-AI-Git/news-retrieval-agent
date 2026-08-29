@@ -17,7 +17,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_gather_retrieve_once.run_live_gather_retrieve_once
 ```
 
-Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_AGENT_MODEL`, `OPENAI_RETRIEVE_AGENT_MODEL`, `OPENAI_EMBEDDING_MODEL`) and `vector_stores/facts_chroma`. No console print; success is a new CSV trio.
+Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_AGENT_MODEL`, `OPENAI_RETRIEVE_AGENT_MODEL`, `OPENAI_EMBEDDING_MODEL`) and `output_for_mission/facts_chroma`. No console print; success is a new CSV trio.
 
 ## Inputs
 

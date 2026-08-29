@@ -72,8 +72,9 @@ observability/telemetry/*.jsonl
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
 vector_stores/**
-!vector_stores/facts_chroma/
-!vector_stores/facts_chroma/source_catalog.json
+output_for_mission/facts_chroma/**
+!output_for_mission/facts_chroma/
+!output_for_mission/facts_chroma/source_catalog.json
 
 # Local experiment notes
 EXP.txt

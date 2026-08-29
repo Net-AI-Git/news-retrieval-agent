@@ -27,7 +27,7 @@ MISSION_OUTPUT_DIRECTORY = str(Path(__file__).resolve().parents[1] / "output_for
 ANSWERS_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "answers.json")
 TRANSCRIPTS_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "transcripts.json")
 MISSION_DASHBOARD_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "dashboard.html")
-FACTS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "facts_chroma")
+FACTS_CHROMA_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "facts_chroma")
 CORPUS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "corpus_chroma")
 
 CHROMA_BATCH_SIZE = 128

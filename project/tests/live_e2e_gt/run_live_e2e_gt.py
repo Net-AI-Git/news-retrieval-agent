@@ -4,7 +4,6 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from time import sleep
 
 from dotenv import load_dotenv
 
@@ -14,9 +13,6 @@ from src.conts import ANSWER_STATUS_REFUSED, DATA_DIR, GATHER_MAX_LLM_TURNS, GAT
 
 CSV_FIELDNAMES = ["question_id", "http_status", "flow_id", "trace_id", "task_success", "failure_agent", "gather_success", "retrieve_success", "retrieval_success", "grade_success", "answer_success", "citation_success", "orchestration_success", "gold_url_recall_pct", "gold_snippet_recall_pct", "citation_title_recall_pct", "hop_coverage_pct", "source_fill_pct", "date_fill_pct", "wasted_call_pct", "stop_verdict", "answer_error_type", "gather_turns", "tool_count", "span_count", "duration_ms", "gt_answer", "predicted_answer", "missing_urls", "runtime_error"]
 SUBQUESTION_MATCH_THRESHOLD = 0.4
-LIVE_E2E_PAUSE_SECONDS = 20
-LIVE_E2E_HTTP_TIMEOUT_SECONDS = 600
-LIVE_E2E_PING_TIMEOUT_SECONDS = 60
 WORKFLOW_SPAN_NAME = f"{TELEMETRY_WORKFLOW_OPERATION_NAME} {TELEMETRY_WORKFLOW_NAME}"
 WORKFLOW_LOG_PROCESS = "execute_grounded_answering"
 
@@ -130,16 +126,6 @@ def answers_match(answer_result, expected_answer, unanswerable):
     return predicted == expected or bool(expected) and expected in predicted
 
 
-def parse_json_object(text):
-    try:
-        parsed = json.loads(text or "{}")
-        if isinstance(parsed, dict):
-            return parsed
-    except Exception:
-        return {}
-    return {}
-
-
 def load_jsonl(path):
     rows = []
     if not path.exists():
@@ -201,27 +187,6 @@ def workflow_duration_ms(spans):
         end = int(span.get("endTimeUnixNano") or 0)
         if end > start:
             return round((end - start) / 1_000_000, 2)
-    return ""
-
-
-def workflow_log_content(events, flow_id):
-    error_content = {}
-    for item in events:
-        event = item.get("event") or {}
-        if event.get("flow_id") != flow_id or event.get("process") != WORKFLOW_LOG_PROCESS:
-            continue
-        if event.get("status") == "FINISHED":
-            return event.get("content") or {}
-        if event.get("status") == "ERROR":
-            error_content = event.get("content") or {}
-    return error_content.get("task_data") or error_content
-
-
-def workflow_error_text(events, flow_id):
-    for item in events:
-        event = item.get("event") or {}
-        if event.get("flow_id") == flow_id and event.get("process") == WORKFLOW_LOG_PROCESS and event.get("status") == "ERROR":
-            return str((event.get("content") or {}).get("error") or "")
     return ""
 
 
@@ -415,7 +380,7 @@ def answer_error_type(unanswerable, answer_correct, predicted_refusal, citation_
 def failure_agent(row):
     if row["task_success"] == 100:
         return "none"
-    if row["runtime_error"] or row["http_status"] != 200:
+    if row["runtime_error"]:
         return "runtime"
     if row["gather_success"] != 100:
         return "gather"
@@ -432,52 +397,43 @@ def failure_agent(row):
     return "orchestration"
 
 
-def unused_port():
-    probe = socket.socket()
-    probe.bind(("127.0.0.1", 0))
-    port = probe.getsockname()[1]
-    probe.close()
-    return port
+def content_question(content):
+    if not isinstance(content, dict):
+        return ""
+    if content.get("question"):
+        return content.get("question")
+    task_data = content.get("task_data")
+    if isinstance(task_data, dict):
+        return task_data.get("question") or ""
+    return ""
 
 
-def start_server(project_root, port):
-    environment = os.environ.copy()
-    environment["OTEL_SDK_DISABLED"] = "false"
-    environment.setdefault("DOCS_USER", "docs")
-    environment.setdefault("DOCS_PASS", "docs")
-    return subprocess.Popen([sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", str(port)], cwd=str(project_root), env=environment)
-
-
-def wait_for_ping(base_url, process):
-    deadline = datetime.now().timestamp() + LIVE_E2E_PING_TIMEOUT_SECONDS
-    while datetime.now().timestamp() < deadline:
-        if process.poll() is not None:
-            raise RuntimeError("uvicorn exited before ready")
-        try:
-            response = requests.get(f"{base_url}/ping", timeout=2)
-            if response.status_code == 200:
-                return
-        except Exception:
-            sleep(0.5)
+def workflow_for_question(events, question):
+    finished = {}
+    error_text = ""
+    flow_id = ""
+    for item in events:
+        event = item.get("event") or {}
+        if event.get("process") != WORKFLOW_LOG_PROCESS or content_question(event.get("content") or {}) != question:
             continue
-        sleep(0.5)
-    raise TimeoutError("uvicorn did not become ready")
+        flow_id = event.get("flow_id") or flow_id
+        if event.get("status") == "FINISHED":
+            finished = event.get("content") or {}
+        if event.get("status") == "ERROR":
+            error_text = str((event.get("content") or {}).get("error") or "")
+    return finished, error_text, flow_id
 
 
-def stop_server(process):
-    process.terminate()
-    try:
-        process.wait(timeout=10)
-    except Exception:
-        process.kill()
-
-
-def post_question(base_url, question):
-    response = requests.post(f"{base_url}/grounded-answering/run", json={"content": question}, timeout=LIVE_E2E_HTTP_TIMEOUT_SECONDS)
-    payload = parse_json_object(response.text)
-    answer = parse_json_object(payload.get("content") or "")
-    runtime_error = "" if response.status_code == 200 else (response.text or str(response.status_code))[:500]
-    return response.status_code, payload.get("flow_id") or "", payload.get("trace_id") or "", answer, runtime_error
+def run_solution(questions):
+    from solution import answer, build_index
+    index = build_index(DATA_DIR)
+    results = []
+    for question_data in questions:
+        try:
+            results.append({"id": question_data["id"], "public": answer(index, question_data["id"], question_data["question"]), "runtime_error": ""})
+        except Exception as err:
+            results.append({"id": question_data["id"], "public": {}, "runtime_error": repr(err)})
+    return results
 
 
 def empty_row(question_id, ground_truth, http_status, flow_id, trace_id, runtime_error):
@@ -500,33 +456,33 @@ def score_question(question_id, ground_truth, http_status, flow_id, trace_id, ht
     gather_count = log_content.get("gather_count") or 0
     tool_count = log_content.get("tool_count") or 0
     verdict = stop_verdict(unanswerable, gold_url_set, collected, progress, gather_count, tool_count, len(agent_calls), required_count)
-    task_success = flag_percent(http_status == 200 and not runtime_error and answer_correct and (unanswerable or citation_recall == 100))
-    row = {"question_id": question_id, "http_status": http_status, "flow_id": flow_id, "trace_id": trace_id or log_content.get("trace_id") or "", "task_success": task_success, "gather_success": gather_success_value(unanswerable, gold_complete, hop_coverage, source_fill), "retrieve_success": retrieve_success_value(source_fill, date_fill, len(agent_calls), required_count), "retrieval_success": flag_percent(url_recall == 100 and snippet_recall == 100), "grade_success": flag_percent(verdict == "on_time"), "answer_success": flag_percent(answer_correct), "citation_success": flag_percent(citation_recall == 100), "orchestration_success": flag_percent(http_status == 200 and not runtime_error), "gold_url_recall_pct": url_recall, "gold_snippet_recall_pct": snippet_recall, "citation_title_recall_pct": citation_recall, "hop_coverage_pct": hop_coverage, "source_fill_pct": source_fill, "date_fill_pct": date_fill, "wasted_call_pct": wasted_call_pct(agent_calls), "stop_verdict": verdict, "answer_error_type": answer_error_type(unanswerable, answer_correct, is_refusal(answer_result), citation_recall, task_success), "gather_turns": gather_count, "tool_count": tool_count, "span_count": len(spans), "duration_ms": workflow_duration_ms(spans), "gt_answer": ground_truth.get("answer") or "", "predicted_answer": (answer_result or {}).get("answer") or "", "missing_urls": " | ".join(missing_urls), "runtime_error": runtime_error}
+    task_success = flag_percent(not runtime_error and answer_correct and (unanswerable or citation_recall == 100))
+    row = {"question_id": question_id, "http_status": http_status, "flow_id": flow_id, "trace_id": trace_id or log_content.get("trace_id") or "", "task_success": task_success, "gather_success": gather_success_value(unanswerable, gold_complete, hop_coverage, source_fill), "retrieve_success": retrieve_success_value(source_fill, date_fill, len(agent_calls), required_count), "retrieval_success": flag_percent(url_recall == 100 and snippet_recall == 100), "grade_success": flag_percent(verdict == "on_time"), "answer_success": flag_percent(answer_correct), "citation_success": flag_percent(citation_recall == 100), "orchestration_success": flag_percent(not runtime_error), "gold_url_recall_pct": url_recall, "gold_snippet_recall_pct": snippet_recall, "citation_title_recall_pct": citation_recall, "hop_coverage_pct": hop_coverage, "source_fill_pct": source_fill, "date_fill_pct": date_fill, "wasted_call_pct": wasted_call_pct(agent_calls), "stop_verdict": verdict, "answer_error_type": answer_error_type(unanswerable, answer_correct, is_refusal(answer_result), citation_recall, task_success), "gather_turns": gather_count, "tool_count": tool_count, "span_count": len(spans), "duration_ms": workflow_duration_ms(spans), "gt_answer": ground_truth.get("answer") or "", "predicted_answer": (answer_result or {}).get("answer") or "", "missing_urls": " | ".join(missing_urls), "runtime_error": runtime_error}
     row["failure_agent"] = failure_agent(row)
     return row
 
 
-def evaluate_question(project_root, question_data, base_url, existing_span_names):
+def evaluate_question(project_root, question_data, result, events, all_spans):
     ground_truth = load_ground_truth(project_root, question_data)
+    public = (result or {}).get("public") or {}
     try:
-        http_status, flow_id, trace_id, http_answer, runtime_error = post_question(base_url, question_data["question"])
-        events = load_jsonl(Path(LOG_FILE_PATH))
-        log_content = workflow_log_content(events, flow_id)
-        spans = spans_for_flow(load_new_spans(existing_span_names), flow_id)
-        runtime_error = runtime_error or workflow_error_text(events, flow_id)
-        if http_status != 200 or runtime_error:
-            return empty_row(question_data["id"], ground_truth, http_status, flow_id, trace_id, runtime_error)
-        return score_question(question_data["id"], ground_truth, http_status, flow_id, trace_id, http_answer, log_content, spans, runtime_error)
+        log_content, log_error, flow_id = workflow_for_question(events, question_data["question"])
+        runtime_error = (result or {}).get("runtime_error") or log_error
+        spans = spans_for_flow(all_spans, flow_id)
+        if runtime_error:
+            return empty_row(question_data["id"], ground_truth, "", flow_id, log_content.get("trace_id") or "", runtime_error)
+        return score_question(question_data["id"], ground_truth, "", flow_id, log_content.get("trace_id") or "", public, log_content, spans, runtime_error)
     except Exception as err:
-        return empty_row(question_data["id"], ground_truth, 0, "", "", repr(err))
+        return empty_row(question_data["id"], ground_truth, "", "", "", repr(err))
 
 
-def evaluate_all(project_root, questions, base_url, existing_span_names):
+def evaluate_all(project_root, questions, results, events, all_spans):
+    by_id = {}
+    for result in results or []:
+        by_id[result.get("id")] = result
     rows = []
     for question_data in questions:
-        if rows:
-            sleep(LIVE_E2E_PAUSE_SECONDS)
-        rows.append(evaluate_question(project_root, question_data, base_url, existing_span_names))
+        rows.append(evaluate_question(project_root, question_data, by_id.get(question_data["id"]) or {}, events, all_spans))
     return rows
 
 
@@ -573,14 +529,11 @@ def existing_span_names():
 def main():
     project_root = Path(__file__).resolve().parents[2]
     load_dotenv(project_root / ".env")
-    port = unused_port()
+    os.environ["OTEL_SDK_DISABLED"] = "false"
     span_names = existing_span_names()
-    process = start_server(project_root, port)
-    try:
-        wait_for_ping(f"http://127.0.0.1:{port}/api", process)
-        rows = evaluate_all(project_root, selected_questions(json.loads((project_root / "src" / "data" / "questions.json").read_text(encoding="utf-8"))), f"http://127.0.0.1:{port}/api", span_names)
-    finally:
-        stop_server(process)
+    questions = selected_questions(json.loads((project_root / "src" / "data" / "questions.json").read_text(encoding="utf-8")))
+    results = run_solution(questions)
+    rows = evaluate_all(project_root, questions, results, load_jsonl(Path(LOG_FILE_PATH)), load_new_spans(span_names))
     write_metrics(Path(__file__).resolve().parent / "outputs", rows)
     build_dashboard()
 

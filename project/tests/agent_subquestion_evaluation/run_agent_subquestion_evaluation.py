@@ -14,7 +14,7 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 from observability.logging_audit.logging_audit_client import export_audit_logs
 from src.agents.retrieve_agent import build_retrieve_tools
-from src.conts import GROUNDED_ANSWERING_RECURSION_LIMIT
+from src.conts import FACTS_CHROMA_PATH, GROUNDED_ANSWERING_RECURSION_LIMIT
 from src.orchestration.grounded_answering_workflow import GroundedAnsweringState, gather_node, grade_node, retrieve_node, route_after_gather, route_after_grade, route_after_retrieve, tools_node
 from src.repositories.logging_repository import LoggingRepository
 from src.schemas.agent import SearchEvidenceOutput
@@ -139,7 +139,7 @@ def gather_one_question(project_root, question_data, flow_id):
     ground_truth = json.loads((project_root / "src" / "data" / "ground_truth" / f"{question_data['id']}.json").read_text(encoding="utf-8"))
     if ground_truth["id"] != question_data["id"] or ground_truth["question"] != question_data["question"]:
         raise ValueError(f"Ground truth mismatch for {question_data['id']}")
-    task_data = {"question": question_data["question"], "facts_chroma_path": str(project_root / "vector_stores" / "facts_chroma"), "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
+    task_data = {"question": question_data["question"], "facts_chroma_path": FACTS_CHROMA_PATH, "corpus_chroma_path": str(project_root / "vector_stores" / "corpus_chroma")}
     LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     graph_state = build_gather_only_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT})
     LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")

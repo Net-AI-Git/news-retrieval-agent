@@ -6,7 +6,7 @@ For each ground-truth question, search the facts store with every GT sub-questio
 
 ## Scope
 
-Exercises `src/services/retrieval_service.py` with `evidence_store=facts` against `vector_stores/facts_chroma`. Queries are `sub_questions` from `src/data/ground_truth/Q01.json` through `Q11.json`. Corpus retrieval is out of scope.
+Exercises `src/services/retrieval_service.py` with `evidence_store=facts` against `output_for_mission/facts_chroma`. Queries are `sub_questions` from `src/data/ground_truth/Q01.json` through `Q11.json`. Corpus retrieval is out of scope.
 
 ## How to run
 
@@ -17,7 +17,7 @@ uv run python -m tests.gt_facts_union_topk.run_gt_facts_union_topk
 
 ## Inputs
 
-No files in `inputs/`. The runner loads `src/data/questions.json` and matching ground-truth files. Facts are already indexed in `vector_stores/facts_chroma`.
+No files in `inputs/`. The runner loads `src/data/questions.json` and matching ground-truth files. Facts are already indexed in `output_for_mission/facts_chroma`.
 
 ## Expected outcome
 
