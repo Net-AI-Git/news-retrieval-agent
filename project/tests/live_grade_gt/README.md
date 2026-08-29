@@ -22,7 +22,7 @@ Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`). Does not nee
 ## Inputs
 
 - `inputs/control.md` — snapshot of the starting Grade prompt. Do not copy it forward as a new idea; snapshot your own candidates.
-- `inputs/cases.json` — invented mid-loop states (question + evidence + prior_queries). Not the exam set.
+- `src/data/ground_truth/grade_invented_midloop_stop_continue.json` — invented mid-loop states (question + evidence + prior_queries). Not the exam set.
 
 ## Expected outcome
 

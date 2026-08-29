@@ -1,0 +1,343 @@
+[
+  {
+    "id": "grade_enough_flipboard_and_activitypub",
+    "class": "enough",
+    "expected_verdict": "enough",
+    "question": "Did TechCrunch report that Flipboard set up its own Mastodon server named flipboard.social, and did The Verge say that in ActivityPub every post is a sender, a message, and a URL?",
+    "prior_queries": [
+      {
+        "question": "Did TechCrunch report that Flipboard set up a Mastodon server named flipboard.social?",
+        "source": "TechCrunch",
+        "published_from": "",
+        "published_to": ""
+      },
+      {
+        "question": "Did The Verge describe ActivityPub posts as a sender, a message, and a URL?",
+        "source": "The Verge",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+        "snippet": "It began by integrating its app with Mastodon via an API and setting up its own Mastodon server, flipboard.social, ahead of full ActivityPub integration. This allowed Flipboard to get a feel for the world of decentralized social media, and learn how its users would respond.",
+        "url": "https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/",
+        "published_at": "2023-12-18T16:00:49+00:00",
+        "match_percentage": 84.0
+      },
+      {
+        "article_title": "2023 in social media: the case for the fediverse",
+        "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL. Every user has an inbox and an outbox for those messages. That’s the whole protocol in a nutshell.",
+        "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub",
+        "published_at": "2023-12-19T13:00:00+00:00",
+        "match_percentage": 81.0
+      }
+    ]
+  },
+  {
+    "id": "grade_enough_complete_plus_nfl_noise",
+    "class": "enough",
+    "expected_verdict": "enough",
+    "question": "Did TechCrunch report that Flipboard set up its own Mastodon server named flipboard.social, and did The Verge say that in ActivityPub every post is a sender, a message, and a URL?",
+    "prior_queries": [
+      {
+        "question": "Did TechCrunch report that Flipboard set up a Mastodon server named flipboard.social?",
+        "source": "TechCrunch",
+        "published_from": "",
+        "published_to": ""
+      },
+      {
+        "question": "Did The Verge describe ActivityPub posts as a sender, a message, and a URL?",
+        "source": "The Verge",
+        "published_from": "",
+        "published_to": ""
+      },
+      {
+        "question": "Did Sporting News add more Flipboard federation details?",
+        "source": "Sporting News",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+        "snippet": "It began by integrating its app with Mastodon via an API and setting up its own Mastodon server, flipboard.social, ahead of full ActivityPub integration. This allowed Flipboard to get a feel for the world of decentralized social media, and learn how its users would respond.",
+        "url": "https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/",
+        "published_at": "2023-12-18T16:00:49+00:00",
+        "match_percentage": 84.0
+      },
+      {
+        "article_title": "2023 in social media: the case for the fediverse",
+        "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL. Every user has an inbox and an outbox for those messages. That’s the whole protocol in a nutshell.",
+        "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub",
+        "published_at": "2023-12-19T13:00:00+00:00",
+        "match_percentage": 81.0
+      },
+      {
+        "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+        "snippet": "1. Philadelphia Eagles (10-2), first place, NFC East. The Eagles fell for the second time this season as their run of beating high-quality opponents in comeback fashion ended in getting routed by the 49ers at home.",
+        "url": "https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06",
+        "published_at": "2023-12-03T21:49:04+00:00",
+        "match_percentage": 22.0
+      }
+    ]
+  },
+  {
+    "id": "grade_enough_zermatt_and_chatgpt",
+    "class": "enough",
+    "expected_verdict": "enough",
+    "question": "Did The Independent - Travel say Zermatt has 360km of high-altitude slopes, and did TechCrunch report that ChatGPT’s web portal saw 140.7 million unique visitors in October?",
+    "prior_queries": [
+      {
+        "question": "Did The Independent - Travel say Zermatt has 360km of high-altitude slopes?",
+        "source": "The Independent - Travel",
+        "published_from": "",
+        "published_to": ""
+      },
+      {
+        "question": "Did TechCrunch report ChatGPT web portal unique visitors in October?",
+        "source": "TechCrunch",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "7 of the best luxury ski resorts for a five-star experience",
+        "snippet": "With 360km of high-altitude slopes, Zermatt is an oasis for advanced skiers to cruise down linked blues and tackle advanced reds at the foot of the Matterhorn. Rustic charm oozes from the Swiss resort’s chalet lodgings and the car-free town is where you’ll find glitzy brands – Moncler to Omega – if you fancy a taste of the finer things in life.",
+        "url": "https://www.independent.co.uk/travel/skiing/best-luxury-ski-resorts-b2427066.html",
+        "published_at": "2023-10-13T16:14:21+00:00",
+        "match_percentage": 86.0
+      },
+      {
+        "article_title": "One year later, ChatGPT is still alive and kicking",
+        "snippet": "According to Similarweb, the web metrics company, OpenAI’s ChatGPT web portal saw 140.7 million unique visitors in October while the ChatGPT iOS and Android apps have 4.9 million monthly active users in the U.S. alone.",
+        "url": "https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/",
+        "published_at": "2023-11-30T14:10:43+00:00",
+        "match_percentage": 83.0
+      }
+    ]
+  },
+  {
+    "id": "grade_missing_hop_second_outlet_never_searched",
+    "class": "missing_hop",
+    "expected_verdict": "missing_hop",
+    "question": "Did The Independent - Travel say Zermatt has 360km of high-altitude slopes, and did TechCrunch report that ChatGPT’s web portal saw 140.7 million unique visitors in October?",
+    "prior_queries": [
+      {
+        "question": "Did The Independent - Travel say Zermatt has 360km of high-altitude slopes?",
+        "source": "The Independent - Travel",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "7 of the best luxury ski resorts for a five-star experience",
+        "snippet": "With 360km of high-altitude slopes, Zermatt is an oasis for advanced skiers to cruise down linked blues and tackle advanced reds at the foot of the Matterhorn. Rustic charm oozes from the Swiss resort’s chalet lodgings and the car-free town is where you’ll find glitzy brands – Moncler to Omega – if you fancy a taste of the finer things in life.",
+        "url": "https://www.independent.co.uk/travel/skiing/best-luxury-ski-resorts-b2427066.html",
+        "published_at": "2023-10-13T16:14:21+00:00",
+        "match_percentage": 86.0
+      }
+    ]
+  },
+  {
+    "id": "grade_missing_hop_unused_publish_date",
+    "class": "missing_hop",
+    "expected_verdict": "missing_hop",
+    "question": "What did The Independent - Travel write about Tremblant in articles published on 25 October 2023?",
+    "prior_queries": [
+      {
+        "question": "What did The Independent - Travel write about Tremblant?",
+        "source": "The Independent - Travel",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "7 of the best luxury ski resorts for a five-star experience",
+        "snippet": "From the Swiss slopes of Zermatt to the pistes of Vail in Colorado, it’s not just the snow that sparkles. Bespoke adventure sports, including heliskiing, meet private ski instructors and pre-warmed boots in these prestigious resorts.",
+        "url": "https://www.independent.co.uk/travel/skiing/best-luxury-ski-resorts-b2427066.html",
+        "published_at": "2023-10-13T16:14:21+00:00",
+        "match_percentage": 41.0
+      }
+    ]
+  },
+  {
+    "id": "grade_missing_hop_second_named_outlet",
+    "class": "missing_hop",
+    "expected_verdict": "missing_hop",
+    "question": "Did Fortune report that Marc-Antoine Julliard could never withdraw almost $100,000 from FTX, and did The Guardian report that Vincent Namatjira won the Archibald prize for a portrait of Adam Goodes?",
+    "prior_queries": [
+      {
+        "question": "Did Fortune report that Marc-Antoine Julliard could never withdraw almost $100,000 from FTX?",
+        "source": "Fortune",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand",
+        "snippet": "On Nov. 8, in the crypto exchange’s final few days, he tried to pull out his cash and crypto. How much? Almost $100,000, he said. And was he ever able to? “Never,” he told prosecutors.",
+        "url": "https://fortune.com/crypto/2023/10/04/sam-bankman-fried-lawyers-opening-statements-witnesses-marc-antoine-julliard-adam-yedidia-ftx-commodities-trader-developer/",
+        "published_at": "2023-10-04T23:32:53+00:00",
+        "match_percentage": 82.0
+      }
+    ]
+  },
+  {
+    "id": "grade_missing_hop_keyword_overlap",
+    "class": "missing_hop",
+    "expected_verdict": "missing_hop",
+    "question": "Did Sporting News report that the Lions beat the Packers 34-20?",
+    "prior_queries": [
+      {
+        "question": "Did Sporting News report that the Lions beat the Packers 34-20?",
+        "source": "Sporting News",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+        "snippet": "3. Detroit Lions (9-3), first place, NFC North. The Lions are still in great shape to win the division with a 3-game lead over the Vikings and the Packers after beating the Saints in New Orleans in Week 13. But they're looking more like the No. 2 seed will be their ceiling.",
+        "url": "https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06",
+        "published_at": "2023-12-03T21:49:04+00:00",
+        "match_percentage": 67.0
+      }
+    ]
+  },
+  {
+    "id": "grade_missing_hop_wrong_outlet",
+    "class": "missing_hop",
+    "expected_verdict": "missing_hop",
+    "question": "What did The Age report about Vincent Namatjira winning the Archibald prize for a portrait of Adam Goodes?",
+    "prior_queries": [
+      {
+        "question": "What did The Age report about Vincent Namatjira winning the Archibald prize for a portrait of Adam Goodes?",
+        "source": "The Age",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "‘I see myself as a royal’: artist Vincent Namatjira on colonialism, satire and his great-grandfather’s legacy",
+        "snippet": "The now 40-year-old has won some of Australia’s most high-profile art gongs, from his Cook-inspired Ramsay art prize win in 2019 to his Archibald-winning portrait of the AFL footballer Adam Goodes in 2020, and has been awarded an Order of Australia medal to boot.",
+        "url": "https://www.theguardian.com/artanddesign/2023/oct/17/i-see-myself-as-a-royal-artist-vincent-namatjira-on-colonialism-satire-and-his-great-grandfathers-legacy",
+        "published_at": "2023-10-16T14:00:44+00:00",
+        "match_percentage": 79.0
+      }
+    ]
+  },
+  {
+    "id": "grade_missing_hop_off_topic_entities",
+    "class": "missing_hop",
+    "expected_verdict": "missing_hop",
+    "question": "How much did Paradigm invest in FTX according to TechCrunch?",
+    "prior_queries": [
+      {
+        "question": "How much did Paradigm invest in FTX according to TechCrunch?",
+        "source": "TechCrunch",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+        "snippet": "SBF allegedly tried to buy off Trump: The TC team’s been trained on the Manhattan Federal Court for the trial of Sam Bankman-Fried, the disgraced entrepreneur accused of orchestrating the collapse of cryptocurrency exchange FTX. But fascinating details about SBF’s political dealings are emerging from a book by Michael Lewis, “Going Infinite,” that debuted on the first day of the trial.",
+        "url": "https://techcrunch.com/2023/10/07/sam-altman-backs-a-teens-startup-google-unveils-the-pixel-8-and-tiktok-tests-an-ad-free-tier/",
+        "published_at": "2023-10-07T20:15:26+00:00",
+        "match_percentage": 55.0
+      }
+    ]
+  },
+  {
+    "id": "grade_empty_stop_unrelated_hits",
+    "class": "empty_stop",
+    "expected_verdict": "empty_stop",
+    "question": "Which astronaut did TechCrunch say commanded the 2023 Artemis lunar landing?",
+    "prior_queries": [
+      {
+        "question": "Which astronaut did TechCrunch say commanded the 2023 Artemis lunar landing?",
+        "source": "TechCrunch",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+        "snippet": "Instagram Threads isn’t the only app joining the decentralized social web, which includes Twitter/X rival Mastodon and other apps, with its newly added support for the networking protocol ActivityPub. Today, the social magazine app Flipboard is announcing it has also now integrated with ActityPub.",
+        "url": "https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/",
+        "published_at": "2023-12-18T16:00:49+00:00",
+        "match_percentage": 18.0
+      }
+    ]
+  },
+  {
+    "id": "grade_empty_stop_amount_not_in_snippet",
+    "class": "empty_stop",
+    "expected_verdict": "empty_stop",
+    "question": "What cash prize amount did The Guardian say Vincent Namatjira received for winning the Archibald?",
+    "prior_queries": [
+      {
+        "question": "What cash prize amount did The Guardian say Vincent Namatjira received for winning the Archibald?",
+        "source": "The Guardian",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "‘I see myself as a royal’: artist Vincent Namatjira on colonialism, satire and his great-grandfather’s legacy",
+        "snippet": "The now 40-year-old has won some of Australia’s most high-profile art gongs, from his Cook-inspired Ramsay art prize win in 2019 to his Archibald-winning portrait of the AFL footballer Adam Goodes in 2020, and has been awarded an Order of Australia medal to boot.",
+        "url": "https://www.theguardian.com/artanddesign/2023/oct/17/i-see-myself-as-a-royal-artist-vincent-namatjira-on-colonialism-satire-and-his-great-grandfathers-legacy",
+        "published_at": "2023-10-16T14:00:44+00:00",
+        "match_percentage": 72.0
+      }
+    ]
+  },
+  {
+    "id": "grade_empty_stop_two_outlets_no_cover",
+    "class": "empty_stop",
+    "expected_verdict": "empty_stop",
+    "question": "Which engineer did both TechCrunch and Engadget name as the designer of the 2023 Pixel Fold hinge?",
+    "prior_queries": [
+      {
+        "question": "Which engineer did TechCrunch name as the designer of the 2023 Pixel Fold hinge?",
+        "source": "TechCrunch",
+        "published_from": "",
+        "published_to": ""
+      },
+      {
+        "question": "Which engineer did Engadget name as the designer of the 2023 Pixel Fold hinge?",
+        "source": "Engadget",
+        "published_from": "",
+        "published_to": ""
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+        "snippet": "Hands on with the Pixel 8 Pro: Darrell took the newly unveiled Pixel 8 Pro for a whirl, and he liked what he saw. While very similar to last year’s model (the Pixel 7 Pro), Darrell felt that the improved cameras, brighter screen and enhanced AI-powered features made it enough of an upgrade to (potentially) warrant a purchase — minus the underutilized temperature sensor.",
+        "url": "https://techcrunch.com/2023/10/07/sam-altman-backs-a-teens-startup-google-unveils-the-pixel-8-and-tiktok-tests-an-ad-free-tier/",
+        "published_at": "2023-10-07T20:15:26+00:00",
+        "match_percentage": 33.0
+      },
+      {
+        "article_title": "7 of the best ski holidays in Canada",
+        "snippet": "It may be further afield than the Alps or the Dolomites, but a trip to Canada makes it onto on the bucket lists of ski lovers everywhere for good reason. From the world-famous Whistler Blackcomb and its attractive resort towns to the steep verticals of Revelstoke, there’s enough choice – for every level of skier – to keep you coming back for years.",
+        "url": "https://www.independent.co.uk/travel/skiing/best-ski-holidays-canada-b2432416.html",
+        "published_at": "2023-10-25T11:51:09+00:00",
+        "match_percentage": 14.0
+      }
+    ]
+  }
+]

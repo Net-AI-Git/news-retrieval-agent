@@ -2,7 +2,7 @@
 
 ## Goal
 
-Verify that Answer copies the exact evidence snippet it used, that orchestration keeps only snippet+url matches, and that live Q01/Q07/Q09 follow that contract.
+Verify that Answer receives every accumulated chunk, copies the exact evidence snippet it uses, orchestration keeps only snippet+url citation matches, and live Q01/Q07/Q09 follow that contract.
 
 ## Scope
 
@@ -24,7 +24,7 @@ No files in `inputs/`. Filter fixtures reuse the ChatGPT TechCrunch fact already
 
 ## Expected outcome
 
-Answered results include at least one citation. A citation is kept only when `snippet` and `url` both match an evidence item from that run. A mismatched url or paraphrased snippet forces refusal. Gather routes to retrieve then tools only while budget remains. Agents do not import services or repositories. The Answer prompt requires a verbatim evidence snippet on every answered citation. Live Q01 answers `Yes` with grounded snippets, live Q07 answers `ChatGPT` with grounded snippets, and live Q09 refuses.
+Answer receives the complete accumulated evidence list, including unrelated chunks. Answered results include at least one citation, and a citation is kept only when `snippet` and `url` both match an evidence item from that run. A mismatched url or paraphrased snippet forces refusal. Grade accepts only `enough`, `missing_hop`, or `empty_stop`. Gather routes to retrieve then tools only while budget remains. Agents do not import services or repositories. Live Q01 answers `Yes` with grounded snippets, live Q07 answers `ChatGPT` with grounded snippets, and live Q09 refuses.
 
 ## Status
 

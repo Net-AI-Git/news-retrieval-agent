@@ -1,6 +1,6 @@
 # GOAL — Gather first-hop decompose, 11/11 gold facts, no leakage
 
-**Status:** Superseded — 2026-08-28. Prompt-only Gather (decompose + `search_facts` in one agent) is closed. Production split: Gather emits sub-questions; retrieve fills `source` / dates and calls the tool. Working log: [`pda-knowledge-retrieval-assignment/TASK-04-decisions.md`](pda-knowledge-retrieval-assignment/TASK-04-decisions.md) “Isolated retrieve hop”. First-hop board still scores the split under `tests/live_gather_first_hop/`.  
+**Status:** Superseded — 2026-08-28. Prompt-only Gather (decompose + `search_facts` in one agent) is closed. Production split: Gather emits sub-questions; retrieve fills `source` / dates and calls the tool. Active chunk score for that split: [`gate4-gather-gold-chunks-prompt-goal.md`](gate4-gather-gold-chunks-prompt-goal.md). Working log: [`pda-knowledge-retrieval-assignment/TASK-04-decisions.md`](pda-knowledge-retrieval-assignment/TASK-04-decisions.md) “Isolated retrieve hop”. First-hop board still lives under `tests/live_gather_first_hop/`.  
 **Author:** N/A  
 **Created:** 2026-08-28  
 **Target Completion:** TBD  

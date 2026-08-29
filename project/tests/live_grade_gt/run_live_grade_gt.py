@@ -127,7 +127,7 @@ def main():
     project_root = Path(__file__).resolve().parents[2]
     questions = json.loads((project_root / "src" / "data" / "questions.json").read_text(encoding="utf-8"))
     leak_hit = prompt_leak_hit((project_root / "src" / "prompts" / "grade_agent.md").read_text(encoding="utf-8"), collect_exam_needles(project_root, questions))
-    write_outputs(Path(__file__).resolve().parent / "outputs", datetime.now().astimezone(), evaluate_all_cases(json.loads((Path(__file__).resolve().parent / "inputs" / "cases.json").read_text(encoding="utf-8")), leak_hit))
+    write_outputs(Path(__file__).resolve().parent / "outputs", datetime.now().astimezone(), evaluate_all_cases(json.loads((project_root / "src" / "data" / "ground_truth" / "grade_invented_midloop_stop_continue.json").read_text(encoding="utf-8")), leak_hit))
 
 
 if __name__ == "__main__":

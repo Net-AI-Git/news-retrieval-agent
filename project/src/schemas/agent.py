@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, model_validator
 
-from ..conts import ANSWER_REFUSAL_TEXT
+from ..conts import ANSWER_REFUSAL_TEXT, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP
 
 
 class RetrievedItem(BaseModel):
@@ -43,7 +43,7 @@ class GatherResult(BaseModel):
 
 
 class GradeResult(BaseModel):
-    verdict: str
+    verdict: Literal[GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GRADE_VERDICT_EMPTY_STOP]
     note: str = ""
 
 

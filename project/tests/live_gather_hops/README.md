@@ -27,8 +27,8 @@ Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`). Does 
 
 `outputs/metrics_*.csv`, `hops_*.csv`, `calls_*.csv`. Gold inventory is `src/data/ground_truth/Q01.json`–`Q11.json` field `sub_questions` (see `src/data/ground_truth/README.md`). Outlet and publication-window checks join the retrieve `expected_tool_calls` (`agent: retrieve`) at the same `sub_question_index`. `hop_success=1` when `prompt_leak_hit=0`, every gold sub-question is covered by a distinct agent string, no packed outlets/needs, no extra/featured-in hops, no misattached outlet, and named publication windows stay in the matching string.
 
-Pass for the prompt GOAL: two consecutive newest metrics files, same prompt, `hop_success=1` on all 11 rows, short OpenAI-shaped file, no exam text and no lookalike examples.
+Pass for the (superseded) hop-inventory GOAL was two consecutive newest metrics files, same prompt, `hop_success=1` on all 11 rows. That wording match is no longer the live score.
 
 ## Status
 
-Active — 2026-08-28. Spec: `project/plans/gate4-gather-hop-inventory-prompt-goal.md`.
+Superseded — 2026-08-28. Active spec: `project/plans/gate4-gather-gold-chunks-prompt-goal.md`. Score gold `facts` chunks with `tests.live_gather_first_hop.run_live_gather_first_hop`, not this board.
