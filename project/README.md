@@ -149,7 +149,7 @@ LanceDB was considered because its table-oriented, columnar model is attractive 
 
 Metadata inside one Chroma collection could distinguish Facts from Corpus, but two physical stores were deliberately selected:
 
-- `vector_stores/facts_chroma` contains the active `facts` collection.
+- `output_for_mission/facts_chroma` contains the active `facts` collection.
 - `vector_stores/corpus_chroma` contains the active `corpus` collection.
 
 This creates an explicit system-level boundary between curated facts and source passages rather than relying only on a metadata filter or collection name. The trade-off is that searches across both evidence types require two queries and result coordination.
