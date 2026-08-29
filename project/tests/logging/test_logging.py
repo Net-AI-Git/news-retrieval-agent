@@ -10,7 +10,7 @@ from src.repositories.logging_repository import LoggingRepository
 
 
 def emit_test_event(flow_id):
-    return LoggingRepository.log_event(status="ERROR", content={"message": "בדיקת Unicode"}, flow_id=flow_id, trace_id="trace-test", level="ERROR")
+    return LoggingRepository.log_event(status="ERROR", content={"message": "Unicode check"}, flow_id=flow_id, trace_id="trace-test", level="ERROR")
 
 
 class LoggingTests(unittest.TestCase):
@@ -25,14 +25,14 @@ class LoggingTests(unittest.TestCase):
         self.assertEqual(len(lines_before) + 1, len(stored_lines))
         self.assertEqual({"time", "event"}, set(stored_log))
         self.assertEqual({"status", "process", "content", "flow_id", "trace_id", "level"}, set(stored_log["event"]))
-        self.assertEqual({"status": "ERROR", "process": "emit_test_event", "content": {"message": "בדיקת Unicode"}, "flow_id": flow_id, "trace_id": "trace-test", "level": "ERROR"}, stored_log["event"])
+        self.assertEqual({"status": "ERROR", "process": "emit_test_event", "content": {"message": "Unicode check"}, "flow_id": flow_id, "trace_id": "trace-test", "level": "ERROR"}, stored_log["event"])
 
     def test_sql_query_reads_written_event(self):
         flow_id = str(uuid4())
         emit_test_event(flow_id)
         query_results = run_log_query(f"SELECT status, process, content, flow_id, trace_id, level FROM logs WHERE flow_id = '{flow_id}'")
         self.assertEqual(1, len(query_results))
-        self.assertEqual({"message": "בדיקת Unicode"}, json.loads(query_results[0]["content"]))
+        self.assertEqual({"message": "Unicode check"}, json.loads(query_results[0]["content"]))
         self.assertEqual({"status": "ERROR", "process": "emit_test_event", "flow_id": flow_id, "trace_id": "trace-test", "level": "ERROR"}, {key: query_results[0][key] for key in ["status", "process", "flow_id", "trace_id", "level"]})
 
     def test_dashboard_is_self_contained(self):

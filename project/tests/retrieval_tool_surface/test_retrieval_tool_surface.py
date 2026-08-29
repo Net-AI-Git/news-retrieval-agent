@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 from uuid import uuid4
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.conts import RETRIEVAL_EVIDENCE_STORE_CORPUS, RETRIEVAL_EVIDENCE_STORE_FACTS, RETRIEVAL_STATUS_INVALID, RETRIEVAL_TOP_K
 from src.services.retrieval_service import run_retrieval

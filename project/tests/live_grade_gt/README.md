@@ -17,7 +17,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_grade_gt.run_live_grade_gt
 ```
 
-Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`). Does not need Chroma. No console print; success is a new `outputs/metrics_*.csv`.
+Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GRADE_AGENT_MODEL`). Does not need Chroma. No console print; success is a new `outputs/metrics_*.csv`.
 
 ## Inputs
 

@@ -58,7 +58,7 @@ Active — 2026-08-25. Live index is Experiment A (raw text, no prefixes, no `in
 | Date filters | not applied by this eval runner |
 | Extra retrievers | none (no BM25, no RRF, no rerank) |
 | Source / entity filters | none |
-| Chat / gather LLM | not used (`OPENAI_MODEL` unused here) |
+| Chat / gather LLM | not used (chat model env unused here) |
 
 Macros average the 9 answerable questions equally.
 

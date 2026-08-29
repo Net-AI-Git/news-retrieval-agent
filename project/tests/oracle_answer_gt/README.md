@@ -17,7 +17,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.oracle_answer_gt.run_oracle_answer_gt
 ```
 
-Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL`. The runner pauses `ORACLE_ANSWER_PAUSE_SECONDS` between questions so an 11-question pass stays under the OpenRouter free-tier chat rate.
+Needs `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_ANSWER_AGENT_MODEL`. The runner pauses `ORACLE_ANSWER_PAUSE_SECONDS` between questions so an 11-question pass stays under the OpenRouter free-tier chat rate.
 
 ## Inputs
 

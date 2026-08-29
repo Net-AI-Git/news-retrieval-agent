@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from dotenv import load_dotenv
 
-PROJECT_ROOT = Path(__file__).resolve().parent / "project"
+PROJECT_ROOT = Path(__file__).resolve().parent
 load_dotenv(PROJECT_ROOT / ".env")
 sys.path.insert(0, str(PROJECT_ROOT))
 

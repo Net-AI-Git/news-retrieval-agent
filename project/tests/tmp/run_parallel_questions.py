@@ -3,7 +3,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from solution import answer, build_index
 from src.conts import FACTS_CHROMA_PATH, WORKERS

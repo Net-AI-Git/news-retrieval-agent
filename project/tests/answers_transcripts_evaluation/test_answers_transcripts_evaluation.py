@@ -5,10 +5,9 @@ from pathlib import Path
 from src.conts import ANSWER_REFUSAL_TEXT
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-ANSWERS_PATH = REPO_ROOT / "answers.json"
-TRANSCRIPTS_PATH = REPO_ROOT / "transcripts.json"
+ANSWERS_PATH = PROJECT_ROOT / "answers.json"
+TRANSCRIPTS_PATH = PROJECT_ROOT / "transcripts.json"
 QUESTIONS = json.loads((PROJECT_ROOT / "src" / "data" / "questions.json").read_text(encoding="utf-8"))
 
 
