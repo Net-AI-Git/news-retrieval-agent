@@ -3,17 +3,16 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from solution import answer, build_index
 from src.conts import ANSWER_REFUSAL_TEXT, FACTS_CHROMA_PATH, LOG_FILE_PATH, WORKERS
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "src" / "data"
-ANSWERS_PATH = REPO_ROOT / "answers.json"
-TRANSCRIPTS_PATH = REPO_ROOT / "transcripts.json"
+ANSWERS_PATH = PROJECT_ROOT / "answers.json"
+TRANSCRIPTS_PATH = PROJECT_ROOT / "transcripts.json"
 OUTPUTS_DIR = Path(__file__).resolve().parent / "outputs"
 QUESTIONS = json.loads((DATA_DIR / "questions.json").read_text(encoding="utf-8"))
 

@@ -1,4 +1,4 @@
-# GOAL — Gather מלאי הופים 11/11, בלי leakage
+# GOAL — Gather hop inventory 11/11, without leakage
 
 **Status:** Superseded — 2026-08-28. Hop-inventory wording vs `sub_questions` is no longer the score. Gold `facts` chunks in the first `search_facts` batch: **Done** 2026-08-29 ([`gate4-gather-gold-chunks-prompt-goal.md`](gate4-gather-gold-chunks-prompt-goal.md)).  
 **Author:** N/A  
@@ -7,156 +7,156 @@
 **SDD(s) Impacted:** none  
 **Rollback:** `git checkout -- project/src/prompts/gather_agent.md`
 
-זה הקובץ **היחיד** שאתה קורא. אל תקרא תוכניות אחרות. אל תעתיק תבניות פרומפט ישנות. אל תריץ לוחות חיים אחרים בתור הציון שלך.
+This is the **only** file you read. Do not read other plans. Do not copy old prompt templates. Do not run other live boards as your score.
 
-אין לך קונטקסט אחר. כל מה שאתה צריך נמצא כאן. העבודה שלך היא ניסויים בפרומפט **על קובץ אחד**. הצלחה = **11/11 פעמיים** על מלאי ההופים מול ה-GT המקומי, **בלי data leakage בכלל**, ועם **`# Examples` סינטטי חובה**. **אין כלל עצירה.** לא עוצרים אחרי N ריצות, לא אחרי מחלקת כשל חוזרת, ולא כשתיקון אחד שובר אחר. רצים עד שני 11/11 נקיים. Leakage פוסל את **הריצה** (מוחקים את הטקסט הדולף, כותבים דוגמה סינטטית אחרת, וממשיכים), לא את המשימה. מגבלת 40/350 מבוטלת.
+You have no other context. Everything you need is here. Your work is prompt experiments **on one file**. Success = **11/11 twice** on the hop inventory against the local GT, **with no data leakage at all**, and with **mandatory synthetic `# Examples`**. **There is no stopping rule.** Do not stop after N runs, not after a repeating failure class, and not when one fix breaks another. Run until two clean 11/11s. Leakage disqualifies the **run** (delete the leaked text, write a different synthetic example, and continue), not the task. The 40/350 limit is cancelled.
 
 ---
 
-## Friend review — על אלה תיכשל
+## Friend review — these are what you will fail on
 
-ניסיון קודם נפסל. אל תחזור עליו.
+A previous attempt was disqualified. Do not repeat it.
 
-1. **Leakage זה רמאות.** אסור לשים בפרומפט (`gather_agent.md`) שאלות ממערכת ההערכה, תשובות, כותרות מאמרים, קטעים, כתובות URL, תת-שאלות זהב, מחרוזות `question` של כלי, או «אותה שאלה עם שמות מזויפים». אם חומר הלימוד מכיל את המבחן, הציון לא תקף גם ב-11/11.
-2. **`# Examples` חובה — רק סינטטי.** אסור פרומפט בלי סעיף `# Examples`. אסור דוגמאות מהמבחן שלנו. **אתה חייב להמציא ולבנות** לפחות שני זוגות `<user_query>` / `<assistant_response>` בדומיין בדוי (עיתונים, מקומות, אירועים שלא מופיעים ב-GT). אל תעתיק GT. אל תשכפל את Q01–Q11 עם שמות מוחלפים. אם מישהו שראה את 11 שאלות המבחן יזהה את הדוגמה אחרי שהסתרת שמות עצם, מחק אותה וכתוב דוגמה אחרת — לא למחוק את כל הסעיף.
-3. **אורך מותר.** מגבלת 40 שורות / 350 מילים **מבוטלת**. מותר להאריך את הפרומפט כדי שיהיה מקום להוראות ולדוגמאות הסינטטיות. אל תמלא בטקסט מבחן ואל תחזור על אותה הוראה עשר פעמים. תקרת רכות: עד **120 שורות** ו-**1200 מילים** — אם עברת, לקצר דוגמאות כפולות, לא למחוק את `# Examples`.
-4. **מבנה ספק בלבד. חובה לדבוק בזה.** המודל הוא `openai/gpt-4.1` דרך `OPENAI_GATHER_MODEL`. משתמשים במתווה developer-message של OpenAI ורק בו:
+1. **Leakage is cheating.** You must not put in the prompt (`gather_agent.md`) questions from the evaluation set, answers, article titles, passages, URLs, gold sub-questions, tool `question` strings, or «the same question with fake names». If the study material contains the test, the score is invalid even at 11/11.
+2. **`# Examples` is mandatory — synthetic only.** A prompt without an `# Examples` section is forbidden. Examples from our test are forbidden. **You must invent and build** at least two `<user_query>` / `<assistant_response>` pairs in a fake domain (newspapers, places, events that do not appear in the GT). Do not copy GT. Do not clone Q01–Q11 with swapped names. If someone who saw the 11 test questions would recognize the example after you hide nouns, delete it and write a different example — do not delete the entire section.
+3. **Length is allowed.** The 40-line / 350-word limit is **cancelled**. You may lengthen the prompt so there is room for instructions and the synthetic examples. Do not fill it with test text and do not repeat the same instruction ten times. Soft ceiling: up to **120 lines** and **1200 words** — if you exceed it, shorten duplicate examples, do not delete `# Examples`.
+4. **Vendor structure only. You must stick to this.** The model is `openai/gpt-4.1` via `OPENAI_GATHER_MODEL`. Use the OpenAI developer-message outline and only that:
    - `# Identity`
    - `# Instructions`
-   - `# Examples` (**חובה**, לפחות שני זוגות סינטטיים)
-   - **אסור** לשים `# Context` בקובץ. ה-JSON בזמן ריצה נשלח כהודעת user.
-5. **בלי תבנית הפרומפט הישנה.** אל תשאיר ואל תתרגם `[INSTRUCTIONS]`, `[DEFINITIONS]`, `ROLE:`, `TASK:`, `RULES:`, `CONFIDENCE SCORE`, `[EXAMPLE 01]`, או `RESPONSE FORMAT`. אל תשתמש בתגי XML בסגנון Claude כמו `<role>` או `<decision_policy>` כמתווה הראשי.
-6. **הניסוח חופשי.** אל תנסה להתאים מילה במילה ל-`sub_questions` ב-GT או ל-`expected_tool_calls.arguments.question`. זה לא היעד. להעתיק אותן זה leakage.
+   - `# Examples` (**mandatory**, at least two synthetic pairs)
+   - **Do not** put `# Context` in the file. Runtime JSON is sent as a user message.
+5. **No old prompt template.** Do not leave and do not translate `[INSTRUCTIONS]`, `[DEFINITIONS]`, `ROLE:`, `TASK:`, `RULES:`, `CONFIDENCE SCORE`, `[EXAMPLE 01]`, or `RESPONSE FORMAT`. Do not use Claude-style XML tags such as `<role>` or `<decision_policy>` as the main outline.
+6. **Wording is free.** Do not try to match word-for-word the GT `sub_questions` or `expected_tool_calls.arguments.question`. That is not the goal. Copying them is leakage.
 
-אחרי כל עריכה, לפני הרצה: פתח את `gather_agent.md` ווודא שכל ששת הסעיפים עוברים.
+After every edit, before a run: open `gather_agent.md` and verify that all six items pass.
 
 ---
 
-## מה המוצר הזה
+## What this product is
 
-השירות עונה על שאלות עובדות-חדשות מעל אינדקס מאמרים **מקומי**.
+The service answers news-facts questions over a **local** article index.
 
-בלולאה החיה יש כמה סוכנים. אתה הבעלים **רק של Gather**, ורק של **משימה אחת** של Gather: מלאי ההופים.
+In the live loop there are several agents. You own **only Gather**, and only **one task** of Gather: the hop inventory.
 
 ```text
-שאלת משתמש
-    → Gather     (אתה)     רשימת תת-שאלות עצמאיות. אין כלים.
-    → Retrieve   (קפוא)    קריאת search_facts אחת לכל תת-שאלה. ממלא source / תאריכים.
-    → Tools      (קוד)     מריץ search_facts מול Chroma. קטע Top-1 לכל קריאה.
-    → Grade      (קפוא)    enough / rewrite / missing_hop / empty_stop
-    → Answer     (קפוא)    Yes/No/ישות או סירוב
+User question
+    → Gather     (you)     List of independent sub-questions. No tools.
+    → Retrieve   (frozen)    One search_facts call per sub-question. Fills source / dates.
+    → Tools      (code)     Runs search_facts against Chroma. Top-1 passage per call.
+    → Grade      (frozen)    enough / rewrite / missing_hop / empty_stop
+    → Answer     (frozen)    Yes/No/entity or refuse
 ```
 
-Retrieve רואה **רק מחרוזת תת-שאלה אחת** בכל פעם. הוא לא רואה את שאלת האב. הוא לא רואה הופים אחים. אם Gather אורז שני עיתונים במחרוזת אחת, Retrieve לא יכול לשים `source` על אף אחד מהם. אם Gather משמיט את העיתון מטענה, Retrieve לא יוסיף אותו. אם Gather מנפיק הופ שכל תפקידו «האם העיתון featured את הנושא», Retrieve יחפש את המחרוזת חסרת-התועלת הזאת.
+Retrieve sees **only one sub-question string** at a time. It does not see the parent question. It does not see sibling hops. If Gather packs two newspapers into one string, Retrieve cannot put `source` on either of them. If Gather omits the newspaper from a claim, Retrieve will not add it. If Gather emits a hop whose entire role is «did the newspaper featured the topic», Retrieve will search that useless string.
 
-**אם רשימת ההופים שגויה, הכישלון נשאר אצל Gather.** מה שאחריו לא מתקן מלאי ארוז או מפורק-יתר.
+**If the hop list is wrong, the failure stays with Gather.** What comes after it does not fix a packed or over-split inventory.
 
 ---
 
-## מה Gather הוא (המשימה היחידה שלך)
+## What Gather is (your only task)
 
-**מטרה אחת: מלאי ההופים.**
+**One goal: the hop inventory.**
 
-לקחת את שאלת המשתמש ולפרק אותה לרשימת תת-שאלות עצמאיות. כל תת-שאלה היא **צורך מידע אחד** שצריך **חיפוש אחד**.
+Take the user question and split it into a list of independent sub-questions. Each sub-question is **one information need** that needs **one search**.
 
-Gather **לא** מחפש. Gather **לא** ממלא `source`. Gather **לא** ממלא תאריכים כארגומנטים של כלי. Gather **לא** עונה למשתמש. Gather **לא** קורא לכלים.
+Gather does **not** search. Gather does **not** fill `source`. Gather does **not** fill dates as tool arguments. Gather does **not** answer the user. Gather does **not** call tools.
 
-### קלט (כבר נשלח כהודעת user — אל תכתוב את ה-JSON הזה בפרומפט)
+### Input (already sent as a user message — do not write this JSON in the prompt)
 
 ```json
-{"question": "<שאלת המשתמש>", "prior_queries": [], "grade_note": ""}
+{"question": "<user question>", "prior_queries": [], "grade_note": ""}
 ```
 
-בניסיון חוזר (retry) מגיע אותו מבנה עם `grade_note` לא ריק ו-`prior_queries` מלא. הציון על 11 השאלות הוא תור ראשון: `prior_queries` ריק ו-`grade_note` ריק.
+On a retry the same structure arrives with a non-empty `grade_note` and a filled `prior_queries`. The score on the 11 questions is first turn: empty `prior_queries` and empty `grade_note`.
 
-### פלט (כבר קשור בקוד)
+### Output (already bound in code)
 
 ```text
 sub_questions: list[str]
 ```
 
-אין כלים. אין שדות אחרים.
+No tools. No other fields.
 
 ---
 
-## איך Gather חייב לפצל (הרגלים כלליים, לא שורות מבחן)
+## How Gather must split (general habits, not test rows)
 
-למד את ההרגלים האלה בפרומפט. אל תזכיר מזהי שאלות בתוך הפרומפט.
+Teach these habits in the prompt. Do not mention question IDs inside the prompt.
 
-- פירוק לפי טענות שניתן לאמת **בנפרד**:
-  - צד בהשוואה
-  - יכולת ברשימה
-  - אירוע
-  - צד ב-`and` / `or`
-  - צד ב-`before` / `after`
-  - כל אחד מהם הוא **מחרוזת משלו**
-- **אל** תוסיף הופ שלישי להשוואה עצמה («האם A קרה לפני B?», «האם הסיקור השתנה?») אחרי שכבר הנפקת את שני הצדדים.
-- **אל** תוסיף הופ שכל תפקידו שם הישות, כשהשם הזה כבר מה שהופי היכולת/האירוע שואלים עליו.
-- יכולות שמופיעות כצמד באותו סעיף («debug code and compose music») יכולות להישאר **מחרוזת אחת**. אל תפרק כל פועל להופ בפני עצמו ואז גם להוסיף הופ-שם והופי featured-in.
-- אם המשתמש שם **עיתון על טענה מסוימת**, מעתיקים את שם העיתון **רק** לתוך המחרוזת של אותה טענה. לא על טענות שהוא לא אמר שהעיתון מדווח עליהן. דוגמת מחלקה: Q05 — `The Age` רק על סעיף The Age, לא על סעיפי TechCrunch.
-- אם המשתמש שם את **אותו** עיתון על שתי טענות (שני צדדים של `and`, שני אירועים), מעתיקים את העיתון **לשתי** המחרוזות.
-- אם המשתמש שם **חלון פרסום**, מחזיקים אותו בטקסט של התת-שאלה שהוא מגביל. תאריכי אירוע נשארים בטקסט גם הם. Gather לא מפרמט ארגומנטי ISO לכלי. Retrieve יקרא את התאריכים מהמחרוזת שלך.
-- **אסור לארוז שני צרכים או שני עיתונים במחרוזת אחת.** דוגמת מחלקה: Q04 — New York Times ו-Wall Street Journal חייבים שתי מחרוזות, אחרת Retrieve לא יכול למלא `source` לאף אחד.
-- **אסור הופ שכל תפקידו «האם העיתון featured את הנושא». ** מעתיקים את העיתון לתוך מחרוזת הטענה/היכולת/האירוע האמיתית. דוגמת מחלקה: Q07 — עודפי featured-in ופירוק-יתר (הופ-שם, הופי featured-in, הופ לכל יכולת) הם כישלון Gather.
-- **Retry:** אם יש `grade_note`, מנפיקים **רק** תת-שאלות חדשות שעוקבות אחריו ושונות מכל `prior_queries`. ציון 11 השאלות לא בודק את זה, אבל הפרודקשן כן. השאר את הכלל בפרומפט.
-- **אף פעם לא עונה למשתמש. אף פעם לא קורא לכלי.** מחזירים רק `sub_questions`.
+- Split by claims that can be verified **separately**:
+  - a side of a comparison
+  - an ability in a list
+  - an event
+  - a side of `and` / `or`
+  - a side of `before` / `after`
+  - each of these is **its own string**
+- **Do not** add a third hop for the comparison itself («did A happen before B?», «did the coverage change?») after you have already emitted both sides.
+- **Do not** add a hop whose entire role is the entity name, when that name is already what the ability/event hops are asking about.
+- Abilities that appear as a pair in the same clause («debug code and compose music») may stay **one string**. Do not split every verb into its own hop and then also add a name-hop and featured-in hops.
+- If the user put a **newspaper on a specific claim**, copy the newspaper name **only** into that claim's string. Not onto claims he did not say the newspaper reports. Class example: Q05 — `The Age` only on the The Age clause, not on the TechCrunch clauses.
+- If the user put the **same** newspaper on two claims (two sides of `and`, two events), copy the newspaper onto **both** strings.
+- If the user put a **publication window**, keep it in the text of the sub-question it constrains. Event dates stay in the text as well. Gather does not format ISO tool arguments. Retrieve will read the dates from your string.
+- **Do not pack two needs or two newspapers into one string.** Class example: Q04 — New York Times and Wall Street Journal must be two strings, otherwise Retrieve cannot fill `source` for either.
+- **A hop whose entire role is «did the newspaper featured the topic» is forbidden.** Copy the newspaper into the real claim/ability/event string. Class example: Q07 — extra featured-in hops and over-splitting (name-hop, featured-in hops, a hop per ability) are a Gather failure.
+- **Retry:** if there is a `grade_note`, emit **only** new sub-questions that follow it and differ from every `prior_queries`. The 11-question score does not check this, but production does. Leave the rule in the prompt.
+- **Never answers the user. Never calls a tool.** Return only `sub_questions`.
 
-הציון **לא** דורש שהניסוח שלך יתאים ל-GT. הוא דורש את **המלאי**: מספר הצרכים הנכון, עיתונים רק על הטענות שלהם, חלונות פרסום על הטענות שהם מגבילים, בלי אריזה, בלי הופי featured-in, בלי הופי השוואה עודפים.
+The score does **not** require your wording to match the GT. It requires the **inventory**: the correct number of needs, newspapers only on their claims, publication windows on the claims they constrain, no packing, no featured-in hops, no extra comparison hops.
 
 ---
 
-## מה לא שלך
+## What is not yours
 
-אל תעשה את אלה. אל תכתוב אותם בפרומפט של Gather. אל תערוך את הקבצים שלהם.
+Do not do these. Do not write them in Gather's prompt. Do not edit their files.
 
-| תחום | מי הבעלים | למה זה לא Gather |
+| Domain | Who owns it | Why this is not Gather |
 |---|---|---|
-| ארגומנטים של `search_facts` (`question`, `source`, `published_from`, `published_to`) | Retrieve | אתה מנפיק מחרוזות. Retrieve מעתיק וממלא פילטרים. |
-| קטלוג מקורות / `run_resolve_source` | שירות השליפה | התאמת שם עיתון רשמי קורה אחרי ש-Retrieve ממלא `source`. |
-| דירוג Chroma / Top-1 | שליפה | אם ההופ עצמאי והעיתון במחרוזת, פספוס זהב ב-rank 1 הוא לא הלוח שלך. |
-| Grade (`enough` / `rewrite` / `missing_hop` / `empty_stop`) | Grade | עצירה מול המשך היא אחרי הכלים. |
-| Answer | Answer | אתה אף פעם לא כותב Yes/No/ישות. |
-| Orchestration, כלים, `conts.py`, אינדקסים | קפוא | מחוץ לסקופ. |
+| `search_facts` arguments (`question`, `source`, `published_from`, `published_to`) | Retrieve | You emit strings. Retrieve copies and fills filters. |
+| Source catalog / `run_resolve_source` | Retrieval service | Official newspaper-name matching happens after Retrieve fills `source`. |
+| Chroma ranking / Top-1 | Retrieval | If the hop is independent and the newspaper is in the string, a gold miss at rank 1 is not your board. |
+| Grade (`enough` / `rewrite` / `missing_hop` / `empty_stop`) | Grade | Stop vs continue is after the tools. |
+| Answer | Answer | You never write Yes/No/entity. |
+| Orchestration, tools, `conts.py`, indexes | Frozen | Out of scope. |
 
-כישלון נשאר אצלך אם הפירוק שגוי:
+The failure stays with you if the split is wrong:
 
-- Q04 packed (שני עיתונים במחרוזת אחת)
+- Q04 packed (two newspapers in one string)
 - Q07 over-split / featured-in
-- Outlet על טענה לא נכונה בסגנון Q05 (The Age רק על סעיף The Age)
+- Outlet on the wrong claim in the Q05 style (The Age only on the The Age clause)
 
-Q01 שזהב חסר ב-Top-1 **אחרי** ש-Sporting News כבר בשתי המחרוזות הוא שליפה/k, לא הלוח הזה.
+Q01 where gold is missing at Top-1 **after** Sporting News is already in both strings is retrieval/k, not this board.
 
 ---
 
-## המשימה שלך (ה-pass היחיד)
+## Your task (the only pass)
 
-להגיע ל-**11/11** על מלאי ההופים של Gather מול 11 שאלות ה-GT המקומי, עם **אפס leakage**.
+Reach **11/11** on Gather's hop inventory against the 11 local GT questions, with **zero leakage**.
 
-עושים את זה בעריכה **רק** של `project/src/prompts/gather_agent.md`.
+Do this by editing **only** `project/src/prompts/gather_agent.md`.
 
-**Pass:** שני קבצי `metrics_*.csv` החדשים ביותר ברצף מתוך `project/tests/live_gather_hops/outputs/`, אותו פרומפט Gather, `hop_success=1` בכל 11 השורות, `prompt_leak_hit=0`, מבנה ספק, סעיף `# Examples` עם לפחות שני זוגות סינטטיים, בלי חיקויי מבחן. אין מגבלת 40/350.
+**Pass:** the two newest consecutive `metrics_*.csv` files from `project/tests/live_gather_hops/outputs/`, the same Gather prompt, `hop_success=1` on all 11 rows, `prompt_leak_hit=0`, vendor structure, an `# Examples` section with at least two synthetic pairs, no test clones. No 40/350 limit.
 
-`hop_success=1` אומר שכל אלה מתקיימים:
+`hop_success=1` means all of these hold:
 
 - `prompt_leak_hit=0`
-- `runtime_error` ריק
-- כל פריט ב-`sub_questions` ב-GT מכוסה על ידי תת-שאלת סוכן **נפרדת** (אין צורך חסר)
-- אין מחרוזת שמכסה שני הופי זהב (`packed_needs=0`)
-- אין מחרוזת שמכילה שני עיתוני זהב (`packed_outlets=0`)
-- אין הופי סוכן עודפים (`extra_hops=0`) — פירוק-יתר, featured-in, והופי השוואה עודפים נספרים כאן
-- אין הופ featured-in בלבד (`featured_in_hops=0`)
-- עיתון מוגבל-סעיף לא הועתק לטענה שהוא לא שייך אליה (`misattached_outlet=0`)
-- חלונות פרסום שב-GT מופיעים בטקסט התת-שאלה המתאימה (`dates_missing=0`)
+- empty `runtime_error`
+- every item in the GT `sub_questions` is covered by a **separate** agent sub-question (no missing need)
+- no string that covers two gold hops (`packed_needs=0`)
+- no string that contains two gold newspapers (`packed_outlets=0`)
+- no extra agent hops (`extra_hops=0`) — over-splitting, featured-in, and extra comparison hops count here
+- no featured-in-only hop (`featured_in_hops=0`)
+- a clause-limited newspaper was not copied onto a claim it does not belong to (`misattached_outlet=0`)
+- publication windows that are in the GT appear in the matching sub-question text (`dates_missing=0`)
 
-הרץ משווה **מבנה** ל-`sub_questions` ב-`project/src/data/ground_truth/Q01.json` … `Q11.json` (השדה של Gather לפי `project/src/data/ground_truth/README.md`). עיתון וחלון פרסום נלקחים מ-`expected_tool_calls` עם `agent: retrieve` באותו `sub_question_index`. הוא **לא** דורש ניסוח זהב מילה במילה. `search_corpus` עם `agent: unbound` אינו חלק מהלוח הזה.
+The runner compares **structure** to `sub_questions` in `project/src/data/ground_truth/Q01.json` … `Q11.json` (Gather's field per `project/src/data/ground_truth/README.md`). Newspaper and publication window are taken from `expected_tool_calls` with `agent: retrieve` at the same `sub_question_index`. It does **not** require gold wording word-for-word. `search_corpus` with `agent: unbound` is not part of this board.
 
 ---
 
-## איזה קבצים להריץ (רק הלוח הזה)
+## Which files to run (this board only)
 
-תמיד מתיקיית `project/` הפנימית.
+Always from the inner `project/` directory.
 
-**זה ציון ה-11/11. תשתמש בו בכל פעם.**
+**This is the 11/11 score. Use it every time.**
 
 ```text
 cd project
@@ -165,112 +165,112 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_gather_hops.run_live_gather_hops
 ```
 
-צריך `.env` עם `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`.
+You need a `.env` with `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_GATHER_MODEL`.
 
-**לא** צריך Chroma. **לא** קורא ל-Retrieve, Grade, Answer, או כלים. קריאת Gather אחת לכל שאלה. כמה דקות. בלי הדפסה לקונסול.
+You do **not** need Chroma. It does **not** call Retrieve, Grade, Answer, or tools. One Gather call per question. A few minutes. No console printing.
 
-הריצות האלה שולחות את 11 שאלות ההערכה ל-OpenRouter כקלט Gather. זה צפוי. לשים את השאלות האלה בפרומפט — לא.
+These runs send the 11 evaluation questions to OpenRouter as Gather input. That is expected. Putting those questions in the prompt — not.
 
-### אל תריץ את אלה בתור הציון שלך
+### Do not run these as your score
 
-- `tests.live_gather_gt.run_live_gather_gt` — לולאה מלאה + Grade + Chroma
-- `tests.live_gather_first_hop.run_live_gather_first_hop` — Gather **ועוד** Retrieve ועוד `search_facts`
-- oracle-Answer, e2e, לוחות Grade בלבד
+- `tests.live_gather_gt.run_live_gather_gt` — full loop + Grade + Chroma
+- `tests.live_gather_first_hop.run_live_gather_first_hop` — Gather **plus** Retrieve plus `search_facts`
+- oracle-Answer, e2e, Grade-only boards
 
-אם זהב חסר בלוחות האחרים אחרי שמלאי ההופים שלך כבר 11/11, זה לא המשימה הזאת.
+If gold is missing on the other boards after your hop inventory is already 11/11, that is not this task.
 
 ---
 
-## קבצי פלט — לאן הם יוצאים ואיך לקרוא אותם
+## Output files — where they go and how to read them
 
-כל ריצה כותבת שלישייה חדשה עם חותמת זמן תחת `project/tests/live_gather_hops/outputs/`. כלום לא נדרס. פתח את החותמת **החדשה ביותר**.
+Every run writes a new timestamped trio under `project/tests/live_gather_hops/outputs/`. Nothing is overwritten. Open the **newest** timestamp.
 
-| קובץ | מה זה | איך משתמשים |
+| File | What it is | How to use it |
 |---|---|---|
-| `metrics_YYYY-MM-DD_HH-MM-SS.csv` | לוח התוצאות. **זה N/11.** | סופרים שורות עם `hop_success=1`. זה הציון. |
-| `hops_YYYY-MM-DD_HH-MM-SS.csv` | שורה אחת לכל הופ **זהב** | רואים איזה צורך זהב לא כוסה (`matched_agent_index` ריק, `covered=0`). |
-| `calls_YYYY-MM-DD_HH-MM-SS.csv` | שורה אחת לכל תת-שאלת **סוכן** | רואים אריזה, עודפים, featured-in, עיתון לא נכון. |
+| `metrics_YYYY-MM-DD_HH-MM-SS.csv` | The results board. **This is N/11.** | Count rows with `hop_success=1`. That is the score. |
+| `hops_YYYY-MM-DD_HH-MM-SS.csv` | One row per **gold** hop | See which gold need was not covered (empty `matched_agent_index`, `covered=0`). |
+| `calls_YYYY-MM-DD_HH-MM-SS.csv` | One row per **agent** sub-question | See packing, extras, featured-in, wrong newspaper. |
 
-### עמודות `metrics_*.csv` שחשובות
+### `metrics_*.csv` columns that matter
 
-- `hop_success` — 1 או 0. סוכמים. יעד 11.
-- `gold_hop_count` מול `agent_hop_count` — עודף או חוסר הופים.
-- `missing_gold` — צורך זהב בלי מחרוזת מתאימה.
-- `packed_needs` — מחרוזת אחת מכסה שני צרכי זהב.
-- `packed_outlets` — מחרוזת אחת מכילה שני עיתוני זהב.
-- `extra_hops` — מחרוזות עודפות (פירוק-יתר / השוואה / שם-בלבד).
-- `featured_in_hops` — הופ שכל תפקידו «featured in {outlet}».
-- `misattached_outlet` — עיתון הועתק לטענה לא נכונה.
-- `dates_missing` — הופ מתוארך שהמחרוזת שלו השמיטה את חלון הפרסום.
-- `prompt_leak_hit` — 1 מאפס **כל** `hop_success`. לתקן את הפרומפט, לא להתווכח עם הסופר.
-- `failure_class` — תווית אחת לדיבאג (ראה למטה).
-- `agent_sub_questions` — הרשימה ש-Gather החזיר, מחוברת ב-` | `.
-- `runtime_error` — 429 / רשת / parse. לחכות, להריץ מחדש את **כל** 11. CSV חלקי הוא לא ציון.
+- `hop_success` — 1 or 0. Sum them. Target 11.
+- `gold_hop_count` versus `agent_hop_count` — extra or missing hops.
+- `missing_gold` — a gold need with no matching string.
+- `packed_needs` — one string covers two gold needs.
+- `packed_outlets` — one string contains two gold newspapers.
+- `extra_hops` — extra strings (over-splitting / comparison / name-only).
+- `featured_in_hops` — a hop whose entire role is «featured in {outlet}».
+- `misattached_outlet` — a newspaper was copied onto the wrong claim.
+- `dates_missing` — a dated hop whose string omitted the publication window.
+- `prompt_leak_hit` — 1 zeros **every** `hop_success`. Fix the prompt, do not argue with the scorer.
+- `failure_class` — one label for debug (see below).
+- `agent_sub_questions` — the list Gather returned, joined with ` | `.
+- `runtime_error` — 429 / network / parse. Wait, rerun **all** 11. A partial CSV is not a score.
 
-### ערכי `failure_class`
+### `failure_class` values
 
-| תווית | מה זה אומר | מה ללמד (הרגל כללי) |
+| Label | What it means | What to teach (general habit) |
 |---|---|---|
-| `leak` | טקסט מבחן בפרומפט | למחוק. אל תהפוך את המבחן לדוגמה. |
-| `runtime_error` | כשל LLM/רשת/parse | לחכות. להריץ שוב את כל 11. אל תנקד את הקובץ הזה. |
-| `packed_outlets` | שני עיתוני זהב במחרוזת אחת | עיתון אחד למחרוזת. שני עיתונים שצוינו → שתי מחרוזות. |
-| `packed_needs` | שני צרכי זהב במחרוזת אחת | טענה אחת שניתן לאמת לכל מחרוזת. |
-| `featured_in` | הופ שרק שואל אם עיתון featured את הנושא | להעתיק את העיתון לטענה האמיתית. לא להנפיק featured-in. |
-| `misattached_outlet` | עיתון על טענה שהמשתמש לא חיבר אליו | להעתיק את העיתון רק לסעיף ששם אותו. |
-| `missing_gold` | צורך זהב בלי מחרוזת מכסה | לפצל את **סוג** הטענה הזה. לא להדביק את משפט הזהב. |
-| `extra_hops` | מחרוזות עודפות | לא להוסיף הופ-שם, הופ-השוואה, או כפילויות. |
-| `dates_missing` | חלון פרסום נשמט | להשאיר את החלון שצוין במחרוזת שהוא מגביל. |
-| _(ריק)_ | השורה עברה | — |
+| `leak` | Test text in the prompt | Delete it. Do not turn the test into an example. |
+| `runtime_error` | LLM/network/parse failure | Wait. Run all 11 again. Do not score this file. |
+| `packed_outlets` | Two gold newspapers in one string | One newspaper per string. Two named newspapers → two strings. |
+| `packed_needs` | Two gold needs in one string | One verifiable claim per string. |
+| `featured_in` | A hop that only asks whether a newspaper featured the topic | Copy the newspaper onto the real claim. Do not emit featured-in. |
+| `misattached_outlet` | A newspaper on a claim the user did not attach it to | Copy the newspaper only onto the clause that named it. |
+| `missing_gold` | A gold need with no covering string | Split this **type** of claim. Do not paste the gold sentence. |
+| `extra_hops` | Extra strings | Do not add a name-hop, a comparison-hop, or duplicates. |
+| `dates_missing` | A publication window was omitted | Leave the named window in the string it constrains. |
+| _(empty)_ | The row passed | — |
 
-### `calls_*.csv` — לדבג את המחרוזות עצמן
+### `calls_*.csv` — to debug the strings themselves
 
-עמודות: `question_id`, `hop_index`, `sub_question`, `gold_match_index`, `is_extra`, `is_featured_in`, `packed_outlets_in_string`.
+Columns: `question_id`, `hop_index`, `sub_question`, `gold_match_index`, `is_extra`, `is_featured_in`, `packed_outlets_in_string`.
 
-לחפש:
+Look for:
 
-- ארוז: `packed_outlets_in_string=1` (מחלקת Q04: NYT ו-WSJ באותה שורה)
+- Packed: `packed_outlets_in_string=1` (Q04 class: NYT and WSJ on the same row)
 - Featured-in: `is_featured_in=1`
-- פירוק-יתר: כמה `is_extra=1` על אותו `question_id` (מחלקת Q07)
-- עיתון לא נכון: ב-metrics `misattached_outlet=1`, ואז לקרוא את המחרוזות ולראות איזו טענה קיבלה את העיתון העודף
+- Over-split: how many `is_extra=1` on the same `question_id` (Q07 class)
+- Wrong newspaper: in metrics `misattached_outlet=1`, then read the strings and see which claim got the extra newspaper
 
-### `hops_*.csv` — לדבג כיסוי זהב
+### `hops_*.csv` — to debug gold coverage
 
-עמודות: `question_id`, `hop_index`, `gold_source`, `gold_question`, `matched_agent_index`, `matched_agent_text`, `source_in_text`, `date_in_text`, `covered`.
+Columns: `question_id`, `hop_index`, `gold_source`, `gold_question`, `matched_agent_index`, `matched_agent_text`, `source_in_text`, `date_in_text`, `covered`.
 
-`gold_question` הוא ניסוח ההופ של המבחן. **מותר לקרוא כדי להבין את הפספוס. אסור להדביק אותו בפרומפט.**
+`gold_question` is the test's hop wording. **You may read it to understand the miss. You must not paste it into the prompt.**
 
-איך לקרוא פספוס:
+How to read a miss:
 
-- `covered=0` → הצורך חסר או ארוז במחרוזת אחרת
-- `source_in_text=0` בזמן ש-`gold_source` מלא → השמטת את העיתון מהטענה הזאת
-- `date_in_text=0` בזמן שהופ הזהב מתוארך → השמטת את חלון הפרסום
+- `covered=0` → the need is missing or packed into another string
+- `source_in_text=0` while `gold_source` is filled → you omitted the newspaper from this claim
+- `date_in_text=0` while the gold hop is dated → you omitted the publication window
 
-למד **הרגל כללי** ממחלקת הכשל. אל תלמד את השורה הזאת.
+Learn a **general habit** from the failure class. Do not learn that row.
 
-429 / `runtime_error` → לחכות, להריץ שוב את כל 11. אל תערוך את הפרומפט בגלל תקלת רשת.
+429 / `runtime_error` → wait, run all 11 again. Do not edit the prompt because of a network fault.
 
 ---
 
-## בדיקת leakage (תעשה אותה בעצמך)
+## Leakage check (do it yourself)
 
-אחרי כל עריכה, חפש ב-`gather_agent.md` מול:
+After every edit, search `gather_agent.md` against:
 
 - `project/src/data/questions.json`
 - `project/src/data/ground_truth/Q01.json` … `Q11.json`
 
-אם מופיעים בפרומפט שאלה מלאה, משפט עובדה, כותרת מאמר, URL, תת-שאלת זהב, או מחרוזת `question` של כלי מהקבצים האלה — דלפת. למחוק.
+If a full question, a fact sentence, an article title, a URL, a gold sub-question, or a tool `question` string from these files appears in the prompt — you leaked. Delete it.
 
-הרץ גם שם `prompt_leak_hit=1` כשזה קורה ומאפס כל `hop_success`. הבדיקה הזאת **לא** תופסת דוגמאות-חיקוי. זה עדיין עליך.
+The runner also sets `prompt_leak_hit=1` when that happens and zeros every `hop_success`. This check does **not** catch clone-examples. That is still on you.
 
-מותר **לקרוא** GT כדי להבין מלאי הופים. מותר **לדבג** CSV שנכשל. להדביק את השורה בפרומפט זה leakage.
+You may **read** GT to understand hop inventory. You may **debug** a failed CSV. Pasting the row into the prompt is leakage.
 
 ---
 
-## מבנה הפרומפט לפי הספק (חובה לדבוק)
+## Prompt structure per the vendor (you must stick to it)
 
-המודל הצרכן הוא OpenAI GPT (`openai/gpt-4.1` ב-`OPENAI_GATHER_MODEL`) דרך ChatOpenAI. Retrieve / Grade / Answer נשארים על `OPENAI_MODEL`. פרומפטי פרודקשן חייבים להתאים למבנה הספק. ראה `project/src/prompts/AGENTS.md`.
+The consuming model is OpenAI GPT (`openai/gpt-4.1` in `OPENAI_GATHER_MODEL`) via ChatOpenAI. Retrieve / Grade / Answer stay on `OPENAI_MODEL`. Production prompts must match the vendor structure. See `project/src/prompts/AGENTS.md`.
 
-סדר הסעיפים הנדרש:
+Required section order:
 
 ```markdown
 # Identity
@@ -282,9 +282,9 @@ uv run python -m tests.live_gather_hops.run_live_gather_hops
 # Examples
 ```
 
-`# Examples` **חובה**. פרומפט בלי הסעיף הזה, או עם הסעיף ריק, לא כשיר ל-pass.
+`# Examples` is **mandatory**. A prompt without this section, or with the section empty, is not eligible for a pass.
 
-בתוך `# Examples` משתמשים **רק** ב:
+Inside `# Examples` use **only**:
 
 ```text
 <user_query>
@@ -295,153 +295,153 @@ uv run python -m tests.live_gather_hops.run_live_gather_hops
 </assistant_response>
 ```
 
-כללים:
+Rules:
 
-- אנגלית בלבד בקובץ הפרומפט
-- בלי קוד הרצה, בלי קריאות env, בלי סודות
-- בלי שאלות מערכת הערכה, תשובות, ציטוטי זהב, או few-shot איזומורפי של הפריטים האלה
-- קונטקסט לא נכתב בפרומפט. הצרכן כבר שולח `{question, prior_queries, grade_note}`
-- **אסור zero-shot.** חייבים דוגמאות סינטטיות.
-- מותר להאריך. המגבלה הישנה 40/350 מבוטלת.
+- English only in the prompt file
+- no executable code, no env lookups, no secrets
+- no evaluation-set questions, answers, gold citations, or isomorphic few-shot of those items
+- context is not written in the prompt. The consumer already sends `{question, prior_queries, grade_note}`
+- **Zero-shot is forbidden.** Synthetic examples are required.
+- You may lengthen. The old 40/350 limit is cancelled.
 
-להתחיל מה-`project/src/prompts/gather_agent.md` הנוכחי ולהוסיף עליו `# Examples`. אל תחזיר את `project/tests/live_gather_gt/inputs/control.md` (תבנית ישנה שנפסלה). אל תחזיר את `project/tests/live_gather_first_hop/inputs/control.md` (ניסוח ישן של Gather-עם-כלים).
+Start from the current `project/src/prompts/gather_agent.md` and add `# Examples` onto it. Do not restore `project/tests/live_gather_gt/inputs/control.md` (an old template that was disqualified). Do not restore `project/tests/live_gather_first_hop/inputs/control.md` (old Gather-with-tools wording).
 
 ---
 
-## דוגמאות סינטטיות — חובה, תבנה אותן לבד
+## Synthetic examples — mandatory, you build them yourself
 
-אל תבקש מאף אחד שיבוטי מבחן. אל תעתיק GT. אל תשאירי `# Instructions` בלי `# Examples`.
+Do not ask anyone for test clones. Do not copy GT. Do not leave `# Instructions` without `# Examples`.
 
-1. המצא דומיין מזויף (טחנות, מועדונים, עיירות, עיתונים בדויים שלא מופיעים במבחן). אל תמחזר את Oak mill / Harbor Gazette / Hill Ledger אם הם כבר נכשלו כחיקוי Q07 — המצא שמות **אחרים**.
-2. לפחות **שני** זוגות user/assistant. עדיף שלושה–ארבעה, אם צריך ללמד הרגלים שונים (פירוק צדדים, תת-שאלה שעומדת לבד, עיתון בתוך הטענה ולא כהופ featured-in, `figure` יחיד במקום כן/לא על השמטה).
-3. מותר לחפש באינטרנט הציבורי רעיונות **לפורמט** (איך נראית רשימת תת-שאלות). אסור להדביק את 11 השאלות שלנו או חיקויים.
-4. קלט הדוגמה בפורמט JSON כמו בזמן ריצה: `{"question":"...","prior_queries":[],"grade_note":""}`. פלט: `{"sub_questions":[...]}`.
-5. דוגמאות ל**הרגל**: טענה אחת למחרוזת שאפשר לשאול לבד; עיתון רק על הטענה ששמה אותו; לא הופ שכל תפקידו שהעיתון הזכיר את הישות.
-6. להסתיר שמות עצם ולקרוא שוב: אם זה עדיין נראה כמו Q04/Q05/Q07/Q10 — למחוק את **הזוג הזה** ולכתוב זוג אחר. לא למחוק את כל `# Examples`.
-7. מגבלת האורך הישנה מבוטלת. אם חסר מקום לדוגמאות — להאריך, לא לקצר אותן החוצה.
+1. Invent a fake domain (mills, clubs, towns, fake newspapers that do not appear in the test). Do not recycle Oak mill / Harbor Gazette / Hill Ledger if they already failed as a Q07 clone — invent **other** names.
+2. At least **two** user/assistant pairs. Prefer three–four, if you need to teach different habits (splitting sides, a sub-question that stands alone, newspaper inside the claim and not as a featured-in hop, singular `figure` instead of yes/no on an omission).
+3. You may search the public internet for **format** ideas (what a sub-question list looks like). You must not paste our 11 questions or clones.
+4. Example input in JSON format as at runtime: `{"question":"...","prior_queries":[],"grade_note":""}`. Output: `{"sub_questions":[...]}`.
+5. Examples for **habit**: one claim per string that can be asked alone; newspaper only on the claim that named it; not a hop whose entire role is that the newspaper mentioned the entity.
+6. Hide nouns and read again: if it still looks like Q04/Q05/Q07/Q10 — delete **that pair** and write a different pair. Do not delete all of `# Examples`.
+7. The old length limit is cancelled. If there is not enough room for examples — lengthen, do not shorten them out.
 
 ---
 
 ## In / out
 
-**עורך:**
+**Edit:**
 
-- `project/src/prompts/gather_agent.md` — קובץ הפרודקשן היחיד שאתה משנה
-- צילומים `project/tests/live_gather_hops/inputs/candidate_<name>.md` — היסטוריית כל השערה
+- `project/src/prompts/gather_agent.md` — the only production file you change
+- snapshots `project/tests/live_gather_hops/inputs/candidate_<name>.md` — history of every hypothesis
 
-**מותר לקרוא (לא לערוך):**
+**Allowed to read (do not edit):**
 
-- את התוכנית הזאת
-- `project/tests/live_gather_hops/README.md` ואת הרץ (כדי להבין איך מנקד)
-- `project/src/agents/gather_agent.py` — איך הפרומפט נטען ואיזה JSON נשלח
+- this plan
+- `project/tests/live_gather_hops/README.md` and the runner (to understand how it scores)
+- `project/src/agents/gather_agent.py` — how the prompt is loaded and which JSON is sent
 - `project/src/schemas/agent.py` — `GatherResult.sub_questions`
-- `project/src/data/questions.json`, `project/src/data/ground_truth/README.md`, ו-`project/src/data/ground_truth/*.json` — להבין מלאי, אף פעם לא להעתיק לפרומפט
-- קבצי CSV החדשים ביותר תחת `project/tests/live_gather_hops/outputs/`
+- `project/src/data/questions.json`, `project/src/data/ground_truth/README.md`, and `project/src/data/ground_truth/*.json` — to understand inventory, never copy into the prompt
+- the newest CSV files under `project/tests/live_gather_hops/outputs/`
 
-**אסור לערוך:**
+**Do not edit:**
 
-- `retrieve_agent.md`, `grade_agent.md`, `answer_agent.md`, כל פרומפט אחר
-- JSON של GT, `questions.json`, `answers.json`
+- `retrieve_agent.md`, `grade_agent.md`, `answer_agent.md`, any other prompt
+- GT JSON, `questions.json`, `answers.json`
 - agents, tools, services, repositories, orchestration, `conts.py`
 - `tests/live_gather_gt`, `tests/live_gather_first_hop`, `tests/live_grade_gt`
-- אינדקסים
-- כללי הניקוד של רץ מלאי ההופים (אל «תתקן» זהב בהקלת הלוח)
+- indexes
+- the hop-inventory runner's scoring rules (do not «fix» gold by relaxing the board)
 
-אל תוסיף סוכנים. אל תקשור כלים ל-Gather. אל תשנה את Retrieve כדי שיוכל לפרוק מחרוזת ארוזה. **השערה אחת בשם** לכל ריצה חיה.
-
----
-
-## לולאה
-
-1. לצלם את פרומפט Gather הנוכחי בפרודקשן אל `project/tests/live_gather_hops/inputs/candidate_<short_hypothesis_name>.md`. גם להשאיר את `inputs/control.md` כקובץ ההתחלה (כבר שם).
-2. לערוך **רק** את `project/src/prompts/gather_agent.md`. שינוי אחד בשם לכל ריצה. `# Examples` סינטטי חייב להישאר בכל מועמד.
-3. לבדוק שוב את רשימת friend-review ולחפש בפרומפט מול מחרוזות GT.
-4. להריץ את הפקודה ב«איזה קבצים להריץ».
-5. לפתוח את `metrics_*.csv` החדש ביותר. לספור `hop_success=1`. בפספוסים לקרוא `failure_class`, ואז `calls_*.csv` / `hops_*.csv`.
-6. אם 11/11 — להריץ **שוב בלי עריכת פרומפט**. שני קבצי 11/11 ברצף הם ה-pass.
-7. אם לא — השערה חדשה אחת בשם. לחזור.
-
-אל «תתקן» זהב בעריכת GT. אם צורך חסר, לפצל או לנסח מחדש את **סוג** הטענה באופן כללי, עדיין בלי ניסוח מבחן.
-
-אל תמליץ שוב על מודל חזק יותר כמנוף ראשון בלי אישור. הסיבוב הנוכחי הוא `openai/gpt-4.1` (דרגה אחת מעל mini), אותו פרומפט התחלה `candidate_gpt41_exactly_two_sides` / `candidate_gpt41_full_restart`.
+Do not add agents. Do not wire tools to Gather. Do not change Retrieve so it can unpack a packed string. **One named hypothesis** per live run.
 
 ---
 
-## מצב נוכחי — 2026-08-28 (חובה לקרוא לפני עריכה)
+## Loop
 
-הצ'אט הקודם **לא** מתחיל מאפס. הפרומפט בפרודקשן הוא המועמד היציב. המשימה היא **רק** לסגור את שני המזהים שנשארו, בלי להרוס את התשעה שעובדים.
+1. Snapshot the current production Gather prompt to `project/tests/live_gather_hops/inputs/candidate_<short_hypothesis_name>.md`. Also leave `inputs/control.md` as the starting file (already there).
+2. Edit **only** `project/src/prompts/gather_agent.md`. One named change per run. Synthetic `# Examples` must remain in every candidate.
+3. Recheck the friend-review list and search the prompt against GT strings.
+4. Run the command in «Which files to run».
+5. Open the newest `metrics_*.csv`. Count `hop_success=1`. On misses read `failure_class`, then `calls_*.csv` / `hops_*.csv`.
+6. If 11/11 — run **again without editing the prompt**. Two consecutive 11/11 files are the pass.
+7. If not — one new named hypothesis. Repeat.
 
-### Baseline נעול (להחזיר אליו אחרי כל רגרסיה)
+Do not «fix» gold by editing GT. If a need is missing, split or rephrase that **type** of claim in general, still without test wording.
 
-- קובץ: `project/src/prompts/gather_agent.md`
-- צילום: `project/tests/live_gather_hops/inputs/candidate_gpt41_exactly_two_sides.md`
-- מודל Gather: `OPENAI_GATHER_MODEL=openai/gpt-4.1` (Retrieve/Grade/Answer נשארים `OPENAI_MODEL=openai/gpt-4o-mini`)
-- ציון: **9/11 פעמיים** על אותו פרומפט — `metrics_2026-08-28_17-56-06.csv`, `metrics_2026-08-28_18-00-57.csv`
-- עוברים: Q01, Q02, Q03, Q04, Q05, Q06, Q08, Q09, Q11
-- נופלים: **Q07** (`featured_in`), **Q10** (`missing_gold`)
+Do not recommend a stronger model again as the first lever without approval. The current round is `openai/gpt-4.1` (one grade above mini), the same starting prompt `candidate_gpt41_exactly_two_sides` / `candidate_gpt41_full_restart`.
 
-Gather **רק** מפרק לשאלות מבודדות (`sub_questions: list[str]`). הוא לא ממלא `source`. שם העיתון חייב להישאר **בתוך המשפט**, כי Retrieve רואה רק את המחרוזת הזאת. תת-שאלה טובה = אפשר לשלוח אותה לבד ל-Retrieve והחיפוש עדיין ברור. זה מה שמזין אחר כך את ה-chunk: הופ שגוי → `search_facts` שגוי → קטע שגוי. **אל תנקד** עם `live_gather_gt` או `live_gather_first_hop`.
+---
 
-### מה Q07 באמת צריך (הרגל, לא ניסוח זהב)
+## Current state — 2026-08-28 (must read before editing)
 
-שאלה אחת עם ישות, שני עיתונים, רשימת יכולות, ואירוע סיום. מלאי נכון = **3** מחרוזות:
+The previous chat does **not** start from zero. The production prompt is the stable candidate. The task is **only** to close the two remaining IDs, without destroying the nine that work.
 
-1. עיתון ראשון + היכולת הראשונה ברשימה
-2. אותו עיתון ראשון + שתי היכולות הבאות שחבורות ב-`and` (לא לפצל לכל פועל)
-3. העיתון השני + אירוע הסיום בלבד
+### Locked baseline (revert to it after every regression)
 
-אסור: הופ-שם, הופ שכל תפקידו «featured in {outlet}», לשכפל את כל היכולות לשני העיתונים, לארוז את כל היכולות במחרוזת אחת.
+- File: `project/src/prompts/gather_agent.md`
+- Snapshot: `project/tests/live_gather_hops/inputs/candidate_gpt41_exactly_two_sides.md`
+- Gather model: `OPENAI_GATHER_MODEL=openai/gpt-4.1` (Retrieve/Grade/Answer stay `OPENAI_MODEL=openai/gpt-4o-mini`)
+- Score: **9/11 twice** on the same prompt — `metrics_2026-08-28_17-56-06.csv`, `metrics_2026-08-28_18-00-57.csv`
+- Passing: Q01, Q02, Q03, Q04, Q05, Q06, Q08, Q09, Q11
+- Failing: **Q07** (`featured_in`), **Q10** (`missing_gold`)
 
-ב-baseline המודל מוציא שם + featured-in לכל עיתון + יום-הולדת בלי העיתון השני. הוא מבודד שאלות, אבל את הפרוסות הלא נכונות.
+Gather **only** splits into isolated questions (`sub_questions: list[str]`). It does not fill `source`. The newspaper name must stay **inside the sentence**, because Retrieve sees only that string. A good sub-question = you can send it alone to Retrieve and the search is still clear. That is what later feeds the chunk: wrong hop → wrong `search_facts` → wrong passage. **Do not score** with `live_gather_gt` or `live_gather_first_hop`.
 
-### מה Q10 באמת צריך (הרגל, לא ניסוח זהב)
+### What Q07 actually needs (habit, not gold wording)
 
-שתי מחרוזות, צד אחד לכל עיתון. הצד הראשון כבר עובר ב-baseline (סכום ההשקעה). הצד השני חייב לשאול מה העיתון השני כתב על **ההקמה**, כולל **מספר**. הסקורר דורש את המילה האנגלית **`figure` ביחיד** (לא `figures`). ב-baseline הצד השני נשאר כן/לא עם `financial figures` — לכן `missing_gold`.
+One question with an entity, two newspapers, a list of abilities, and an ending event. Correct inventory = **3** strings:
 
-אל תדביק את משפט הזהב. מותר לקרוא `Q07.json` / `Q10.json` כדי להבין מלאי.
+1. First newspaper + the first ability in the list
+2. The same first newspaper + the next two abilities joined by `and` (do not split per verb)
+3. The second newspaper + the ending event only
 
-### מה כבר נוסה — אל תחזור על זה
+Forbidden: a name-hop, a hop whose entire role is «featured in {outlet}», cloning all abilities onto both newspapers, packing all abilities into one string.
 
-| ניסוי | תוצאה | למה לא לחזור |
+On the baseline the model emits name + featured-in for each newspaper + birthday without the second newspaper. It isolates questions, but the wrong slices.
+
+### What Q10 actually needs (habit, not gold wording)
+
+Two strings, one side per newspaper. The first side already passes on the baseline (the investment sum). The second side must ask what the second newspaper wrote about **the founding**, including a **number**. The scorer requires the English word **`figure` in the singular** (not `figures`). On the baseline the second side stays yes/no with `financial figures` — hence `missing_gold`.
+
+Do not paste the gold sentence. You may read `Q07.json` / `Q10.json` to understand inventory.
+
+### What was already tried — do not repeat it
+
+| Experiment | Result | Why not to repeat |
 |---|---|---|
-| `openai/gpt-4o-mini` על Gather | שיא 7/11 | חלש מדי לפירוק |
-| `openai/gpt-4.1` (מלא) על אותו פרומפט 9/11 | **8/11** (`metrics_2026-08-28_18-39-30.csv`) | שבר Q01 (העתיק Week 13 לצד הלא נכון, `packed_needs`); Q07 ארוז לשני עיתונים; Q10 לא זז |
-| כללי «never featured» / «figure לא figures» כבולטים נוספים | 7–8/11 | תיקון Q07/Q10 שבר את **Q04** (הופי CEO לכל עיתון). לנסות ניסוח אחר, לא לעצור |
-| `# Examples` בדומיין בדוי (Oak mill / Harbor Gazette / Hill Ledger / Vale Post / Tide Courier) לפיצול יכולות | 8/11 | 4.1-mini מעתיק את הפיצול גם ל-«known-for / CEO» ב-Q04 |
-| אותן דוגמאות ל-`figures`→`figure` | Q10 עדיין מעתיק `financial figures` מהמשתמש | לא דורס את לשון שאלת האב |
-| דוגמת figure בלבד בלי פיצול יכולות | 8/11 | Q04 חזר, Q09 איבד שמות עצם של נושא המאמר, Q07/Q10 לא נסגרו |
+| `openai/gpt-4o-mini` on Gather | Peak 7/11 | Too weak for splitting |
+| `openai/gpt-4.1` (full) on the same 9/11 prompt | **8/11** (`metrics_2026-08-28_18-39-30.csv`) | Broke Q01 (copied Week 13 onto the wrong side, `packed_needs`); Q07 packed into two newspapers; Q10 did not move |
+| «never featured» / «figure not figures» rules as extra bullets | 7–8/11 | A Q07/Q10 fix broke **Q04** (CEO hops per newspaper). Try different wording, do not stop |
+| `# Examples` in a fake domain (Oak mill / Harbor Gazette / Hill Ledger / Vale Post / Tide Courier) for splitting abilities | 8/11 | 4.1-mini copies the split onto «known-for / CEO» in Q04 as well |
+| The same examples for `figures`→`figure` | Q10 still copies `financial figures` from the user | Does not override the parent-question wording |
+| A figure-only example without ability splitting | 8/11 | Q04 came back, Q09 lost nouns of the article topic, Q07/Q10 were not closed |
 
-צילומים תחת `project/tests/live_gather_hops/inputs/`: `candidate_gpt41_exactly_two_sides.md` (המנצח), `candidate_gpt41_invented_examples*.md`, `candidate_gpt41_figure_example_only.md`. לקרוא רק כדי לא לחזור. לא להעתיק חיקויי מבחן מהם אם הם קרובים מדי ל-Q07/Q10.
+Snapshots under `project/tests/live_gather_hops/inputs/`: `candidate_gpt41_exactly_two_sides.md` (the winner), `candidate_gpt41_invented_examples*.md`, `candidate_gpt41_figure_example_only.md`. Read only so you do not repeat. Do not copy test clones from them if they are too close to Q07/Q10.
 
-### מה מותר לנסות עכשיו (השערה אחת בשם לכל ריצה)
+### What you may try now (one named hypothesis per run)
 
-המטרה של הפרומפט: כל תת-שאלה עומדת לבד, צורך מידע אחד, עיתון רק אם הוא שייך לטענה הזאת. **אין כלל עצירה.** רצים עד 11/11 פעמיים בלי leakage. **כל מועמד חייב `# Examples` סינטטי** (לפחות שני זוגות). מועמד בלי דוגמאות לא כשיר.
+The prompt's goal: every sub-question stands alone, one information need, newspaper only if it belongs to that claim. **There is no stopping rule.** Run until 11/11 twice without leakage. **Every candidate must have synthetic `# Examples`** (at least two pairs). A candidate without examples is not eligible.
 
-כיוונים (אם אחד נכשל — השערה אחרת, לא דוח סיום):
+Directions (if one fails — a different hypothesis, not a wrap-up report):
 
-- קודם להוסיף דוגמאות סינטטיות ל-baseline ה-9/11, בדומיין חדש (לא Oak mill אם זה כבר נכשל כחיקוי)
-- ניסוח מחדש של הבולטים **הקיימים** (אותו תוכן, מילים אחרות) **עם** הדוגמאות
-- אם אחרי הסתרת שמות עצם דוגמה נראית כמו Q04/Q07/Q10 — להחליף את הזוג, לא למחוק את כל `# Examples`
-- אם תיקון שובר את Q04/Q09: להחזיר את הוראות ה-baseline, **להשאיר** דוגמאות סינטטיות מתוקנות, להריץ שוב
+- First add synthetic examples to the 9/11 baseline, in a new domain (not Oak mill if that already failed as a clone)
+- Rephrase the **existing** bullets (same content, different words) **with** the examples
+- If after hiding nouns an example looks like Q04/Q07/Q10 — replace the pair, do not delete all of `# Examples`
+- If a fix breaks Q04/Q09: restore the baseline instructions, **keep** corrected synthetic examples, run again
 
-אחרי כל עריכה שנכשלת: להחזיר הוראות מ-`candidate_gpt41_exactly_two_sides.md` אם צריך, אבל **לא** לחזור לפרומפט בלי `# Examples`. אל תערוך Retrieve, Grade, Answer, או את הגרף. אל תמליץ על supervisor, מתכנן-לפני-חיפוש, סוכנים נוספים, או ללמד את Retrieve לפרוק מחרוזות ארוזות.
-
----
-
-## אין כלל עצירה
-
-לא עוצרים את עבודת הפרומפט עד שיש **שני** קבצי `metrics_*.csv` ברצף עם `hop_success=1` בכל 11 השורות, `prompt_leak_hit=0`, ו-`# Examples` סינטטי מלא. אין תקרת ריצות. חיקוי מבחן בפרומפט = למחוק את הזוג הדולף, לכתוב דוגמה סינטטית אחרת, ולהמשיך.
-
-אל תערוך Retrieve, Grade, Answer, או את הגרף. דוח ביניים מותר רק כשיש 11/11 פעמיים, או כשהמשתמש מבקש סטטוס. בסטטוס: נתיבי CSV, N/11 לכל מועמד, מזהים שנשארו ו-`failure_class`, `candidate_*.md` הטוב ביותר — ואז ממשיכים.
+After every failing edit: restore instructions from `candidate_gpt41_exactly_two_sides.md` if needed, but do **not** go back to a prompt without `# Examples`. Do not edit Retrieve, Grade, Answer, or the graph. Do not recommend a supervisor, a plan-before-search, extra agents, or teaching Retrieve to unpack packed strings.
 
 ---
 
-## הודעה ראשונה לצ'אט הבא (להדביק את זה)
+## There is no stopping rule
 
-קרא את `project/plans/gate4-gather-hop-inventory-prompt-goal.md` מהכותרת הראשונה עד הסוף, כולל «מצב נוכחי — 2026-08-28». עבור על בדיקות friend-review.
+Do not stop prompt work until there are **two** consecutive `metrics_*.csv` files with `hop_success=1` on all 11 rows, `prompt_leak_hit=0`, and full synthetic `# Examples`. There is no run ceiling. A test clone in the prompt = delete the leaked pair, write a different synthetic example, and continue.
 
-אתה ממשיך עבודה, לא מתחיל מאפס. הפרומפט בפרודקשן (`project/src/prompts/gather_agent.md`, צילום `candidate_gpt41_exactly_two_sides.md` / `candidate_gpt41_full_restart.md`) רץ על `openai/gpt-4.1`. תשע שאלות היו נכונות על mini. נשארו Q07 ו-Q10.
+Do not edit Retrieve, Grade, Answer, or the graph. An interim report is allowed only when there is 11/11 twice, or when the user asks for status. In a status: CSV paths, N/11 per candidate, remaining IDs and `failure_class`, the best `candidate_*.md` — then continue.
 
-Gather רק מפרק לתתי-שאלות מבודדות שאפשר לשאול לבד. אין כלים, אין שדה `source`. העיתון נשאר בתוך המשפט כדי ש-Retrieve יוכל לחלץ אותו. הופ שגוי = חיפוש שגוי = chunk שגוי. מנקד **רק** עם `uv run python -m tests.live_gather_hops.run_live_gather_hops` מתוך `project/`.
+---
 
-**אין כלל עצירה.** רץ עד 11/11 `hop_success` פעמיים. מודל Gather הוא `openai/gpt-4.1`. בלי data leakage ובלי חיקויי מבחן — leakage פוסל את הריצה, מחליפים את הדוגמה וממשיכים. אל תדביק טקסט מבחן בפרומפט.
+## First message for the next chat (paste this)
+
+Read `project/plans/gate4-gather-hop-inventory-prompt-goal.md` from the first heading to the end, including «Current state — 2026-08-28». Go through the friend-review checks.
+
+You are continuing work, not starting from zero. The production prompt (`project/src/prompts/gather_agent.md`, snapshot `candidate_gpt41_exactly_two_sides.md` / `candidate_gpt41_full_restart.md`) runs on `openai/gpt-4.1`. Nine questions were correct on mini. Q07 and Q10 remain.
+
+Gather only splits into isolated sub-questions that can be asked alone. No tools, no `source` field. The newspaper stays inside the sentence so Retrieve can extract it. Wrong hop = wrong search = wrong chunk. Score **only** with `uv run python -m tests.live_gather_hops.run_live_gather_hops` from `project/`.
+
+**There is no stopping rule.** Run until 11/11 `hop_success` twice. The Gather model is `openai/gpt-4.1`. No data leakage and no test clones — leakage disqualifies the run, replace the example and continue. Do not paste test text into the prompt.

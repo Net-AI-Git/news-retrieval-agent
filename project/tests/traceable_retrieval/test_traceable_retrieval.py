@@ -9,7 +9,7 @@ import chromadb
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from solution import build_index
 from src.conts import FACTS_ACTIVE_COLLECTION, RETRIEVAL_EVIDENCE_STORE_FACTS

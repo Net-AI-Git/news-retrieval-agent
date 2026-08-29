@@ -125,7 +125,7 @@ def filter_counts(calls):
 
 
 def run_experiment_gather(task_data, gather_prompt):
-    return ChatOpenAI(model=os.getenv("OPENAI_GATHER_MODEL"), api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"), temperature=0, seed=151).with_structured_output(GatherResult).invoke([SystemMessage(gather_prompt), HumanMessage(json.dumps({"question": task_data["question"], "prior_queries": task_data.get("prior_queries") or [], "grade_note": task_data.get("grade_note") or ""}, ensure_ascii=False))])
+    return ChatOpenAI(model=os.getenv("OPENAI_GATHER_AGENT_MODEL"), api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"), temperature=0, seed=151).with_structured_output(GatherResult).invoke([SystemMessage(gather_prompt), HumanMessage(json.dumps({"question": task_data["question"], "prior_queries": task_data.get("prior_queries") or [], "grade_note": task_data.get("grade_note") or ""}, ensure_ascii=False))])
 
 
 def gather_experiment_node(state, task_data, gather_prompt):
@@ -141,7 +141,7 @@ def gather_experiment_node(state, task_data, gather_prompt):
 def retrieve_once_node(state, task_data, flow_id, retrieve_prompt):
     limit = GATHER_MAX_TOOL_CALLS - state.get("tool_count", 0)
     sub_questions = cleaned_sub_questions(state.get("sub_questions"), limit)
-    message = ChatOpenAI(model=os.getenv("OPENAI_MODEL"), api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"), temperature=0, seed=151).bind_tools(build_retrieve_tools(task_data, flow_id)).invoke([SystemMessage(retrieve_prompt), HumanMessage(json.dumps({"question": state["question"], "sub_questions": sub_questions}, ensure_ascii=False))])
+    message = ChatOpenAI(model=os.getenv("OPENAI_RETRIEVE_AGENT_MODEL"), api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_BASE_URL"), temperature=0, seed=151).bind_tools(build_retrieve_tools(task_data, flow_id)).invoke([SystemMessage(retrieve_prompt), HumanMessage(json.dumps({"question": state["question"], "sub_questions": sub_questions}, ensure_ascii=False))])
     tool_calls = []
     for tool_call in getattr(message, "tool_calls", None) or []:
         if len(tool_calls) >= limit:

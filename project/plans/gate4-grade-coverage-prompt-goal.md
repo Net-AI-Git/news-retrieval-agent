@@ -1,144 +1,144 @@
-# GOAL — Grade בשלושה פסקי דין עם evidence מצטבר
+# GOAL — Grade in three verdicts with accumulated evidence
 
 **Status:** Implemented — live verification failing at 9/12  
 **Author:** N/A  
 **Created:** 2026-08-28  
 **Updated:** 2026-08-29  
-**SDD(s) Impacted:** none; המשתמש אישר במפורש להמשיך ללא SDD קיים  
+**SDD(s) Impacted:** none; the user explicitly approved continuing without an existing SDD  
 
-הקובץ הזה הוא המפרט היחיד לעבודת Grade הנוכחית. אין להשתמש בתוכניות Grade ישנות לניסוח הפרומפט.
+This file is the only specification for the current Grade work. Do not use old Grade plans for prompt wording.
 
 ---
 
-## החלטת מוצר מעודכנת
+## Updated product decision
 
-פסק הדין `rewrite` בוטל.
+The `rewrite` verdict was cancelled.
 
-Grade מחזיר רק:
+Grade returns only:
 
 - `enough`
 - `missing_hop`
 - `empty_stop`
 
-כל CHUNK שנשלף נשמר ב-evidence. Grade אינו מוחק, מסנן או מבקש להתעלם מ-CHUNK. CHUNK שאינו מכסה צורך פשוט אינו נספר ככיסוי, אך נשאר במצב ונשלח ל-Answer בסיום.
+Every CHUNK that was retrieved is kept in evidence. Grade does not delete, filter, or ask to ignore a CHUNK. A CHUNK that does not cover a need simply is not counted as coverage, but it stays in state and is sent to Answer at the end.
 
-שלושת מקרי הכיסוי שסווגו בעבר `rewrite` מסווגים מעכשיו `missing_hop`: ממשיכים לחפש את המידע החסר ושומרים את ה-CHUNK הקיים.
-
----
-
-## Friend review — תיכשל אם תעשה את אלה
-
-1. אסור להכניס לפרומפט שאלות, תשובות, כותרות, snippets, URLs, תת-שאלות או חיקויים של Q01–Q11 או של `grade_coverage.json`.
-2. `grade_agent.md` נשאר מתחת ל-40 שורות ומתחת ל-350 מילים.
-3. המבנה הוא `# Identity`, אחריו `# Instructions`, ו-`# Examples` אופציונלי בלבד. אין `# Context`.
-4. אין תבניות `[INSTRUCTIONS]`, `[DEFINITIONS]`, `ROLE:`, `TASK:`, `RULES:`, `CONFIDENCE SCORE`, `[EXAMPLE 01]` או `RESPONSE FORMAT`.
-5. פסקי הדין החוקיים היחידים הם `enough`, `missing_hop`, `empty_stop`.
-6. `note` ריק ב-`enough` וב-`empty_stop`; ב-`missing_hop` הוא לא ריק ואינו חוזר על `prior_queries.question`.
-
-לפני כל הרצה חיה יש לפתוח את הפרומפט, לבדוק את ששת הסעיפים ולוודא `prompt_leak_hit=0`.
+The three coverage cases that were previously classified `rewrite` are now classified `missing_hop`: continue searching for the missing information and keep the existing CHUNK.
 
 ---
 
-## מודל וחוזה
+## Friend review — you will fail if you do these
 
-**מודל:** `OPENAI_GRADE_MODEL=openai/gpt-4.1-mini`  
-**קלט:** `{question, evidence, prior_queries}`  
-**פלט:** `GradeResult` עם `verdict` ו-`note`  
+1. Do not put in the prompt questions, answers, titles, snippets, URLs, sub-questions, or imitations of Q01–Q11 or of `grade_coverage.json`.
+2. `grade_agent.md` stays under 40 lines and under 350 words.
+3. The structure is `# Identity`, then `# Instructions`, and `# Examples` optional only. No `# Context`.
+4. No templates `[INSTRUCTIONS]`, `[DEFINITIONS]`, `ROLE:`, `TASK:`, `RULES:`, `CONFIDENCE SCORE`, `[EXAMPLE 01]`, or `RESPONSE FORMAT`.
+5. The only legal verdicts are `enough`, `missing_hop`, `empty_stop`.
+6. `note` is empty on `enough` and on `empty_stop`; on `missing_hop` it is not empty and does not repeat `prior_queries.question`.
 
-`GradeResult.verdict` מוגבל בסכמה לשלושת הערכים החוקיים. ערך אחר אינו חלק מהחוזה.
+Before every live run, open the prompt, check the six items, and verify `prompt_leak_hit=0`.
 
 ---
 
-## הזרימה
+## Model and contract
+
+**Model:** `OPENAI_GRADE_MODEL=openai/gpt-4.1-mini`  
+**Input:** `{question, evidence, prior_queries}`  
+**Output:** `GradeResult` with `verdict` and `note`  
+
+`GradeResult.verdict` is limited in the schema to the three legal values. Another value is not part of the contract.
+
+---
+
+## The flow
 
 ```text
 Question
     → Gather
     → Retrieve
-    → Tools      מוסיף CHUNKים ל-evidence
+    → Tools      adds CHUNKs to evidence
     → Grade      enough / missing_hop / empty_stop
-        missing_hop → Gather, בלי למחוק evidence
-        enough / empty_stop → Answer עם כל evidence שנצבר
+        missing_hop → Gather, without deleting evidence
+        enough / empty_stop → Answer with all accumulated evidence
 ```
 
-`GroundedAnsweringState.evidence` הוא state מצטבר. כל תוצאת Tools מתווספת לרשימה הקיימת. `answer_node` מעביר את הרשימה המלאה ל-Answer; סינון citations לאחר מכן אינו מוחק evidence מהקלט של Answer.
+`GroundedAnsweringState.evidence` is accumulated state. Every Tools result is appended to the existing list. `answer_node` passes the full list to Answer; citation filtering afterward does not delete evidence from Answer's input.
 
 ---
 
-## שלושת המצבים
+## The three states
 
 ### `enough`
 
-כל צורכי המידע מכוסים יחד ב-evidence המצטבר. עוצרים מיד. רעש אינו מונע עצירה. `note` ריק.
+All information needs are covered together in the accumulated evidence. Stop immediately. Noise does not prevent stopping. `note` is empty.
 
 ### `missing_hop`
 
-לפחות צורך אחד עדיין אינו מכוסה ויש לבצע חיפוש נוסף. זה כולל:
+At least one need is still not covered and an additional search must be performed. This includes:
 
-- צורך שטרם חופש;
-- עיתון או מסנן תאריך-פרסום שטרם נוצל;
-- CHUNK חלקי או לא קשור;
-- CHUNK מהעיתון או מתאריך הפרסום הלא נכון;
-- חפיפת מילות מפתח ללא העובדה המבוקשת.
+- a need that has not yet been searched;
+- a newspaper or publication-date filter that has not yet been used;
+- a partial or unrelated CHUNK;
+- a CHUNK from the wrong newspaper or the wrong publication date;
+- keyword overlap without the requested fact.
 
-כל evidence קיים נשמר. `note` מכוון רק לצורך או לתיקון הבא ושונה מכל שאלה קודמת.
+All existing evidence is kept. `note` aims only at the next need or correction and differs from every previous question.
 
 ### `empty_stop`
 
-כל הצרכים והפילטרים הנדרשים כבר חופשו, ה-evidence המצטבר עדיין אינו מאפשר תשובה, ואין חיפוש שונה מהותית שנותר. עוצרים ושולחים את כל evidence ל-Answer. `note` ריק.
+All required needs and filters have already been searched, the accumulated evidence still does not allow an answer, and no substantially different search remains. Stop and send all evidence to Answer. `note` is empty.
 
 ---
 
-## כיסוי וחיפוש
+## Coverage and search
 
-- מפצלים את שאלת המשתמש לצרכים עצמאיים.
-- עיתון נקשר רק לטענה שהוא אמור לדווח עליה.
-- תאריך הוא פילטר רק כשהמשתמש מגביל את תאריך פרסום הכתבה.
-- CHUNK מכסה צורך רק כשה-snippet מספק את המידע וה-URL או הכותרת תואמים לעיתון הקשור.
-- הפרכת הנחת כן/לא מכסה את ההנחה.
-- prior query נחשב לחיפוש של צורך רק כשהוא כולל את העובדה ואת העיתון/תאריכי הפרסום הנדרשים.
-- CHUNK שאינו מכסה נשמר ואינו נמחק.
+- Split the user question into independent needs.
+- A newspaper is attached only to the claim it is supposed to report on.
+- A date is a filter only when the user limits the article publication date.
+- A CHUNK covers a need only when the snippet supplies the information and the URL or title matches the attached newspaper.
+- Refuting a yes/no assumption covers the assumption.
+- A prior query counts as a search of a need only when it includes the fact and the required newspaper/publication dates.
+- A CHUNK that does not cover is kept and is not deleted.
 
 ---
 
-## GT ולוח
+## GT and board
 
-הזהב הוא `project/src/data/ground_truth/grade_coverage.json`: 12 מצבים קפואים.
+The gold is `project/src/data/ground_truth/grade_coverage.json`: 12 frozen states.
 
-| מחלקה | מספר מקרים |
+| Class | Number of cases |
 |---|---:|
 | `enough` | 3 |
 | `missing_hop` | 6 |
 | `empty_stop` | 3 |
 
-שלושת המקרים שהומרו ל-`missing_hop` הם:
+The three cases that were converted to `missing_hop` are:
 
 - `grade_missing_hop_keyword_overlap`
 - `grade_missing_hop_wrong_outlet`
 - `grade_missing_hop_off_topic_entities`
 
-מנקד מתוך `project/`:
+Score from `project/`:
 
 ```text
 $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_grade_coverage.run_live_grade_coverage
 ```
 
-אין להשתמש ב-`tests/live_grade_gt` או `tests/live_gather_gt` כציון. תוצאות וצילומי מועמדים ישנים נשארים כהיסטוריה של חוזה ארבעת פסקי הדין ואינם מקור אמת לחוזה החדש.
+Do not use `tests/live_grade_gt` or `tests/live_gather_gt` as the score. Old results and candidate snapshots remain as history of the four-verdict contract and are not the source of truth for the new contract.
 
 ---
 
-## הצלחה
+## Success
 
-`case_success=1` כאשר:
+`case_success=1` when:
 
-- `predicted_verdict` שווה ל-`expected_verdict`;
+- `predicted_verdict` equals `expected_verdict`;
 - `prompt_leak_hit=0`;
-- `runtime_error` ריק;
-- `enough` / `empty_stop`: `note` ריק;
-- `missing_hop`: `note` לא ריק ואינו שווה לשאלה קודמת.
+- `runtime_error` is empty;
+- `enough` / `empty_stop`: `note` is empty;
+- `missing_hop`: `note` is not empty and is not equal to a previous question.
 
-Pass הוא שני קבצי `metrics_*.csv` החדשים ביותר ברצף, אותו prompt ואותו model, עם 12/12 בכל קובץ.
+Pass is the two newest `metrics_*.csv` files in a row, the same prompt and the same model, with 12/12 in every file.
 
 ---
 
@@ -151,45 +151,45 @@ Pass הוא שני קבצי `metrics_*.csv` החדשים ביותר ברצף, א
 - `project/src/orchestration/grounded_answering_workflow.py`
 - `project/src/prompts/grade_agent.md`
 
-**GT ובדיקות:**
+**GT and tests:**
 
 - `project/src/data/ground_truth/grade_coverage.json`
 - `project/src/data/ground_truth/README.md`
 - `project/tests/live_grade_coverage/`
 - `project/tests/grounded_answering/`
 
-**תיעוד פעיל:**
+**Active documentation:**
 
 - `project/plans/gate4-grade-coverage-prompt-goal.md`
-- קטע Grade ב-`project/README.md`
+- Grade section in `project/README.md`
 
-**מחוץ לתחום:**
+**Out of scope:**
 
-- תוכן Gather, Retrieve ו-Answer;
-- Q01–Q11 וה-GT שלהם;
-- כלי החיפוש ו-vector stores;
-- snapshots ו-CSV היסטוריים;
-- מבחני Grade/Gather הישנים.
+- Gather, Retrieve, and Answer content;
+- Q01–Q11 and their GT;
+- search tools and vector stores;
+- historical snapshots and CSV;
+- the old Grade/Gather tests.
 
 ---
 
 ## Verification
 
-1. חיפוש פעיל מוודא שאין `GRADE_VERDICT_REWRITE` או `rewrite` בחוזה runtime, בפרומפט או ב-GT החדש.
-2. בדיקה דטרמיניסטית מוודאת ש-`GradeResult` דוחה `rewrite`.
-3. בדיקה דטרמיניסטית מוודאת ש-Answer מקבל את כל ה-evidence, כולל CHUNK לא רלוונטי.
-4. בדיקות Friend review ו-leakage עוברות.
-5. לוח Grade החי עובר 12/12 פעמיים ברצף, או מדווח במדויק אם נדרש ניסוי prompt נוסף.
+1. An active search verifies there is no `GRADE_VERDICT_REWRITE` or `rewrite` in the runtime contract, the prompt, or the new GT.
+2. A deterministic test verifies that `GradeResult` rejects `rewrite`.
+3. A deterministic test verifies that Answer receives all evidence, including an irrelevant CHUNK.
+4. Friend review and leakage checks pass.
+5. The live Grade board passes 12/12 twice in a row, or reports precisely if additional prompt experiment is required.
 
 ---
 
-## תוצאות חיות
+## Live results
 
-- `candidate_append_only_three_verdicts.md`: ‏9/12, אפס leakage, אפס שגיאות runtime.
-- `candidate_three_verdict_precedence.md`: ‏8/12, אפס leakage, אפס שגיאות runtime — נשמר כהיסטוריה ולא קודם.
-- שמונת הניסויים הנוספים מ-2026-08-29:
+- `candidate_append_only_three_verdicts.md`: 9/12, zero leakage, zero runtime errors.
+- `candidate_three_verdict_precedence.md`: 8/12, zero leakage, zero runtime errors — kept as history and not promoted.
+- The eight additional experiments from 2026-08-29:
 
-| מועמד | ציון |
+| Candidate | Score |
 |---|---:|
 | `hard_missing_precedence` | 9/12 |
 | `stop_before_near_miss` | 8/12 |
@@ -200,9 +200,9 @@ Pass הוא שני קבצי `metrics_*.csv` החדשים ביותר ברצף, א
 | `boolean_decision_table` | 7/12 |
 | `hard_stop_exceptions` | 9/12 |
 
-כל שמונת הניסויים הסתיימו עם אפס leakage ואפס שגיאות runtime. `candidate_evidence_only_coverage.md` נשאר בפרודקשן כשובר שוויון: הוא שומר על כלל כיסוי מבוסס-snippet בלבד ואינו מחזיר `enough` ללא תשובה מפורשת ב-evidence.
+All eight experiments ended with zero leakage and zero runtime errors. `candidate_evidence_only_coverage.md` remains in production as the tie-breaker: it keeps a snippet-only coverage rule and does not return `enough` without an explicit answer in the evidence.
 
-לא הושג pass כפול. הגבול שנותר הוא בין `missing_hop` לבין `empty_stop` כאשר כל הצרכים כבר חופשו אך איכות ה-CHUNKים שונה.
+A double pass was not achieved. The remaining boundary is between `missing_hop` and `empty_stop` when all needs have already been searched but CHUNK quality differs.
 
 ---
 

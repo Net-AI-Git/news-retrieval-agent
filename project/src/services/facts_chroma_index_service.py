@@ -2,17 +2,12 @@ import json
 from hashlib import sha256
 from datetime import datetime
 from pathlib import Path
-from uuid import NAMESPACE_URL, uuid4, uuid5
+from uuid import NAMESPACE_URL, uuid5
 
-from dotenv import load_dotenv
-
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, DATA_DIR, FACTS_CHROMA_PATH, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS, PDA_ARTICLE_ID_PREFIX
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS, PDA_ARTICLE_ID_PREFIX
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
 from ..repositories.logging_repository import LoggingRepository
-
-
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 def load_facts_sources(task_data):
@@ -122,7 +117,3 @@ def run_facts_chroma_index(task_data, flow_id):
         LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
     LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return chroma_path
-
-
-if __name__ == "__main__":
-    run_facts_chroma_index({"data_dir": DATA_DIR, "chroma_path": FACTS_CHROMA_PATH}, str(uuid4()))

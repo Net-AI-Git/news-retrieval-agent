@@ -10,7 +10,7 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 base_url = (os.getenv("OPENAI_BASE_URL") or "").rstrip("/")
 api_key = os.getenv("OPENAI_API_KEY") or ""
-chat_model = os.getenv("OPENAI_MODEL")
+chat_model = os.getenv("OPENAI_ANSWER_AGENT_MODEL")
 started = perf_counter()
 report = {"chat_model": chat_model, "http_status": None, "elapsed_seconds": None, "response_body": None, "error": ""}
 try:

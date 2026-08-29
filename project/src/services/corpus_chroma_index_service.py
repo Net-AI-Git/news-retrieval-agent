@@ -3,19 +3,17 @@ import re
 from hashlib import sha256
 from datetime import datetime
 from pathlib import Path
-from uuid import NAMESPACE_URL, uuid4, uuid5
+from uuid import NAMESPACE_URL, uuid5
 
 import pysbd
 import tiktoken
-from dotenv import load_dotenv
 
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_CHROMA_PATH, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS, DATA_DIR, PDA_ARTICLE_ID_PREFIX
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_CHUNK_MAX_TOKENS, CHROMA_CHUNK_MIN_TOKENS, CHROMA_CHUNK_TARGET_TOKENS, CHROMA_OVERLAP_TARGET_TOKENS, CHROMA_SCHEMA_VERSION, CHROMA_TOKEN_ENCODING, CORPUS_EXPECTED_RECORD_COUNT, CORPUS_EXPECTED_RECORDS_SHA256, CORPUS_REQUIRED_FIELDS, PDA_ARTICLE_ID_PREFIX
 from ..repositories.corpus_chroma_repository import CorpusChromaRepository
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.logging_repository import LoggingRepository
 
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 tokenizer = tiktoken.get_encoding(CHROMA_TOKEN_ENCODING)
 segmenter = pysbd.Segmenter(language="en", clean=False, char_span=True)
 
@@ -169,7 +167,3 @@ def run_corpus_chroma_index(task_data, flow_id):
         LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
     LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return chroma_path
-
-
-if __name__ == "__main__":
-    run_corpus_chroma_index({"data_dir": DATA_DIR, "chroma_path": CORPUS_CHROMA_PATH}, str(uuid4()))

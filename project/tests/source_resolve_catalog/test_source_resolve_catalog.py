@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 from uuid import uuid4
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.services.source_resolve_service import accepted_source_name, run_resolve_source
 

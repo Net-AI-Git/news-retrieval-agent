@@ -17,7 +17,7 @@ $env:OTEL_SDK_DISABLED="true"
 uv run python -m tests.live_retrieve_gt.run_live_retrieve_gt
 ```
 
-Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`). No vector store. No console print; success is a new CSV pair.
+Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_RETRIEVE_AGENT_MODEL`). No vector store. No console print; success is a new CSV pair.
 
 ## Inputs
 
