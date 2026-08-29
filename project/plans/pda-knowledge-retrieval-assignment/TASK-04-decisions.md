@@ -1,6 +1,6 @@
 # TASK 04 — Decision Log
 
-**Status:** In progress  
+**Status:** In progress — first-hop Gather gold coverage closed 2026-08-29; Grade stop / e2e still open  
 **Scope:** Agentic grounded answering loop. Tool contracts stay as TASK 03. This loop binds `search_facts` only.
 
 Closed decisions stay here with the trade-off that justified them. Open items stay listed until chosen.
@@ -330,7 +330,7 @@ Working prompts: `src/prompts/gather_agent.md`, `src/prompts/retrieve_agent.md`.
 
 **Agent contracts (follow-up work splits here):**
 
-Gather owns only hop inventory. Input is `{question, prior_queries, grade_note}`. Output is `sub_questions: list[str]`. Copy the outlet or publication window that belongs to that claim into that string. One need, one outlet, one string. Do not pack NYT+WSJ. Do not attach The Age to a TechCrunch claim. Do not emit featured-in-only hops. Never answer. Never call tools. Retry emits only new strings that follow `grade_note` and differ from every `prior_queries` question. Remaining first-hop Gather misses: Q04 packed, Q07 over-split.
+Gather owns only hop inventory. Input is `{question, prior_queries, grade_note}`. Output is `sub_questions: list[str]`. Copy the outlet or publication window that belongs to that claim into that string. One need, one outlet, one string. Do not pack NYT+WSJ. Do not attach The Age to a TechCrunch claim. Do not emit featured-in-only hops. Never answer. Never call tools. Retry emits only new strings that follow `grade_note` and differ from every `prior_queries` question. First-hop gold coverage on this split is closed (2026-08-29); see “Gather first-hop gold chunks” below.
 
 Retrieve owns only one `search_facts` fill. Input is one isolated `HumanMessage(sub_question)` — no parent question, no siblings. Copy the string into `question`. If this string names a news outlet, `source` is a short token from this string; else omit. Never person/company/topic as `source`. If this string names a publication window, ISO-8601 with UTC offset (`T00:00:00+00:00` / `T23:59:59+00:00`). Event dates stay in `question`. Never answer. Catalog canonicalize is `run_resolve_source`, not this agent. Q01 with `source` filled and gold not rank 1 is retrieval/k, not retrieve isolation.
 
@@ -374,7 +374,7 @@ Orchestration fans Gather’s list into sequential retrieve invokes, merges `too
 - Cost: 264 words and two format-only examples instead of a 126-word zero-shot prompt; more prompt tokens and a larger review surface.
 - Gain: stable 11/11 tool filling twice, explicit separation of arguments, and a reproducible record showing that the improvement did not come from evaluation leakage.
 - Constraint honored: the LLM still fills typed `search_facts` arguments; orchestration only isolates/fans out hops; tools remain the only answer-time data path; canonicalization and ranking remain downstream.
-- Remaining boundary: this closes Retrieve-only tool filling, not full Gate 4. Gather decomposition/stop, Grade continuation, evidence sufficiency, citations/refusal, and Gate 5 e2e still need their own evidence.
+- Remaining boundary: this closes Retrieve-only tool filling. First-hop Gather gold coverage is closed separately (see “Gather first-hop gold chunks”). Grade continuation/stop, evidence sufficiency, citations/refusal, and Gate 5 e2e still need their own evidence.
 
 ### Gather-only chat model: `OPENAI_GATHER_MODEL` (2026-08-28)
 
@@ -390,6 +390,44 @@ Orchestration fans Gather’s list into sequential retrieve invokes, merges `too
 - Cost: one extra env var and a stronger Gather slug.
 - Gain: Gather can use a stronger model without moving retrieve/Grade/Answer.
 - Constraint honored: no GPT repository; each agent still constructs `ChatOpenAI` from env.
+
+### Gather first-hop gold chunks (Gate 4, 2026-08-29)
+
+**Why this gate exists:** ASSIGNMENT.md asks for agent-loop reasoning, not only the final graph (README: Agentic grounded answering). Sections B/C require that the LLM, not orchestration, choose retrieval calls. After Retrieve was frozen at 11/11 twice on prepared hops, the remaining first-hop gap was Gather: each emitted string is Retrieve’s entire user message, so packaging, outlet assignment, and distinctive nouns decide whether isolated `search_facts` (Top-1) returns every local-GT `facts` URL+sentence in the first tools batch. Hop-inventory wording vs `sub_questions` and a one-shot Retrieve batch over the whole list were rejected as scores.
+
+**Evaluation contract:** `tests/live_gather_first_hop` runs one Gather turn, then one Retrieve invoke per sub-question (`tool_choice="search_facts"`), then that batch’s tools. Grade, Answer, later Gather turns, and `search_corpus` are out. `first_hop_success` requires `prompt_leak_hit=0`, gold URL+snippet complete on answerable rows (or sourced calls on unanswerable Q04/Q09), and named publication-date filters on Q08. Sub-question wording need not match GT. Acceptance is two consecutive newest `metrics_*.csv` files, same Gather prompt, Retrieve file unchanged.
+
+**Experiment discipline:** edit only `src/prompts/gather_agent.md`; never edit `retrieve_agent.md`. One named hypothesis per live run; snapshot `tests/live_gather_first_hop/inputs/candidate_<name>.md`. Vendor outline `# Identity` / `# Instructions` / `# Examples` (synthetic pairs required). No evaluation questions, gold facts, titles, URLs, or isomorphic “same question with fake names”. Soft cap 120 lines / 1200 words. Do not score `live_gather_hops`, `live_gather_gt`, `live_retrieve_gt`, or `live_gather_retrieve_once`.
+
+**Honest experiment record (chunk board, `openai/gpt-4.1` Gather, frozen Retrieve):**
+
+| Candidate | Named hypothesis | Result | Evidence and decision |
+| --- | --- | --- | --- |
+| [`candidate_abilities_first_outlet_example.md`](../../tests/live_gather_first_hop/inputs/candidate_abilities_first_outlet_example.md) | Split 3+ abilities; leftover event on the second outlet | 10/11 | [`metrics_2026-08-28_22-22-14.csv`](../../tests/live_gather_first_hop/outputs/metrics_2026-08-28_22-22-14.csv): Q01–Q06, Q08–Q11 gold complete. Q07 sent debug/music with `source=Engadget`, so the second TechCrunch fact missed. |
+| Batch Retrieve (`live_gather_retrieve_once`) | One Retrieve invoke over the whole Gather list | **8/11** | [`metrics_2026-08-28_22-30-09.csv`](../../tests/live_gather_retrieve_once/outputs/metrics_2026-08-28_22-30-09.csv): worse than isolated hops. Rejected; production stays one Retrieve invoke per string. |
+| [`candidate_no_clone_abilities_onto_second_outlet.md`](../../tests/live_gather_first_hop/inputs/candidate_no_clone_abilities_onto_second_outlet.md) | Remaining abilities stay on the first outlet; no full-list clone | 8/11 | [`metrics_2026-08-28_22-51-15.csv`](../../tests/live_gather_first_hop/outputs/metrics_2026-08-28_22-51-15.csv): Q07 gold complete (generate / debug+music on TechCrunch, anniversary on Engadget). Q03 invented NYT/WSJ; Q10/Q11 Top-1 missed. Identity “every string must contain an outlet” caused invented sources. |
+| [`candidate_never_invent_outlets.md`](../../tests/live_gather_first_hop/inputs/candidate_never_invent_outlets.md) | Copy an outlet only if the user named it | 11/11 then 9/11 | [`metrics_2026-08-29_10-44-57.csv`](../../tests/live_gather_first_hop/outputs/metrics_2026-08-29_10-44-57.csv) 11/11 (Q07 still cloned a fourth ability string onto Engadget). Confirmation [`10-49-25`](../../tests/live_gather_first_hop/outputs/metrics_2026-08-29_10-49-25.csv) 9/11: Q07 cloned the full ability list onto both outlets; Q01 0.0 with the same Sporting News strings that hit gold on other runs. |
+| [`candidate_featured_in_abilities_first_outlet.md`](../../tests/live_gather_first_hop/inputs/candidate_featured_in_abilities_first_outlet.md) | Featured-in / covered / articles still assign abilities only to the first outlet; exactly three strings | **11/11 twice** | Consecutive newest files [`metrics_2026-08-29_11-16-45.csv`](../../tests/live_gather_first_hop/outputs/metrics_2026-08-29_11-16-45.csv) and [`metrics_2026-08-29_11-19-10.csv`](../../tests/live_gather_first_hop/outputs/metrics_2026-08-29_11-19-10.csv): all 11 `first_hop_success=1`, `prompt_leak_hit=0`. Q07 is generate→TechCrunch, debug+music→TechCrunch, anniversary→Engadget. Retrieve `git diff` empty. |
+
+**Operational notes (not prompt failures):** a free-tier embedding 429 (`nvidia/nemotron-3-embed-1b:free`, [`22-57-13`](../../tests/live_gather_first_hop/outputs/metrics_2026-08-28_22-57-13.csv) 2/11) zeroed every answerable gold while unanswerable source-counts still passed. Immediate back-to-back boards sometimes left Q01 at 0.0 URL recall with unchanged Gather strings; the same query later hit gold at ~62% (`tests/tmp/probe_q01_search.py`). Those rows were not used as prompt regressions.
+
+**Why the examples are valid:** four invented pairs (Pebble Dispatch / Lichen Record, brine pump, kiln abilities + damper, three who-claims with no outlet). No evaluation entity, fact, title, URL, or three-ability chatbot/anniversary clone. They teach dated split, 1+(remaining) abilities, first-outlet vs second-outlet event, and never inventing an outlet.
+
+**Final choice:** keep [`src/prompts/gather_agent.md`](../../src/prompts/gather_agent.md) equal to [`candidate_featured_in_abilities_first_outlet.md`](../../tests/live_gather_first_hop/inputs/candidate_featured_in_abilities_first_outlet.md). The prompt is 42 lines / 682 words, vendor headings plus required synthetic examples, SHA-256 `46C99D175657EC7AE96B14C2C72CB277555C7786C9C795F6E947E5FCB5941F00`. Both passing runs used that unchanged text. Spec: [`gate4-gather-gold-chunks-prompt-goal.md`](../gate4-gather-gold-chunks-prompt-goal.md).
+
+**Chosen over:**
+
+- Scoring hop inventory (`live_gather_hops`) or wording-match to GT `sub_questions` — leakage and the wrong metric.
+- Batch Retrieve over the Gather list — 8/11 vs isolated hops.
+- Raising `RETRIEVAL_TOP_K` or editing Retrieve to compensate for a wrong outlet on Q07.
+- “Same question with fake names” few-shot of Q07 — invalid even if the score rises.
+
+**Trade-off we accepted:**
+
+- Cost: a longer Gather prompt (682 words, four synthetic pairs) and `OPENAI_GATHER_MODEL=openai/gpt-4.1`; first-question embedding flakes on back-to-back live boards.
+- Gain: first-batch gold URL+snippet 11/11 twice with frozen isolated Retrieve; Q07 abilities stay on the first named outlet; Q03 no longer invents newspapers.
+- Constraint honored: Gather still has no tools; Retrieve still copies `question`/`source`/dates from one string; `RETRIEVAL_TOP_K=1`; no exam text in the prompt.
+- Remaining boundary: this closes first-hop gold coverage only. Grade stop vs rewrite (`too_late` extra hops), citations/refusal, and Gate 5 e2e still need their own evidence.
 
 ---
 

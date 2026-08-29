@@ -31,4 +31,4 @@ Pass: two consecutive newest metrics files, same prompts, `first_hop_success=1` 
 
 ## Status
 
-Active — 2026-08-28. Isolated first-hop with this Gather: **10/11** (`live_gather_first_hop/outputs/metrics_2026-08-28_22-22-14.csv`), miss Q07. One Retrieve invoke: **8/11** (`outputs/metrics_2026-08-28_22-30-09.csv`). Extra misses: Q01 Top-1 with `source` filled; Q06 `The Guardian` string left `source` empty. Q07 still misses the second TechCrunch fact. Isolated hops remain better. Production Retrieve stays frozen.
+Archived — 2026-08-29. Isolated first-hop gold coverage is **11/11 twice** (`live_gather_first_hop` `metrics_2026-08-29_11-16-45.csv`, `11-19-10.csv`). This batch-Retrieve experiment stayed **8/11** (`outputs/metrics_2026-08-28_22-30-09.csv`) and is not the score. Production Retrieve stays frozen and isolated.

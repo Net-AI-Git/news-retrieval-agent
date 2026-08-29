@@ -1,6 +1,6 @@
 # GOAL — Gather מלאי הופים 11/11, בלי leakage
 
-**Status:** Superseded — 2026-08-28. Hop-inventory wording vs `sub_questions` is no longer the score. Continuation: gold `facts` chunks in the first `search_facts` batch. Spec: [`gate4-gather-gold-chunks-prompt-goal.md`](gate4-gather-gold-chunks-prompt-goal.md).  
+**Status:** Superseded — 2026-08-28. Hop-inventory wording vs `sub_questions` is no longer the score. Gold `facts` chunks in the first `search_facts` batch: **Done** 2026-08-29 ([`gate4-gather-gold-chunks-prompt-goal.md`](gate4-gather-gold-chunks-prompt-goal.md)).  
 **Author:** N/A  
 **Created:** 2026-08-28  
 **Target Completion:** TBD  

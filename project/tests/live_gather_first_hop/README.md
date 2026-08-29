@@ -31,4 +31,4 @@ Pass: two consecutive newest metrics files, same Gather prompt (retrieve frozen)
 
 ## Status
 
-Active — 2026-08-28. Spec: `project/plans/gate4-gather-gold-chunks-prompt-goal.md`. Gather must fit frozen isolated Retrieve; never edit `retrieve_agent.md`. Production Gather is 10/11 (`metrics_2026-08-28_22-22-14.csv`); remaining miss Q07 (debug/music on Engadget). Do not score `live_gather_retrieve_once`.
+Passing — 2026-08-29. Spec: `project/plans/gate4-gather-gold-chunks-prompt-goal.md` (Done). Production Gather: `src/prompts/gather_agent.md` (`candidate_featured_in_abilities_first_outlet.md`). Consecutive 11/11: `outputs/metrics_2026-08-29_11-16-45.csv`, `outputs/metrics_2026-08-29_11-19-10.csv`. Retrieve frozen. Do not score `live_gather_retrieve_once`. Working log: `project/plans/pda-knowledge-retrieval-assignment/TASK-04-decisions.md` “Gather first-hop gold chunks”.
