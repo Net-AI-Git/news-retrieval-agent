@@ -1,0 +1,12 @@
+﻿question_id,hop_count,hops_passed,retrieve_success,prompt_leak_hit,rewritten_question_count,source_fail_count,dates_fail_count,call_fail_count,answered_count,fail_reasons,runtime_error
+Q01,2,0,0,0,2,2,0,2,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q02,2,0,0,0,2,2,0,2,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q03,3,0,0,0,3,0,0,3,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q04,2,0,0,0,2,2,0,2,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q05,3,0,0,0,3,1,0,3,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q06,2,0,0,0,2,2,0,2,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q07,3,0,0,0,3,3,0,3,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q08,2,0,0,0,2,2,2,2,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q09,2,0,0,0,2,2,0,2,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q10,2,0,0,0,2,2,0,2,0,runtime_error,OpenAIConnectionError('Connection error.')
+Q11,2,0,0,0,2,2,0,2,0,runtime_error,OpenAIConnectionError('Connection error.')

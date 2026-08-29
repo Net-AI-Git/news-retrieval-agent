@@ -9,17 +9,21 @@
   "expected_tool_calls": [
     {
       "sub_question_index": 1,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
-        "question": "What financial amount, if any, did TechCrunch report for Microsoft's investment in OpenAI?"
+        "question": "What financial amount, if any, did TechCrunch report for Microsoft's investment in OpenAI?",
+        "source": "TechCrunch"
       },
       "expectation": "required"
     },
     {
       "sub_question_index": 2,
+      "agent": "retrieve",
       "tool": "search_facts",
       "arguments": {
-        "question": "What information did The Age report about the founding of OpenAI, including any financial figure stated in the article?"
+        "question": "What information did The Age report about the founding of OpenAI, including any financial figure stated in the article?",
+        "source": "The Age"
       },
       "expectation": "required"
     }

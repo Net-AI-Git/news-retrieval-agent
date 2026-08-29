@@ -1,0 +1,33 @@
+﻿question_id,hop_index,sub_question,gold_match_index,is_extra,is_featured_in,packed_outlets_in_string
+Q01,1,Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?,1,0,0,0
+Q01,2,Did the Sporting News report a win for the Detroit Lions against the Green Bay Packers?,2,0,0,0
+Q02,1,Did TechCrunch report on Flipboard's integration of the ActivityPub protocol?,1,0,0,0
+Q02,2,Did The Verge discuss the structure of the ActivityPub protocol in social media contexts?,2,0,0,0
+Q03,1,Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts?,1,0,0,0
+Q03,2,Who is alleged to have committed fraud for personal gain in relation to the FTX collapse?,2,0,0,0
+Q03,3,Who persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?,3,0,0,0
+Q04,1,"Which company, known for its insurance products, is mentioned in an article in the New York Times?",1,0,0,0
+Q04,2,"Which company, known for its insurance products, is mentioned in an article in the Wall Street Journal?",2,0,0,0
+Q04,3,What is the name of the CEO of Pets Best who has the initial 'M'?,,1,0,0
+Q05,1,Which company is at the center of concerns from news publishers for anticompetitive practices?,1,0,0,0
+Q05,2,Which company has been compared to OpenAI's GPT-3.5 in terms of product performance?,2,0,0,0
+Q05,3,Which company is suspected by the public of potential foul play according to a report by 'The Age'?,3,0,0,0
+Q06,1,Does The Age suggest that 'People with an Aboriginal ancestor' have a specific process to identify with their Aboriginal heritage?,1,0,0,0
+Q06,2,Does The Guardian present a stance on cultural identity for 'Indigenous people'?,2,0,0,0
+Q06,3,Is there a comparison made between the identification processes of 'People with an Aboriginal ancestor' and 'Indigenous people' in the articles from The Age and The Guardian?,,1,0,1
+Q07,1,What is the name of the general-purpose chatbot developed by OpenAI?,,1,0,0
+Q07,2,Which articles featured the general-purpose chatbot developed by OpenAI?,,1,0,0
+Q07,3,What abilities does the general-purpose chatbot developed by OpenAI have?,,1,0,0
+Q07,4,When did the general-purpose chatbot developed by OpenAI celebrate its first anniversary since its release?,,1,0,0
+Q08,1,"Did 'The Independent - Travel' report on the 'Swiss slopes of Zermatt and pistes of Vail in Colorado' on October 13th, 2023?",,1,0,0
+Q08,2,"Did 'The Independent - Travel' report on 'Tremblant Ski Resort' on October 25th, 2023?",2,0,0,0
+Q08,3,"Did the coverage of ski resorts by 'The Independent - Travel' change after their report on the 'Swiss slopes of Zermatt and pistes of Vail in Colorado' on October 13th, 2023?",1,0,0,0
+Q09,1,What advancements in space technology by Forerunner are detailed in the BBC News article?,1,0,0,0
+Q09,2,What financial growth and market expansion of Forerunner is discussed in the Forbes article?,2,0,0,0
+Q09,3,Which CEO is known for leading the innovative charge in space exploration?,,1,0,0
+Q09,4,Which CEO is recognized for a significant company valuation increase?,,1,0,0
+Q09,5,Which CEO has been featured in both the BBC News and Forbes publications?,,1,1,1
+Q10,1,Does the TechCrunch article claim that Microsoft's investment in OpenAI is unspecified?,1,0,0,0
+Q10,2,Does The Age article focus on the founding of OpenAI without specifying financial figures?,,1,0,0
+Q11,1,Did TechCrunch report on DeepMind's expected release of a next-generation chatbot named Gemini?,1,0,0,0
+Q11,2,"Did TechCrunch report that Google released a ""lite"" version of the Gemini model known as Gemini Pro?",2,0,0,0

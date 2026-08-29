@@ -2,13 +2,33 @@ from pathlib import Path
 
 
 OTEL_SERVICE_NAME = "news-retrieval-agent"
-LOCAL_LOGGER_NAME = "news-retrieval-agent"
-LOCAL_LOG_FILE_PATH = str(Path(__file__).resolve().parents[1] / "local_logging_audit" / "audit_log" / "events.jsonl")
-
+LOGGER_NAME = "news-retrieval-agent"
+LOG_FILE_PATH = str(Path(__file__).resolve().parents[1] / "observability" / "logging_audit" / "audit_log" / "events.jsonl")
+TELEMETRY_DIRECTORY_PATH = str(Path(__file__).resolve().parents[1] / "observability" / "telemetry")
+TELEMETRY_FILE_PREFIX = "spans"
+TELEMETRY_FLOW_ID_ATTRIBUTE = "flow_id"
+TELEMETRY_EVENT_DETAILS_ATTRIBUTE = "details"
+TELEMETRY_REDACTED_VALUE = "[REDACTED]"
+TELEMETRY_SECRET_KEY_PARTS = ("api_key", "authorization", "credential", "exception.message", "exception.stacktrace", "password", "secret", "token")
+TELEMETRY_SECRET_VALUE_MARKERS = ("api_key", "authorization", "bearer ", "password", "secret", "sk-")
+TELEMETRY_WORKFLOW_OPERATION_NAME = "invoke_workflow"
+TELEMETRY_WORKFLOW_NAME = "grounded_answering"
+TELEMETRY_RETRIEVAL_OPERATION_NAME = "retrieval"
+TELEMETRY_RETRIEVAL_NAME = "knowledge"
+TELEMETRY_EMBEDDING_OPERATION_NAME = "embeddings"
+TELEMETRY_EMBEDDING_NAME = "openai"
 
 OPENAI_EMBEDDING_TIMEOUT_SECONDS = 60
 OPENAI_EMBEDDING_MAX_RETRIES = 3
-REQUIRED_SOLUTION_ENV_VARS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_EMBEDDING_MODEL", "OPENAI_MODEL")
+REQUIRED_SOLUTION_ENV_VARS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_EMBEDDING_MODEL", "OPENAI_GATHER_AGENT_MODEL", "OPENAI_GRADE_AGENT_MODEL", "OPENAI_ANSWER_AGENT_MODEL", "OPENAI_RETRIEVE_AGENT_MODEL")
+
+DATA_DIR = str(Path(__file__).resolve().parent / "data")
+MISSION_OUTPUT_DIRECTORY = str(Path(__file__).resolve().parents[1] / "output_for_mission")
+ANSWERS_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "answers.json")
+TRANSCRIPTS_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "transcripts.json")
+MISSION_DASHBOARD_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "dashboard.html")
+FACTS_CHROMA_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "facts_chroma")
+CORPUS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "corpus_chroma")
 
 CHROMA_BATCH_SIZE = 128
 CHROMA_SCHEMA_VERSION = "1"
@@ -19,18 +39,27 @@ CHROMA_CHUNK_MIN_TOKENS = 400
 CHROMA_CHUNK_MAX_TOKENS = 600
 CHROMA_OVERLAP_TARGET_TOKENS = 100
 CHROMA_QUERY_INCLUDE = ["documents", "metadatas", "distances"]
+
 PDA_ARTICLE_ID_PREFIX = "pda-article:"
 FACTS_ACTIVE_COLLECTION = "facts"
 FACTS_STAGING_COLLECTION = "facts_staging"
 FACTS_PREVIOUS_COLLECTION = "facts_previous"
+FACTS_SOURCE_CATALOG_FILENAME = "source_catalog.json"
+FACTS_REQUIRED_FIELDS = {"fact", "article_title", "source", "category", "published_at", "url"}
+FACTS_EXPECTED_RECORD_COUNT = 251
+FACTS_EXPECTED_RECORDS_SHA256 = "6c2bf19bf163930eb59b96c3d967aea1c21482811e42212893be7b4a7bae7820"
+
 CORPUS_ACTIVE_COLLECTION = "corpus"
 CORPUS_STAGING_COLLECTION = "corpus_staging"
 CORPUS_PREVIOUS_COLLECTION = "corpus_previous"
-DATA_DIR = str(Path(__file__).resolve().parent / "data")
-CORPUS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "corpus_chroma")
-FACTS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "facts_chroma")
-RETRIEVAL_TOP_K = 10
-RETRIEVAL_FACTS_MIN_SIMILARITY = 0.35
+CORPUS_REQUIRED_FIELDS = {"title", "author", "source", "published_at", "category", "url", "body"}
+CORPUS_EXPECTED_RECORD_COUNT = 7629
+CORPUS_EXPECTED_RECORDS_SHA256 = "323a0dbe750ab62eb1672d548f9de283b0df7cd5e55901e479a92141f22ac5ff"
+
+SOURCE_RESOLVE_MIN_SIMILARITY = 0.5
+SOURCE_RESOLVE_MIN_MARGIN = 0.05
+
+RETRIEVAL_TOP_K = 1
 RETRIEVAL_CORPUS_MIN_SIMILARITY = 0.35
 RETRIEVAL_HIGH_CONFIDENCE_SIMILARITY = 0.4
 RETRIEVAL_PERCENT_SCALE = 100
@@ -40,15 +69,16 @@ RETRIEVAL_STATUS_EMPTY = "empty"
 RETRIEVAL_STATUS_OK = "ok"
 RETRIEVAL_STATUS_LOW_CONFIDENCE = "low_confidence"
 RETRIEVAL_STATUS_INVALID = "invalid"
+
 ANSWER_STATUS_ANSWERED = "answered"
 ANSWER_STATUS_REFUSED = "refused"
 ANSWER_REFUSAL_TEXT = "Insufficient information"
+
 GATHER_MAX_LLM_TURNS = 6
-GATHER_MAX_TOOL_CALLS = 8
+GATHER_MAX_TOOL_CALLS = 5
+GRADE_VERDICT_ENOUGH = "enough"
+GRADE_VERDICT_MISSING_HOP = "missing_hop"
+GRADE_VERDICT_EMPTY_STOP = "empty_stop"
+GRADE_CONTINUE_VERDICTS = (GRADE_VERDICT_MISSING_HOP,)
 GROUNDED_ANSWERING_RECURSION_LIMIT = 32
-FACTS_REQUIRED_FIELDS = {"fact", "article_title", "source", "category", "published_at", "url"}
-CORPUS_REQUIRED_FIELDS = {"title", "author", "source", "published_at", "category", "url", "body"}
-FACTS_EXPECTED_RECORD_COUNT = 251
-CORPUS_EXPECTED_RECORD_COUNT = 7629
-FACTS_EXPECTED_RECORDS_SHA256 = "6c2bf19bf163930eb59b96c3d967aea1c21482811e42212893be7b4a7bae7820"
-CORPUS_EXPECTED_RECORDS_SHA256 = "323a0dbe750ab62eb1672d548f9de283b0df7cd5e55901e479a92141f22ac5ff"
+WORKERS = 2

@@ -2,17 +2,12 @@ import json
 from hashlib import sha256
 from datetime import datetime
 from pathlib import Path
-from uuid import NAMESPACE_URL, uuid4, uuid5
+from uuid import NAMESPACE_URL, uuid5
 
-from dotenv import load_dotenv
-
-from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, DATA_DIR, FACTS_CHROMA_PATH, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS, PDA_ARTICLE_ID_PREFIX
+from ..conts import CHROMA_BATCH_SIZE, CHROMA_SCHEMA_VERSION, FACTS_EXPECTED_RECORD_COUNT, FACTS_EXPECTED_RECORDS_SHA256, FACTS_REQUIRED_FIELDS, PDA_ARTICLE_ID_PREFIX
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
-from ..repositories.local_logging_repository import LocalLoggingRepository
-
-
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+from ..repositories.logging_repository import LoggingRepository
 
 
 def load_facts_sources(task_data):
@@ -88,8 +83,24 @@ def remove_stale_facts(records, task_data, flow_id):
         raise ValueError("Facts extra record cleanup failed")
 
 
+def store_source_catalog(records, task_data, flow_id):
+    source_names = []
+    for record in records:
+        source_name = record["metadata"]["source"]
+        if source_name not in source_names:
+            source_names.append(source_name)
+    embeddings = OpenAIEmbeddingsRepository.generate_embeddings({**task_data, "texts": source_names}, flow_id)
+    if not embeddings or len(embeddings) != len(source_names):
+        raise ValueError("Source catalog embedding generation failed")
+    catalog_sources = []
+    for source_name, embedding in zip(source_names, embeddings):
+        catalog_sources.append({"name": source_name, "embedding": embedding})
+    if not FactsChromaRepository.write_source_catalog({**task_data, "source_catalog": {"sources": catalog_sources}}, flow_id):
+        raise ValueError("Source catalog storage failed")
+
+
 def run_facts_chroma_index(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     chroma_path = None
     try:
         facts, corpus = load_facts_sources(task_data)
@@ -99,12 +110,10 @@ def run_facts_chroma_index(task_data, flow_id):
         prepare_facts_collection(task_data, flow_id)
         embedding_dimensions = embed_records(records, task_data, flow_id)
         remove_stale_facts(records, task_data, flow_id)
-        chroma_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
+        promoted_path = promote_facts_collection(records, embedding_dimensions, task_data, flow_id)
+        store_source_catalog(records, task_data, flow_id)
+        chroma_path = promoted_path
     except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return chroma_path
-
-
-if __name__ == "__main__":
-    run_facts_chroma_index({"data_dir": DATA_DIR, "chroma_path": FACTS_CHROMA_PATH}, str(uuid4()))

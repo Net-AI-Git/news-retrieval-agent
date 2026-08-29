@@ -1,0 +1,468 @@
+[
+  {
+    "id": "Q01",
+    "question": "Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season, and did the same source also report a win for the Detroit Lions against the Green Bay Packers?",
+    "flow_id": "a5a0ae67-bf91-42fa-80cd-449266add5a3",
+    "turns": [
+      {
+        "stage": "gather",
+        "gather_count": 1,
+        "sub_questions": [
+          "What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?",
+          "What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers?"
+        ],
+        "tool_calls": [],
+        "next_route": "retrieve"
+      },
+      {
+        "stage": "retrieve",
+        "gather_count": 1,
+        "tool_calls": [
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?",
+              "source": "Sporting News"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers?",
+              "source": "Sporting News"
+            }
+          }
+        ],
+        "next_route": "tools"
+      },
+      {
+        "stage": "tools",
+        "tool_count": 2,
+        "tool_calls": [
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did the Sporting News report about a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?",
+              "source": "Sporting News"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did the Sporting News report about a win for the Detroit Lions against the Green Bay Packers?",
+              "source": "Sporting News"
+            }
+          }
+        ],
+        "evidence": [
+          {
+            "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+            "snippet": "The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14.",
+            "url": "https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06",
+            "published_at": "2023-12-03T21:49:04+00:00",
+            "match_percentage": 61.83
+          },
+          {
+            "article_title": "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",
+            "snippet": "Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay.",
+            "url": "https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437",
+            "published_at": "2023-09-28T23:54:07+00:00",
+            "match_percentage": 41.25
+          }
+        ]
+      },
+      {
+        "stage": "grade",
+        "verdict": "enough",
+        "note": ""
+      },
+      {
+        "stage": "answer",
+        "answer_result": {
+          "status": "answered",
+          "answer": "Yes",
+          "citations": [
+            {
+              "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+              "url": "https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06",
+              "snippet": "The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14."
+            },
+            {
+              "article_title": "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",
+              "url": "https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437",
+              "snippet": "Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay."
+            }
+          ]
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+        "snippet": "The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14.",
+        "url": "https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06",
+        "published_at": "2023-12-03T21:49:04+00:00",
+        "match_percentage": 61.83
+      },
+      {
+        "article_title": "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",
+        "snippet": "Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay.",
+        "url": "https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437",
+        "published_at": "2023-09-28T23:54:07+00:00",
+        "match_percentage": 41.25
+      }
+    ],
+    "answer_result": {
+      "status": "answered",
+      "answer": "Yes",
+      "citations": [
+        {
+          "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+          "url": "https://www.sportingnews.com/us/nfl/news/nfl-standings-2023-playoff-picture-week-13/d51dfe0fbd879c7a1bbadb06",
+          "snippet": "The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14."
+        },
+        {
+          "article_title": "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",
+          "url": "https://www.sportingnews.com/us/nfl/news/lions-packers-live-score-highlights-thursday-night-football/c8af29e6e4202ddb91a41437",
+          "snippet": "Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay."
+        }
+      ]
+    },
+    "public": {
+      "answer": "Yes",
+      "citations": [
+        {
+          "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+          "snippet": "The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14."
+        },
+        {
+          "article_title": "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",
+          "snippet": "Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay."
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q02",
+    "question": "Did TechCrunch report on Flipboard's integration of the ActivityPub protocol before The Verge discussed the structure of the ActivityPub protocol in social media contexts?",
+    "flow_id": "a1cbcfa4-7f89-40fb-bef3-a480dd3aa768",
+    "turns": [
+      {
+        "stage": "gather",
+        "gather_count": 1,
+        "sub_questions": [
+          "What did TechCrunch report on Flipboard's integration of the ActivityPub protocol?",
+          "What did The Verge report about the structure of the ActivityPub protocol in social media contexts?"
+        ],
+        "tool_calls": [],
+        "next_route": "retrieve"
+      },
+      {
+        "stage": "retrieve",
+        "gather_count": 1,
+        "tool_calls": [
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did TechCrunch report on Flipboard's integration of the ActivityPub protocol?",
+              "source": "TechCrunch"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did The Verge report about the structure of the ActivityPub protocol in social media contexts?",
+              "source": "The Verge"
+            }
+          }
+        ],
+        "next_route": "tools"
+      },
+      {
+        "stage": "tools",
+        "tool_count": 2,
+        "tool_calls": [
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did TechCrunch report on Flipboard's integration of the ActivityPub protocol?",
+              "source": "TechCrunch"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "What did The Verge report about the structure of the ActivityPub protocol in social media contexts?",
+              "source": "The Verge"
+            }
+          }
+        ],
+        "evidence": [
+          {
+            "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+            "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added.",
+            "url": "https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/",
+            "published_at": "2023-12-18T16:00:49+00:00",
+            "match_percentage": 35.98
+          },
+          {
+            "article_title": "2023 in social media: the case for the fediverse",
+            "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL.",
+            "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub",
+            "published_at": "2023-12-19T13:00:00+00:00",
+            "match_percentage": 45.89
+          }
+        ]
+      },
+      {
+        "stage": "grade",
+        "verdict": "enough",
+        "note": ""
+      },
+      {
+        "stage": "answer",
+        "answer_result": {
+          "status": "answered",
+          "answer": "Yes",
+          "citations": [
+            {
+              "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+              "url": "https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/",
+              "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added."
+            },
+            {
+              "article_title": "2023 in social media: the case for the fediverse",
+              "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub",
+              "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL."
+            }
+          ]
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+        "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added.",
+        "url": "https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/",
+        "published_at": "2023-12-18T16:00:49+00:00",
+        "match_percentage": 35.98
+      },
+      {
+        "article_title": "2023 in social media: the case for the fediverse",
+        "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL.",
+        "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub",
+        "published_at": "2023-12-19T13:00:00+00:00",
+        "match_percentage": 45.89
+      }
+    ],
+    "answer_result": {
+      "status": "answered",
+      "answer": "Yes",
+      "citations": [
+        {
+          "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+          "url": "https://techcrunch.com/2023/12/18/flipboard-becomes-a-federated-app-with-support-for-activitypub/",
+          "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added."
+        },
+        {
+          "article_title": "2023 in social media: the case for the fediverse",
+          "url": "https://www.theverge.com/23990974/social-media-2023-fediverse-mastodon-threads-activitypub",
+          "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL."
+        }
+      ]
+    },
+    "public": {
+      "answer": "Yes",
+      "citations": [
+        {
+          "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+          "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added."
+        },
+        {
+          "article_title": "2023 in social media: the case for the fediverse",
+          "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL."
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q03",
+    "question": "Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts, alleged to have committed fraud for personal gain, and also persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?",
+    "flow_id": "b0ac7bcc-1cf0-40c1-ae86-39f3d99c31d7",
+    "turns": [
+      {
+        "stage": "gather",
+        "gather_count": 1,
+        "sub_questions": [
+          "Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts?",
+          "Who is alleged to have committed fraud for personal gain in the FTX collapse?",
+          "Who persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?"
+        ],
+        "tool_calls": [],
+        "next_route": "retrieve"
+      },
+      {
+        "stage": "retrieve",
+        "gather_count": 1,
+        "tool_calls": [
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts?"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "Who is alleged to have committed fraud for personal gain in the FTX collapse?"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "Who persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?"
+            }
+          }
+        ],
+        "next_route": "tools"
+      },
+      {
+        "stage": "tools",
+        "tool_count": 3,
+        "tool_calls": [
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts?"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "Who is alleged to have committed fraud for personal gain in the FTX collapse?"
+            }
+          },
+          {
+            "name": "search_facts",
+            "args": {
+              "question": "Who persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?"
+            }
+          }
+        ],
+        "evidence": [
+          {
+            "article_title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",
+            "snippet": "The second week of the trial’s standout testimony came from Alameda Research’s former CEO Caroline Ellison, who claimed she took $14 billion from customers to repay debts to lenders, using them as a line of credit under the instruction of SBF.",
+            "url": "https://techcrunch.com/2023/10/06/sbf-trial-the-latest-updates-from-the-ftx-collapses-courtroom-drama/",
+            "published_at": "2023-10-06T17:22:02+00:00",
+            "match_percentage": 57.37
+          },
+          {
+            "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+            "snippet": "The prosecution painted Bankman-Fried as someone who knowingly committed fraud to achieve great wealth, power and influence, while the defense countered that the FTX founder acted in good faith, never meant to commit fraud or steal and basically got in over his head.",
+            "url": "https://techcrunch.com/2023/10/07/sam-altman-backs-a-teens-startup-google-unveils-the-pixel-8-and-tiktok-tests-an-ad-free-tier/",
+            "published_at": "2023-10-07T20:15:26+00:00",
+            "match_percentage": 50.09
+          },
+          {
+            "article_title": "Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand",
+            "snippet": "And after Bankman-Fried left Jane Street, the high-frequency trading firm where the former billionaire got his start in finance after MIT, he persuaded Yedidia to join him as a trader at Alameda and then as a developer at FTX.",
+            "url": "https://fortune.com/crypto/2023/10/04/sam-bankman-fried-lawyers-opening-statements-witnesses-marc-antoine-julliard-adam-yedidia-ftx-commodities-trader-developer/",
+            "published_at": "2023-10-04T23:32:53+00:00",
+            "match_percentage": 54.62
+          }
+        ]
+      },
+      {
+        "stage": "grade",
+        "verdict": "enough",
+        "note": ""
+      },
+      {
+        "stage": "answer",
+        "answer_result": {
+          "status": "answered",
+          "answer": "Sam Bankman-Fried",
+          "citations": [
+            {
+              "article_title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",
+              "url": "https://techcrunch.com/2023/10/06/sbf-trial-the-latest-updates-from-the-ftx-collapses-courtroom-drama/",
+              "snippet": "The second week of the trial’s standout testimony came from Alameda Research’s former CEO Caroline Ellison, who claimed she took $14 billion from customers to repay debts to lenders, using them as a line of credit under the instruction of SBF."
+            },
+            {
+              "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+              "url": "https://techcrunch.com/2023/10/07/sam-altman-backs-a-teens-startup-google-unveils-the-pixel-8-and-tiktok-tests-an-ad-free-tier/",
+              "snippet": "The prosecution painted Bankman-Fried as someone who knowingly committed fraud to achieve great wealth, power and influence, while the defense countered that the FTX founder acted in good faith, never meant to commit fraud or steal and basically got in over his head."
+            },
+            {
+              "article_title": "Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand",
+              "url": "https://fortune.com/crypto/2023/10/04/sam-bankman-fried-lawyers-opening-statements-witnesses-marc-antoine-julliard-adam-yedidia-ftx-commodities-trader-developer/",
+              "snippet": "And after Bankman-Fried left Jane Street, the high-frequency trading firm where the former billionaire got his start in finance after MIT, he persuaded Yedidia to join him as a trader at Alameda and then as a developer at FTX."
+            }
+          ]
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "article_title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",
+        "snippet": "The second week of the trial’s standout testimony came from Alameda Research’s former CEO Caroline Ellison, who claimed she took $14 billion from customers to repay debts to lenders, using them as a line of credit under the instruction of SBF.",
+        "url": "https://techcrunch.com/2023/10/06/sbf-trial-the-latest-updates-from-the-ftx-collapses-courtroom-drama/",
+        "published_at": "2023-10-06T17:22:02+00:00",
+        "match_percentage": 57.37
+      },
+      {
+        "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+        "snippet": "The prosecution painted Bankman-Fried as someone who knowingly committed fraud to achieve great wealth, power and influence, while the defense countered that the FTX founder acted in good faith, never meant to commit fraud or steal and basically got in over his head.",
+        "url": "https://techcrunch.com/2023/10/07/sam-altman-backs-a-teens-startup-google-unveils-the-pixel-8-and-tiktok-tests-an-ad-free-tier/",
+        "published_at": "2023-10-07T20:15:26+00:00",
+        "match_percentage": 50.09
+      },
+      {
+        "article_title": "Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand",
+        "snippet": "And after Bankman-Fried left Jane Street, the high-frequency trading firm where the former billionaire got his start in finance after MIT, he persuaded Yedidia to join him as a trader at Alameda and then as a developer at FTX.",
+        "url": "https://fortune.com/crypto/2023/10/04/sam-bankman-fried-lawyers-opening-statements-witnesses-marc-antoine-julliard-adam-yedidia-ftx-commodities-trader-developer/",
+        "published_at": "2023-10-04T23:32:53+00:00",
+        "match_percentage": 54.62
+      }
+    ],
+    "answer_result": {
+      "status": "answered",
+      "answer": "Sam Bankman-Fried",
+      "citations": [
+        {
+          "article_title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",
+          "url": "https://techcrunch.com/2023/10/06/sbf-trial-the-latest-updates-from-the-ftx-collapses-courtroom-drama/",
+          "snippet": "The second week of the trial’s standout testimony came from Alameda Research’s former CEO Caroline Ellison, who claimed she took $14 billion from customers to repay debts to lenders, using them as a line of credit under the instruction of SBF."
+        },
+        {
+          "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+          "url": "https://techcrunch.com/2023/10/07/sam-altman-backs-a-teens-startup-google-unveils-the-pixel-8-and-tiktok-tests-an-ad-free-tier/",
+          "snippet": "The prosecution painted Bankman-Fried as someone who knowingly committed fraud to achieve great wealth, power and influence, while the defense countered that the FTX founder acted in good faith, never meant to commit fraud or steal and basically got in over his head."
+        },
+        {
+          "article_title": "Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand",
+          "url": "https://fortune.com/crypto/2023/10/04/sam-bankman-fried-lawyers-opening-statements-witnesses-marc-antoine-julliard-adam-yedidia-ftx-commodities-trader-developer/",
+          "snippet": "And after Bankman-Fried left Jane Street, the high-frequency trading firm where the former billionaire got his start in finance after MIT, he persuaded Yedidia to join him as a trader at Alameda and then as a developer at FTX."
+        }
+      ]
+    },
+    "public": {
+      "answer": "Sam Bankman-Fried",
+      "citations": [
+        {
+          "article_title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",
+          "snippet": "The second week of the trial’s standout testimony came from Alameda Research’s former CEO Caroline Ellison, who claimed she took $14 billion from customers to repay debts to lenders, using them as a line of credit under the instruction of SBF."
+        },
+        {
+          "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+          "snippet": "The prosecution painted Bankman-Fried as someone who knowingly committed fraud to achieve great wealth, power and influence, while the defense countered that the FTX founder acted in good faith, never meant to commit fraud or steal and basically got in over his head."
+        },
+        {
+          "article_title": "Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand",
+          "snippet": "And after Bankman-Fried left Jane Street, the high-frequency trading firm where the former billionaire got his start in finance after MIT, he persuaded Yedidia to join him as a trader at Alameda and then as a developer at FTX."
+        }
+      ]
+    }
+  }
+]

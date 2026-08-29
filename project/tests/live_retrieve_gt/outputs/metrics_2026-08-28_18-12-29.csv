@@ -1,0 +1,12 @@
+﻿question_id,hop_count,hops_passed,retrieve_success,prompt_leak_hit,rewritten_question_count,source_fail_count,dates_fail_count,call_fail_count,answered_count,fail_reasons,runtime_error
+Q01,2,2,1,0,0,0,0,0,0,,
+Q02,2,2,1,0,0,0,0,0,0,,
+Q03,3,3,1,0,0,0,0,0,0,,
+Q04,2,2,1,0,0,0,0,0,0,,
+Q05,3,3,1,0,0,0,0,0,0,,
+Q06,2,2,1,0,0,0,0,0,0,,
+Q07,3,3,1,0,0,0,0,0,0,,
+Q08,2,2,1,0,0,0,0,0,0,,
+Q09,2,2,1,0,0,0,0,0,0,,
+Q10,2,2,1,0,0,0,0,0,0,,
+Q11,2,2,1,0,0,0,0,0,0,,

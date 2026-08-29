@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, model_validator
 
-from ..conts import ANSWER_REFUSAL_TEXT
+from ..conts import ANSWER_REFUSAL_TEXT, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP
 
 
 class RetrievedItem(BaseModel):
@@ -17,6 +17,7 @@ class SearchEvidenceInput(BaseModel):
     question: str
     published_from: Optional[str] = None
     published_to: Optional[str] = None
+    source: Optional[str] = None
 
 
 class SearchEvidenceOutput(BaseModel):
@@ -35,6 +36,15 @@ class AnswerResult(BaseModel):
     status: str
     answer: str = ""
     citations: list[AnswerCitation] = []
+
+
+class GatherResult(BaseModel):
+    sub_questions: list[str]
+
+
+class GradeResult(BaseModel):
+    verdict: Literal[GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GRADE_VERDICT_EMPTY_STOP]
+    note: str = ""
 
 
 class SolutionCitation(BaseModel):

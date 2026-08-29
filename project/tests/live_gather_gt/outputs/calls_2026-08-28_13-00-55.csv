@@ -1,0 +1,7 @@
+﻿question_id,call_index,gather_turn,question,source,published_from,published_to
+Q01,1,1,Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season?,,,
+Q01,2,1,Did the Sporting News report a win for the Detroit Lions against the Green Bay Packers in Week 13 of the NFL season?,,,
+Q02,1,1,Did TechCrunch report on Flipboard's integration of the ActivityPub protocol?,,,
+Q02,2,1,Did The Verge discuss the structure of the ActivityPub protocol in social media contexts?,,,
+Q02,3,2,Did TechCrunch report on Flipboard's integration of the ActivityPub protocol?,,,
+Q02,4,3,Did TechCrunch report on Flipboard's integration of the ActivityPub protocol?,TechCrunch,,

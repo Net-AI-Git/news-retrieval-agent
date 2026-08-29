@@ -14,8 +14,6 @@ config.dictConfig(LOG_CONFIG)
 class Settings(BaseSettings):
     docs_user: str
     docs_pass: str
-    description: str = ""
-    version: str = "0.1.0"
     project_name: str = "Template AI APP"
 
     model_config = SettingsConfigDict(extra="allow")

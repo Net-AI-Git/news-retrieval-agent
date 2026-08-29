@@ -1,0 +1,48 @@
+[
+  {
+    "id": "Q01",
+    "answer": "Yes",
+    "citations": [
+      {
+        "article_title": "NFL standings: Updated AFC, NFC playoff picture for Week 13 of 2023 season",
+        "snippet": "The Cowboys opened Week 13 by rallying to beat the Seahawks on Thursday night, keeping the heat on the losing Eagles ahead of them before hosting that team in Dallas in Week 14."
+      },
+      {
+        "article_title": "Lions vs. Packers live score, updates, highlights from NFL 'Thursday Night Football' game",
+        "snippet": "Fueled by a stout defensive showing, a gritty run game and a bit of fairy dust from the likes of St. Brown, Sam LaPorta and Josh Reynolds, the Lions cruised to a 34-20 win over their hated NFC North rivals, Green Bay."
+      }
+    ]
+  },
+  {
+    "id": "Q02",
+    "answer": "Yes",
+    "citations": [
+      {
+        "article_title": "Flipboard becomes a federated app with support for ActivityPub",
+        "snippet": "“What we’re announcing on Monday is basically our roadmap for how we will be rolling out ActivityPub, and effectively tearing down the walls around our own walled garden,” he added."
+      },
+      {
+        "article_title": "2023 in social media: the case for the fediverse",
+        "snippet": "In the world of ActivityPub, every post everywhere is made up of a sender, a message, and a URL."
+      }
+    ]
+  },
+  {
+    "id": "Q03",
+    "answer": "Sam Bankman-Fried",
+    "citations": [
+      {
+        "article_title": "SBF Trial: The latest updates from the FTX collapse’s courtroom drama",
+        "snippet": "The second week of the trial’s standout testimony came from Alameda Research’s former CEO Caroline Ellison, who claimed she took $14 billion from customers to repay debts to lenders, using them as a line of credit under the instruction of SBF."
+      },
+      {
+        "article_title": "Sam Altman backs teens’ startup, Google unveils the Pixel 8 and TikTok tests an ad-free tier",
+        "snippet": "The prosecution painted Bankman-Fried as someone who knowingly committed fraud to achieve great wealth, power and influence, while the defense countered that the FTX founder acted in good faith, never meant to commit fraud or steal and basically got in over his head."
+      },
+      {
+        "article_title": "Is Sam Bankman-Fried a bad ‘man’ or a good ‘boy’? Lawyers swap opening statements before first witnesses take the stand",
+        "snippet": "And after Bankman-Fried left Jane Street, the high-frequency trading firm where the former billionaire got his start in finance after MIT, he persuaded Yedidia to join him as a trader at Alameda and then as a developer at FTX."
+      }
+    ]
+  }
+]

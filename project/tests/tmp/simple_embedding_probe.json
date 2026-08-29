@@ -1,0 +1,27 @@
+{
+  "base_url": "https://openrouter.ai/api/v1",
+  "model": "nvidia/nemotron-3-embed-1b:free",
+  "api_key_present": true,
+  "api_key_prefix": "sk-or-v1...",
+  "elapsed_seconds": 3.2,
+  "http_status": 200,
+  "response_body": {
+    "id": "gen-emb-1787843428-rghYZe5K3Zb6sWCGV3BK",
+    "object": "list",
+    "model": "private/openrouter/nvidia/nemotron-3-embed-1b",
+    "embedding_count": 1,
+    "embedding_length": 2048,
+    "usage": {
+      "prompt_tokens": 3,
+      "total_tokens": 3,
+      "cost": 0,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      }
+    }
+  },
+  "error": ""
+}
