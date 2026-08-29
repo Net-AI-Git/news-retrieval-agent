@@ -64,10 +64,10 @@ poetry.lock
 Pipfile.lock
 
 # Local logging artifacts, keep the source folder only
-local_logging_audit/audit_log/*
-!local_logging_audit/audit_log/.gitkeep
-local_logging_dashboard/dashboard.html
-local_telemetry/*.jsonl
+observability/logging_audit/audit_log/*
+!observability/logging_audit/audit_log/.gitkeep
+observability/logging_dashboard/dashboard.html
+observability/telemetry/*.jsonl
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
 vector_stores/**

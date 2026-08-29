@@ -4,22 +4,22 @@ import unittest
 from pathlib import Path
 from uuid import uuid4
 
-from local_logging_audit.local_logging_audit_client import LOCAL_LOG_FILE_PATH, open_local_logs, run_local_log_query
-from local_logging_dashboard.build_dashboard import build_dashboard
-from src.repositories.local_logging_repository import LocalLoggingRepository
+from observability.logging_audit.logging_audit_client import LOG_FILE_PATH, open_logs, run_log_query
+from observability.logging_dashboard.build_dashboard import build_dashboard
+from src.repositories.logging_repository import LoggingRepository
 
 
 def emit_test_event(flow_id):
-    return LocalLoggingRepository.log_event(status="ERROR", content={"message": "בדיקת Unicode"}, flow_id=flow_id, trace_id="trace-test", level="ERROR")
+    return LoggingRepository.log_event(status="ERROR", content={"message": "בדיקת Unicode"}, flow_id=flow_id, trace_id="trace-test", level="ERROR")
 
 
-class LocalLoggingTests(unittest.TestCase):
+class LoggingTests(unittest.TestCase):
 
     def test_log_event_appends_exact_event_shape(self):
         flow_id = str(uuid4())
-        lines_before = LOCAL_LOG_FILE_PATH.read_text(encoding="utf-8").splitlines() if LOCAL_LOG_FILE_PATH.exists() else []
+        lines_before = LOG_FILE_PATH.read_text(encoding="utf-8").splitlines() if LOG_FILE_PATH.exists() else []
         response = emit_test_event(flow_id)
-        stored_lines = LOCAL_LOG_FILE_PATH.read_text(encoding="utf-8").splitlines()
+        stored_lines = LOG_FILE_PATH.read_text(encoding="utf-8").splitlines()
         stored_log = json.loads(stored_lines[-1])
         self.assertEqual("written", response)
         self.assertEqual(len(lines_before) + 1, len(stored_lines))
@@ -30,7 +30,7 @@ class LocalLoggingTests(unittest.TestCase):
     def test_sql_query_reads_written_event(self):
         flow_id = str(uuid4())
         emit_test_event(flow_id)
-        query_results = run_local_log_query(f"SELECT status, process, content, flow_id, trace_id, level FROM local_logs WHERE flow_id = '{flow_id}'")
+        query_results = run_log_query(f"SELECT status, process, content, flow_id, trace_id, level FROM logs WHERE flow_id = '{flow_id}'")
         self.assertEqual(1, len(query_results))
         self.assertEqual({"message": "בדיקת Unicode"}, json.loads(query_results[0]["content"]))
         self.assertEqual({"status": "ERROR", "process": "emit_test_event", "flow_id": flow_id, "trace_id": "trace-test", "level": "ERROR"}, {key: query_results[0][key] for key in ["status", "process", "flow_id", "trace_id", "level"]})
@@ -43,8 +43,8 @@ class LocalLoggingTests(unittest.TestCase):
 
     def test_missing_and_empty_logs_produce_empty_table(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
-            connection = open_local_logs(Path(temporary_directory) / "events.jsonl")
-            self.assertEqual(0, connection.execute("SELECT count(*) FROM local_logs").fetchone()[0])
+            connection = open_logs(Path(temporary_directory) / "events.jsonl")
+            self.assertEqual(0, connection.execute("SELECT count(*) FROM logs").fetchone()[0])
             connection.close()
 
     def test_malformed_log_fails_visibly(self):
@@ -52,7 +52,7 @@ class LocalLoggingTests(unittest.TestCase):
             malformed_log_path = Path(temporary_directory) / "events.jsonl"
             malformed_log_path.write_text("not-json\n", encoding="utf-8")
             with self.assertRaises(json.JSONDecodeError):
-                open_local_logs(malformed_log_path)
+                open_logs(malformed_log_path)
 
 
 if __name__ == "__main__":

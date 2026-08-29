@@ -22,7 +22,7 @@ cd project
 uv run uvicorn main:app
 ```
 
-Then `POST /api/grounded-answering/run` with `{"content": "<question>"}`.
+Then `POST /api/grounded-answering/run` with `{"content": "<question>"}`. The envelope is `{content, flow_id, trace_id}`; `content` is the answer JSON.
 
 ## Inputs
 
@@ -30,7 +30,7 @@ No files in `inputs/`. The live test loads Q01 from `src/data/questions.json`.
 
 ## Expected outcome
 
-`build_index` and `answer` are importable. A live `answer` returns only `answer` plus citations that contain only `article_title` and `snippet` strings.
+`build_index` and `answer` are importable. A live `answer` returns only `answer` plus citations that contain only `article_title` and `snippet` strings. The HTTP envelope from `grounded_answering()` also returns `flow_id` and the span-derived `trace_id`.
 
 ## Status
 

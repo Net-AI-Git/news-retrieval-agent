@@ -8,7 +8,7 @@ Architectural and operational documentation. The authoritative source for **what
 ```
 docs/
 ├── AGENTS.md                         ← THIS FILE
-├── local_logging.md                  ← cross-cutting observability guide
+├── logging.md                  ← cross-cutting observability guide
 ├── spec/                             ← approved spec/waiver documents
 ├── testing-process/                  ← one manager-facing test-process doc per feature (feature-test-doc skill)
 │   └── <feature_name>.md             ← plain-English, no code
@@ -30,7 +30,7 @@ docs/
 - **Manager-facing test-process docs live under [`testing-process/`](testing-process/)** — authored by [`feature-test-doc`](../../.agents/skills/feature-test-doc/SKILL.md#L1). One `<feature_name>.md` per feature, plain-English (no code), explaining end-to-end how that feature is tested; updated in place when the feature's code changes.
 
 ## Coding Rules (specific to this directory)
-- One SDD per feature, all under [`SDD/`](SDD/). Do NOT create a single project-wide `SDD.*`. Cross-feature material goes into a topic-specific `.md` at the top of [`docs/`](.) (like [`local_logging.md`](local_logging.md#L1)).
+- One SDD per feature, all under [`SDD/`](SDD/). Do NOT create a single project-wide `SDD.*`. Cross-feature material goes into a topic-specific `.md` at the top of [`docs/`](.) (like [`logging.md`](logging.md#L1)).
 - Feature directory name = feature name in `snake_case`, matches the service file name where reasonable (e.g. `SDD/example_feature/` ↔ [`../src/services/example_feature_service.py`](../src/services/example_feature_service.py#L1) if that is the entry-point).
 - The SDD's **internal structure is the author's choice** — markdown, Word, hand-drawn diagrams, whatever the team uses. This `AGENTS.md` does NOT prescribe sections.
 - Every architectural change in code requires a paired update to the **relevant** SDD — or, if the change spans features, to every SDD it touches.

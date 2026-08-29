@@ -20,9 +20,9 @@
 - Errors bubble up to the caller's single top-level try/except.
 
 ## SECTION 3: NO SILENT FAILURES
-- Every `except` MUST log through `LocalLoggingRepository` with `level="ERROR"`. No `except: pass` or `except: return`.
-- `LocalLoggingRepository.log_event` is the foundational sink: it does not emit its own STARTING/FINISHED events, and a file-write failure reports to stderr instead of recursively logging.
-- `local_telemetry_repository.py` is the foundational trace sink: its setup, processor, and write methods do not emit lifecycle logs, and instrumentation setup failures report to stderr instead of recursively tracing.
+- Every `except` MUST log through `LoggingRepository` with `level="ERROR"`. No `except: pass` or `except: return`.
+- `LoggingRepository.log_event` is the foundational sink: it does not emit its own STARTING/FINISHED events, and a file-write failure reports to stderr instead of recursively logging.
+- `telemetry_repository.py` is the foundational trace sink: its setup, processor, and write methods do not emit lifecycle logs, and instrumentation setup failures report to stderr instead of recursively tracing.
 - Error content MUST include `repr(err)` (preserves exception type name).
 - ERROR format: `content={"error": repr(err), "task_data": task_data}`.
 - Any failure = entire function fails. No partial execution or recovery.
@@ -48,7 +48,7 @@
 
 > Why the shape is fixed: dashboards and monitor queries parse these events by field. `content=task_data` verbatim keeps every event queryable on the same keys — a cherry-picked dict silently drops the field a future query needs, and manual timestamps disagree with the infrastructure's own.
 
-- `LocalLoggingRepository.log_event(...)` on a single line.
+- `LoggingRepository.log_event(...)` on a single line.
 - Never pass `process=` — it is auto-detected by the repository.
 - No manual `time.time()` or duration calculations — timestamps from infrastructure.
 - Pass `task_data` directly as `content` — no cherry-picked dicts or `{**base_ctx}` spreads.
@@ -80,38 +80,38 @@
 ```python
 # Orchestrator
 def perform_main_flow(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     try:
         matched_feature_codes = task_data.get("matched_feature_codes", [])
         if FEATURE_CODE in matched_feature_codes:
             run_feature_name(task_data, flow_id)
     except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return
 
 # Service
 def run_feature_name(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     try:
         feature_result = GptFeatureNameRepository.run_feature(task_data, flow_id)
         OracleRepository.save_feature_results(task_data, feature_result, flow_id)
     except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return
 
 # GPT Repository
 @staticmethod
 def run_feature(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     response_text = ""
     try:
         response = GptFeatureNameRepository.client.chat.completions.create(model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), seed=151, top_p=1, messages=[...])
         response_text = response.choices[0].message.content
     except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return response_text
 ```
 

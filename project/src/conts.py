@@ -2,9 +2,9 @@ from pathlib import Path
 
 
 OTEL_SERVICE_NAME = "news-retrieval-agent"
-LOCAL_LOGGER_NAME = "news-retrieval-agent"
-LOCAL_LOG_FILE_PATH = str(Path(__file__).resolve().parents[1] / "local_logging_audit" / "audit_log" / "events.jsonl")
-LOCAL_TELEMETRY_DIRECTORY_PATH = str(Path(__file__).resolve().parents[1] / "local_telemetry")
+LOGGER_NAME = "news-retrieval-agent"
+LOG_FILE_PATH = str(Path(__file__).resolve().parents[1] / "observability" / "logging_audit" / "audit_log" / "events.jsonl")
+TELEMETRY_DIRECTORY_PATH = str(Path(__file__).resolve().parents[1] / "observability" / "telemetry")
 TELEMETRY_FILE_PREFIX = "spans"
 TELEMETRY_FLOW_ID_ATTRIBUTE = "flow_id"
 TELEMETRY_EVENT_DETAILS_ATTRIBUTE = "details"

@@ -7,7 +7,7 @@ All external-system access. Three repository categories live here, **never mixed
 - **Oracle DB** → single `oracle_repository.py` (shared by all features; add when first Oracle feature is needed).
 - **CRM** → single `crm_repository.py` (shared by all features; add when first CRM feature is needed).
 - **GPT / LLM** → one file per feature: `gpt_<feature_name>_repository.py`.
-- **Shared infra** → [`redis_repository.py`](redis_repository.py:1), [`local_logging_repository.py`](local_logging_repository.py:1), [`local_telemetry_repository.py`](local_telemetry_repository.py:1). Optional vendor-client stubs shipped as reusable examples: [`pinecone_repository.py`](pinecone_repository.py:1), [`embeddings_repository.py`](embeddings_repository.py:1) — delete any your service does not use.
+- **Shared infra** → [`redis_repository.py`](redis_repository.py:1), [`logging_repository.py`](logging_repository.py:1), [`telemetry_repository.py`](telemetry_repository.py:1). Optional vendor-client stubs shipped as reusable examples: [`pinecone_repository.py`](pinecone_repository.py:1), [`embeddings_repository.py`](embeddings_repository.py:1) — delete any your service does not use.
 
 If a feature needs Oracle + CRM + GPT, the **service** coordinates between them — never the repositories themselves.
 
@@ -17,9 +17,9 @@ If a feature needs Oracle + CRM + GPT, the **service** coordinates between them 
 - Single class `OracleRepository` with engine as class-level attribute.
 - All methods `@staticmethod`. SQL `text(...)` strings written **inside the method body** — never at class or module scope.
 - Methods grouped by feature, new features appended at the bottom. Each method handles its own connection + commit.
-- Every method accepts `task_data` and `flow_id`. Logs the full `task_data` via [`local_logging_repository.py`](local_logging_repository.py:1) for batch traceability.
+- Every method accepts `task_data` and `flow_id`. Logs the full `task_data` via [`logging_repository.py`](logging_repository.py:1) for batch traceability.
 - **No business logic** — no threshold comparisons, no conditional derivations, no data transformations. The service computes values; the repository persists them ready-made.
-- Imports: `os`, `dotenv`, `sqlalchemy` (`create_engine`, `text`, `Engine`), `LocalLoggingRepository`.
+- Imports: `os`, `dotenv`, `sqlalchemy` (`create_engine`, `text`, `Engine`), `LoggingRepository`.
 
 ## SECTION B — GPT (`gpt_<feature_name>_repository.py`)
 - One file per feature. Class name: `Gpt<FeatureName>Repository`.
@@ -30,7 +30,7 @@ If a feature needs Oracle + CRM + GPT, the **service** coordinates between them 
 - `json.loads()` happens **in the same method**, immediately after `response.choices[0].message.content`. Parsing is part of the GPT contract, never offloaded to the service.
 - Plain-text responses: return `response.choices[0].message.content` as-is, no parsing.
 - Header comment at the very top of the file describing input/output examples — **the only comment exception** in the codebase.
-- Imports: `os`, `json`, `re`, `Path`, `httpx`, `OpenAI`, `dotenv`, `LocalLoggingRepository`.
+- Imports: `os`, `json`, `re`, `Path`, `httpx`, `OpenAI`, `dotenv`, `LoggingRepository`.
 
 ## SECTION C — CRM (`crm_repository.py`)
 - Single class `CrmRepository` with session/cert as class-level mechanism.
@@ -39,7 +39,7 @@ If a feature needs Oracle + CRM + GPT, the **service** coordinates between them 
 - Simple payloads (**1–3 lines** of construction) → the service calls `CrmRepository.send_to_crm()` directly (no wrapper).
 - Complex body (**4+ lines** of payload construction or logic) → a dedicated method on `CrmRepository`.
 - No trivial per-feature wrappers that only construct a dict and delegate.
-- Imports: `os`, `ssl`, `tempfile`, `time`, `requests`, `urllib3`, `cryptography`, `dotenv`, `LocalLoggingRepository`.
+- Imports: `os`, `ssl`, `tempfile`, `time`, `requests`, `urllib3`, `cryptography`, `dotenv`, `LoggingRepository`.
 
 ## SECTION D — General (every repository)
 - No abstractions, no indirection (no dataclasses, factories, generic callers).
@@ -47,8 +47,8 @@ If a feature needs Oracle + CRM + GPT, the **service** coordinates between them 
 - Each repository owns its client/engine/session; logic lives directly in the methods.
 - Single top-level `try/except Exception` per method. STARTING log before `try`, ERROR log inside `except`, FINISHED log after the block (see [`.Codex/rules/04-error-and-logging.md`](../../../.Codex/rules/04-error-and-logging.md:1)).
 - ERROR log content: `{"error": repr(err), "task_data": task_data}`.
-- `LocalLoggingRepository.log_event` is the foundational shared sink and keeps its six-field event signature; it does not emit lifecycle events for its own write operation.
-- `local_telemetry_repository.py` is the foundational shared trace sink; its setup, processor, and write methods do not emit lifecycle logs or recursively trace themselves.
+- `LoggingRepository.log_event` is the foundational shared sink and keeps its six-field event signature; it does not emit lifecycle events for its own write operation.
+- `telemetry_repository.py` is the foundational shared trace sink; its setup, processor, and write methods do not emit lifecycle logs or recursively trace themselves.
 
 ---
 

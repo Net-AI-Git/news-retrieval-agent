@@ -4,7 +4,7 @@
 Verify that production telemetry writes correlated OTLP JSONL spans and lifecycle logs locally without a Collector or network connection.
 
 ## Scope
-Exercises `src/repositories/local_telemetry_repository.py` and `src/repositories/local_logging_repository.py` with real OpenTelemetry SDK processing and file export; LangChain auto-instrumentation is isolated because this test does not execute an agent or network call.
+Exercises `src/repositories/telemetry_repository.py` and `src/repositories/logging_repository.py` with real OpenTelemetry SDK processing and file export; LangChain auto-instrumentation is isolated because this test does not execute an agent or network call.
 
 ## How to run
 

@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from solution import answer, build_index
-from src.conts import ANSWER_REFUSAL_TEXT, FACTS_CHROMA_PATH, LOCAL_LOG_FILE_PATH, WORKERS
+from src.conts import ANSWER_REFUSAL_TEXT, FACTS_CHROMA_PATH, LOG_FILE_PATH, WORKERS
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -29,7 +29,7 @@ def answer_one(index, question_data):
 
 
 def log_file_offset():
-    log_path = Path(LOCAL_LOG_FILE_PATH)
+    log_path = Path(LOG_FILE_PATH)
     if not log_path.is_file():
         return 0
     return log_path.stat().st_size
@@ -155,7 +155,7 @@ def write_deliverables(results, finished, failures):
 def main():
     start_offset = log_file_offset()
     results, failures = run_questions(loaded_index())
-    finished = latest_finished_by_question(parse_finished_events(Path(LOCAL_LOG_FILE_PATH).read_bytes()[start_offset:] if Path(LOCAL_LOG_FILE_PATH).is_file() else b""))
+    finished = latest_finished_by_question(parse_finished_events(Path(LOG_FILE_PATH).read_bytes()[start_offset:] if Path(LOG_FILE_PATH).is_file() else b""))
     if failures or len(results) != len(QUESTIONS):
         write_json(OUTPUTS_DIR / "run_failures.json", {"failures": failures, "completed": [result["id"] for result in results]})
         raise SystemExit(1)

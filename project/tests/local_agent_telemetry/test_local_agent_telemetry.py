@@ -12,27 +12,27 @@ TEST_TEMP_DIRECTORY_PATH = Path(__file__).resolve().parents[1] / "tmp"
 
 
 def execute_local_telemetry_scenario(temporary_directory):
-    conts.LOCAL_LOG_FILE_PATH = str(Path(temporary_directory) / "events.jsonl")
-    conts.LOCAL_TELEMETRY_DIRECTORY_PATH = temporary_directory
-    from src.repositories.local_logging_repository import LocalLoggingRepository
-    from src.repositories.local_telemetry_repository import LocalTelemetryRepository
+    conts.LOG_FILE_PATH = str(Path(temporary_directory) / "events.jsonl")
+    conts.TELEMETRY_DIRECTORY_PATH = temporary_directory
+    from src.repositories.logging_repository import LoggingRepository
+    from src.repositories.telemetry_repository import TelemetryRepository
     flow_id = str(uuid4())
     task_data = {"question": "telemetry test", "api_key": "must-not-appear"}
-    with patch.object(LocalTelemetryRepository, "instrument_langchain"):
-        with LocalTelemetryRepository.start_span(conts.TELEMETRY_WORKFLOW_OPERATION_NAME, conts.TELEMETRY_WORKFLOW_NAME, flow_id, task_data) as workflow_span:
-            trace_id = format(workflow_span.get_span_context().trace_id, "032x")
+    with patch.object(TelemetryRepository, "instrument_langchain"):
+        with TelemetryRepository.start_span(conts.TELEMETRY_WORKFLOW_OPERATION_NAME, conts.TELEMETRY_WORKFLOW_NAME, flow_id, task_data) as workflow_span:
+            trace_id = LoggingRepository.current_trace_id()
             workflow_span.set_attribute("auto.input", '{"authorization":"Bearer must-not-appear-auto"}')
             workflow_span.add_event("auto.event", {"exception.message": "opaque-private-value", "tool.arguments": '{"api_key":"must-not-appear-event"}'})
-            LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
-            with LocalTelemetryRepository.start_span(conts.TELEMETRY_RETRIEVAL_OPERATION_NAME, conts.TELEMETRY_RETRIEVAL_NAME, flow_id, task_data) as retrieval_span:
-                LocalTelemetryRepository.record_output(retrieval_span, {"results": ["evidence"]})
-            LocalTelemetryRepository.record_output(workflow_span, {"answer": "done"})
-    LocalTelemetryRepository.provider.shutdown()
-    for handler in LocalLoggingRepository.logger.handlers:
+            LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+            with TelemetryRepository.start_span(conts.TELEMETRY_RETRIEVAL_OPERATION_NAME, conts.TELEMETRY_RETRIEVAL_NAME, flow_id, task_data) as retrieval_span:
+                TelemetryRepository.record_output(retrieval_span, {"results": ["evidence"]})
+            TelemetryRepository.record_output(workflow_span, {"answer": "done"})
+    TelemetryRepository.provider.shutdown()
+    for handler in LoggingRepository.logger.handlers:
         handler.close()
-    LocalLoggingRepository.logger.handlers.clear()
+    LoggingRepository.logger.handlers.clear()
     telemetry_text = next(Path(temporary_directory).glob("spans-*.jsonl")).read_text(encoding="utf-8")
-    stored_log = json.loads(Path(conts.LOCAL_LOG_FILE_PATH).read_text(encoding="utf-8").splitlines()[-1])
+    stored_log = json.loads(Path(conts.LOG_FILE_PATH).read_text(encoding="utf-8").splitlines()[-1])
     return flow_id, trace_id, telemetry_text, stored_log
 
 

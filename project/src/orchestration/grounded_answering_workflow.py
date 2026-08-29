@@ -13,8 +13,8 @@ from ..agents.gather_agent import run_gather
 from ..agents.grade_agent import run_grade
 from ..agents.retrieve_agent import build_retrieve_tools, run_retrieve
 from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_CONTINUE_VERDICTS, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS, TELEMETRY_WORKFLOW_NAME, TELEMETRY_WORKFLOW_OPERATION_NAME
-from ..repositories.local_logging_repository import LocalLoggingRepository
-from ..repositories.local_telemetry_repository import LocalTelemetryRepository
+from ..repositories.logging_repository import LoggingRepository
+from ..repositories.telemetry_repository import TelemetryRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
 
 
@@ -119,7 +119,7 @@ def gather_node(state, task_data, flow_id):
     task_data["sub_questions"] = sub_questions
     task_data["next_route"] = route_after_gather({"sub_questions": sub_questions, "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
     task_data.setdefault("transcript_turns", []).append({"stage": "gather", "gather_count": task_data["gather_count"], "sub_questions": sub_questions, "tool_calls": [], "next_route": task_data["next_route"]})
-    LocalTelemetryRepository.add_event("routing_decision", {"stage": "gather", "route": task_data["next_route"], "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
+    TelemetryRepository.add_event("routing_decision", {"stage": "gather", "route": task_data["next_route"], "gather_count": task_data["gather_count"], "tool_count": state.get("tool_count", 0)})
     return {"sub_questions": sub_questions, "gather_count": task_data["gather_count"]}
 
 
@@ -139,7 +139,7 @@ def retrieve_node(state, task_data, flow_id):
     task_data["tool_calls"] = extract_tool_calls(retrieve_message)
     task_data["next_route"] = route_after_retrieve({"messages": [retrieve_message], "gather_count": state.get("gather_count", 0), "tool_count": state.get("tool_count", 0)})
     task_data.setdefault("transcript_turns", []).append({"stage": "retrieve", "gather_count": state.get("gather_count", 0), "tool_calls": task_data["tool_calls"], "next_route": task_data["next_route"]})
-    LocalTelemetryRepository.add_event("routing_decision", {"stage": "retrieve", "route": task_data["next_route"], "tool_count": state.get("tool_count", 0)})
+    TelemetryRepository.add_event("routing_decision", {"stage": "retrieve", "route": task_data["next_route"], "tool_count": state.get("tool_count", 0)})
     return {"messages": [retrieve_message]}
 
 
@@ -152,7 +152,7 @@ def tools_node(state, tool_node, task_data, flow_id):
     prior_queries = prior_query_records(task_data["tool_calls"])
     task_data["prior_queries"] = (state.get("prior_queries") or []) + prior_queries
     task_data.setdefault("transcript_turns", []).append({"stage": "tools", "tool_count": task_data["tool_count"], "tool_calls": task_data["tool_calls"], "evidence": evidence})
-    LocalTelemetryRepository.add_event("budget_update", {"stage": "tools", "tool_count": task_data["tool_count"], "tool_limit": GATHER_MAX_TOOL_CALLS})
+    TelemetryRepository.add_event("budget_update", {"stage": "tools", "tool_count": task_data["tool_count"], "tool_limit": GATHER_MAX_TOOL_CALLS})
     return {"messages": tool_messages, "evidence": evidence, "tool_count": task_data["tool_count"], "prior_queries": prior_queries}
 
 
@@ -162,7 +162,7 @@ def grade_node(state, task_data, flow_id):
     task_data["grade_verdict"] = verdict
     task_data["grade_note"] = grade_result.note
     task_data.setdefault("transcript_turns", []).append({"stage": "grade", "verdict": verdict, "note": grade_result.note})
-    LocalTelemetryRepository.add_event("routing_decision", {"stage": "grade", "verdict": verdict, "route": "gather" if verdict in GRADE_CONTINUE_VERDICTS else "answer"})
+    TelemetryRepository.add_event("routing_decision", {"stage": "grade", "verdict": verdict, "route": "gather" if verdict in GRADE_CONTINUE_VERDICTS else "answer"})
     if verdict in GRADE_CONTINUE_VERDICTS and grade_result.note:
         return {"messages": [HumanMessage(grade_result.note)], "grade_verdict": verdict, "grade_note": grade_result.note}
     return {"grade_verdict": verdict, "grade_note": ""}
@@ -203,19 +203,20 @@ def raise_if_missing_solution_env(task_data):
 
 def run_grounded_answering(task_data, flow_id):
     answer_result = AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
-    with LocalTelemetryRepository.start_span(TELEMETRY_WORKFLOW_OPERATION_NAME, TELEMETRY_WORKFLOW_NAME, flow_id, task_data) as workflow_span:
-        LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    with TelemetryRepository.start_span(TELEMETRY_WORKFLOW_OPERATION_NAME, TELEMETRY_WORKFLOW_NAME, flow_id, task_data) as workflow_span:
+        task_data["trace_id"] = LoggingRepository.current_trace_id()
+        LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         try:
             raise_if_missing_solution_env(task_data)
             graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT, "metadata": {"flow_id": flow_id}})
             answer_result = graph_state.get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
             task_data["answer_result"] = answer_result.model_dump()
-            LocalTelemetryRepository.record_output(workflow_span, task_data)
+            TelemetryRepository.record_output(workflow_span, task_data)
         except Exception as err:
             if isinstance(err, GraphInterrupt):
-                LocalTelemetryRepository.add_event("workflow_interrupt", {"error_type": type(err).__name__})
+                TelemetryRepository.add_event("workflow_interrupt", {"error_type": type(err).__name__})
                 raise
-            LocalTelemetryRepository.record_error(workflow_span, err)
-            LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-        LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+            TelemetryRepository.record_error(workflow_span, err)
+            LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+        LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return answer_result.model_dump()

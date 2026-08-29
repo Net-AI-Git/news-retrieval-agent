@@ -1,13 +1,13 @@
 ---
 name: create-local-logging-dashboard
-description: Build or review a standalone Plotly dashboard from LocalLoggingRepository JSONL events. Enforces emitted-field, SQL, portability, and UX rules under project/local_logging_dashboard.
+description: Build or review a standalone Plotly dashboard from LoggingRepository JSONL events. Enforces emitted-field, SQL, portability, and UX rules under project/observability/logging_dashboard.
 ---
 
 # create-local-logging-dashboard
 
 ## Purpose
 
-Create or review the self-contained dashboard under [`project/local_logging_dashboard/`](../../../project/local_logging_dashboard/) using events emitted by `LocalLoggingRepository.log_event(...)`. The skill manages dashboard artifacts only; it never changes application behavior, probes, endpoints, or alerts.
+Create or review the self-contained dashboard under [`project/observability/logging_dashboard/`](../../../project/observability/logging_dashboard/) using events emitted by `LoggingRepository.log_event(...)`. The skill manages dashboard artifacts only; it never changes application behavior, probes, endpoints, or alerts.
 
 ## Required Input
 
@@ -20,11 +20,11 @@ Ask one focused question only when a required product decision cannot be derived
 ## Procedure
 
 ### Step 1 — Discover emitted fields
-- Read [`project/docs/local_logging.md`](../../../project/docs/local_logging.md), the dashboard directory `AGENTS.md`, and every relevant `LocalLoggingRepository.log_event(...)` call.
+- Read [`project/docs/logging.md`](../../../project/docs/logging.md), the dashboard directory `AGENTS.md`, and every relevant `LoggingRepository.log_event(...)` call.
 - Inventory `status`, `content.*`, `flow_id`, `trace_id`, and `level` without inventing fields.
 
 ### Step 2 — Plan SQL
-- Query only the in-memory SQLite `local_logs` view created by `local_logging_audit_client.py`.
+- Query only the in-memory SQLite `logs` view created by `logging_audit_client.py`.
 - Filter before aggregating and reuse one result when panels need the same data.
 - Keep user-selected SQL in the audit runner; dashboard queries stay inside `build_dashboard.py`.
 
@@ -42,7 +42,7 @@ Include only panels supported by emitted data, in this order:
 - Never embed credentials, production endpoints, saved customer data, or external CDN dependencies.
 
 ### Step 5 — Verify
-- Run `uv run python -m local_logging_dashboard.build_dashboard` from `project/`.
+- Run `uv run python -m observability.logging_dashboard.build_dashboard` from `project/`.
 - Confirm the HTML exists, contains the requested panels, and has no CDN URL.
 - Run every SQL query against both populated and empty local logs.
 - Report requested KPIs that lack backing fields.
@@ -51,9 +51,9 @@ Include only panels supported by emitted data, in this order:
 
 - Do not invent fields, traces, latency, or service names.
 - Do not require Docker, an external datastore, a local server, an account, or an internet connection after installation.
-- Do not modify application instrumentation or `local_logging_repository.py`.
+- Do not modify application instrumentation or `logging_repository.py`.
 - Do not commit `dashboard.html` or generated audit/log files.
-- Do not write dashboard artifacts outside `project/local_logging_dashboard/` unless the user specifies another path.
+- Do not write dashboard artifacts outside `project/observability/logging_dashboard/` unless the user specifies another path.
 
 ## When to Ask Instead of Acting
 

@@ -17,7 +17,7 @@ from opentelemetry.semconv.attributes.exception_attributes import EXCEPTION_TYPE
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.trace import Link, Status, StatusCode
 
-from ..conts import LOCAL_TELEMETRY_DIRECTORY_PATH, OTEL_SERVICE_NAME, TELEMETRY_EVENT_DETAILS_ATTRIBUTE, TELEMETRY_FILE_PREFIX, TELEMETRY_FLOW_ID_ATTRIBUTE, TELEMETRY_REDACTED_VALUE, TELEMETRY_SECRET_KEY_PARTS, TELEMETRY_SECRET_VALUE_MARKERS, TELEMETRY_WORKFLOW_OPERATION_NAME
+from ..conts import TELEMETRY_DIRECTORY_PATH, OTEL_SERVICE_NAME, TELEMETRY_EVENT_DETAILS_ATTRIBUTE, TELEMETRY_FILE_PREFIX, TELEMETRY_FLOW_ID_ATTRIBUTE, TELEMETRY_REDACTED_VALUE, TELEMETRY_SECRET_KEY_PARTS, TELEMETRY_SECRET_VALUE_MARKERS, TELEMETRY_WORKFLOW_OPERATION_NAME
 
 
 class FlowIdSpanProcessor(SpanProcessor):
@@ -34,7 +34,7 @@ class RedactingSpanExporter(SpanExporter):
         self.exporter = exporter
 
     def export(self, spans):
-        return self.exporter.export([LocalTelemetryRepository.redact_span(span) for span in spans])
+        return self.exporter.export([TelemetryRepository.redact_span(span) for span in spans])
 
     def shutdown(self):
         self.exporter.shutdown()
@@ -44,7 +44,7 @@ class RedactingSpanExporter(SpanExporter):
         return self.exporter.force_flush(timeout_millis)
 
 
-class LocalTelemetryRepository:
+class TelemetryRepository:
 
     lock = threading.Lock()
     provider = None
@@ -56,31 +56,31 @@ class LocalTelemetryRepository:
         if isinstance(value, str) and any(secret_marker in value.lower() for secret_marker in TELEMETRY_SECRET_VALUE_MARKERS):
             return TELEMETRY_REDACTED_VALUE
         if isinstance(value, dict):
-            return {key: LocalTelemetryRepository.redact_data(item, str(key)) for key, item in value.items()}
+            return {key: TelemetryRepository.redact_data(item, str(key)) for key, item in value.items()}
         if isinstance(value, (list, tuple)):
-            return [LocalTelemetryRepository.redact_data(item) for item in value]
+            return [TelemetryRepository.redact_data(item) for item in value]
         return value
 
     @staticmethod
     def serialize_data(value):
-        return json.dumps(LocalTelemetryRepository.redact_data(value), default=str, ensure_ascii=False)
+        return json.dumps(TelemetryRepository.redact_data(value), default=str, ensure_ascii=False)
 
     @staticmethod
     def redact_attributes(attributes):
-        return {key: LocalTelemetryRepository.redact_data(value, key) for key, value in (attributes or {}).items()}
+        return {key: TelemetryRepository.redact_data(value, key) for key, value in (attributes or {}).items()}
 
     @staticmethod
     def redact_span(span):
-        events = [Event(event.name, LocalTelemetryRepository.redact_attributes(event.attributes), event.timestamp) for event in span.events]
-        links = [Link(link.context, LocalTelemetryRepository.redact_attributes(link.attributes)) for link in span.links]
-        resource = Resource(LocalTelemetryRepository.redact_attributes(span.resource.attributes), span.resource.schema_url)
-        return ReadableSpan(name=span.name, context=span.context, parent=span.parent, resource=resource, attributes=LocalTelemetryRepository.redact_attributes(span.attributes), events=events, links=links, kind=span.kind, status=Status(span.status.status_code), start_time=span.start_time, end_time=span.end_time, instrumentation_scope=span.instrumentation_scope)
+        events = [Event(event.name, TelemetryRepository.redact_attributes(event.attributes), event.timestamp) for event in span.events]
+        links = [Link(link.context, TelemetryRepository.redact_attributes(link.attributes)) for link in span.links]
+        resource = Resource(TelemetryRepository.redact_attributes(span.resource.attributes), span.resource.schema_url)
+        return ReadableSpan(name=span.name, context=span.context, parent=span.parent, resource=resource, attributes=TelemetryRepository.redact_attributes(span.attributes), events=events, links=links, kind=span.kind, status=Status(span.status.status_code), start_time=span.start_time, end_time=span.end_time, instrumentation_scope=span.instrumentation_scope)
 
     @staticmethod
     def create_provider():
         from opentelemetry.exporter.otlp.json.file import FileSpanExporter
-        Path(LOCAL_TELEMETRY_DIRECTORY_PATH).mkdir(parents=True, exist_ok=True)
-        telemetry_file_path = Path(LOCAL_TELEMETRY_DIRECTORY_PATH) / f"{TELEMETRY_FILE_PREFIX}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}-{os.getpid()}.jsonl"
+        Path(TELEMETRY_DIRECTORY_PATH).mkdir(parents=True, exist_ok=True)
+        telemetry_file_path = Path(TELEMETRY_DIRECTORY_PATH) / f"{TELEMETRY_FILE_PREFIX}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}-{os.getpid()}.jsonl"
         provider = TracerProvider(sampler=ParentBased(ALWAYS_ON), resource=Resource.create({ResourceAttributes.SERVICE_NAME: OTEL_SERVICE_NAME}))
         provider.add_span_processor(FlowIdSpanProcessor())
         provider.add_span_processor(SimpleSpanProcessor(RedactingSpanExporter(FileSpanExporter(telemetry_file_path))))
@@ -100,23 +100,23 @@ class LocalTelemetryRepository:
     def initialize():
         if (os.getenv(OTEL_SDK_DISABLED) or "").strip().lower() == "true":
             return trace.get_tracer(OTEL_SERVICE_NAME)
-        with LocalTelemetryRepository.lock:
-            if LocalTelemetryRepository.provider is None:
-                LocalTelemetryRepository.provider = LocalTelemetryRepository.create_provider()
-                LocalTelemetryRepository.instrument_langchain(LocalTelemetryRepository.provider)
-        return trace.get_tracer(OTEL_SERVICE_NAME, tracer_provider=LocalTelemetryRepository.provider)
+        with TelemetryRepository.lock:
+            if TelemetryRepository.provider is None:
+                TelemetryRepository.provider = TelemetryRepository.create_provider()
+                TelemetryRepository.instrument_langchain(TelemetryRepository.provider)
+        return trace.get_tracer(OTEL_SERVICE_NAME, tracer_provider=TelemetryRepository.provider)
 
     @staticmethod
     def start_span(operation_name, entity_name, flow_id, task_data):
         span_context = baggage.set_baggage(TELEMETRY_FLOW_ID_ATTRIBUTE, flow_id) if operation_name == TELEMETRY_WORKFLOW_OPERATION_NAME else None
-        attributes = {GEN_AI_OPERATION_NAME: operation_name, GEN_AI_INPUT_MESSAGES: LocalTelemetryRepository.serialize_data(task_data), TELEMETRY_FLOW_ID_ATTRIBUTE: flow_id}
+        attributes = {GEN_AI_OPERATION_NAME: operation_name, GEN_AI_INPUT_MESSAGES: TelemetryRepository.serialize_data(task_data), TELEMETRY_FLOW_ID_ATTRIBUTE: flow_id}
         if operation_name == TELEMETRY_WORKFLOW_OPERATION_NAME:
             attributes[GEN_AI_AGENT_NAME] = entity_name
-        return LocalTelemetryRepository.initialize().start_as_current_span(f"{operation_name} {entity_name}", context=span_context, attributes=attributes, record_exception=False, set_status_on_exception=False)
+        return TelemetryRepository.initialize().start_as_current_span(f"{operation_name} {entity_name}", context=span_context, attributes=attributes, record_exception=False, set_status_on_exception=False)
 
     @staticmethod
     def record_output(span, output):
-        span.set_attribute(GEN_AI_OUTPUT_MESSAGES, LocalTelemetryRepository.serialize_data(output))
+        span.set_attribute(GEN_AI_OUTPUT_MESSAGES, TelemetryRepository.serialize_data(output))
         return
 
     @staticmethod
@@ -128,5 +128,5 @@ class LocalTelemetryRepository:
 
     @staticmethod
     def add_event(event_name, event_data):
-        trace.get_current_span().add_event(event_name, attributes={TELEMETRY_EVENT_DETAILS_ATTRIBUTE: LocalTelemetryRepository.serialize_data(event_data)})
+        trace.get_current_span().add_event(event_name, attributes={TELEMETRY_EVENT_DETAILS_ATTRIBUTE: TelemetryRepository.serialize_data(event_data)})
         return

@@ -21,7 +21,10 @@ class SolutionInterfaceTests(unittest.TestCase):
         self.assertTrue(callable(answer))
 
     def test_live_endpoint_returns_answer_and_citations(self):
-        payload = json.loads(grounded_answering(Request(content=QUESTIONS["Q01"])).content)
+        response = grounded_answering(Request(content=QUESTIONS["Q01"]))
+        payload = json.loads(response.content)
+        self.assertTrue(response.flow_id)
+        self.assertTrue(response.trace_id)
         self.assertIn("answer", payload)
         self.assertIn("citations", payload)
         self.assertIsInstance(payload["answer"], str)

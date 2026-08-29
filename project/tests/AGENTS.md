@@ -14,7 +14,7 @@ tests/
 ├── <test_name>/                  ← one directory per scenario, snake_case
 │   ├── README.md                 ← describes this specific test (REQUIRED)
 │   ├── inputs/                   ← fixtures consumed by the test
-│   ├── outputs/                  ← captured artifacts (logs, generated files) — gitignored if large
+│   ├── outputs/                  ← captured artifacts (logs, generated files) — committed with the experiment
 │   └── test_<name>.py            ← entry-point script or pytest module
 └── another_test/
     └── ...
@@ -55,6 +55,7 @@ Each `<test_name>/README.md` must include:
 
 ## Forbidden in this directory
 - No `AGENTS.md` files inside test subdirectories — only this top-level file. Subdirectories use `README.md`.
+- No `.gitignore` files anywhere under [`tests/`](.) — results in `outputs/` stay tracked.
 - No `test_<feature>.py` files at the **top level** of [`tests/`](.) — every test belongs inside its own subdirectory.
 - No production credentials, no real customer PII in fixtures.
 - No imports of test code from production modules in [`../src/`](../src/).

@@ -23,7 +23,7 @@ uv run uvicorn main:app
 
 - Verify the API works properly at http://127.0.0.1:8000/api/ping, and there are no errors in the console.
 
-- Agent executions write local OTLP JSONL traces under `local_telemetry/`. No Collector, Docker container, account, or network connection is required for telemetry export.
+- Agent executions write local OTLP JSONL traces under `observability/telemetry/`. No Collector, Docker container, account, or network connection is required for telemetry export.
 
 
 - Clone the template into a new project 

@@ -1,7 +1,7 @@
-from local_logging_audit.local_logging_audit_client import export_audit_logs
+from .logging_audit_client import export_audit_logs
 
 
-AUDIT_QUERY = "SELECT * FROM local_logs WHERE level = 'ERROR' ORDER BY time DESC LIMIT 500"
+AUDIT_QUERY = "SELECT * FROM logs WHERE level = 'ERROR' ORDER BY time DESC LIMIT 500"
 
 
 if __name__ == "__main__":

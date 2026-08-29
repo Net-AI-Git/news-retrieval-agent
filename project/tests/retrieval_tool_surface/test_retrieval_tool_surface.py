@@ -77,7 +77,7 @@ class RetrievalToolSurfaceTests(unittest.TestCase):
         self.assertNotIn("query_embedding", facts_query.call_args[0][0])
         self.assertLessEqual(len(result["facts"]), RETRIEVAL_TOP_K)
 
-    @patch("src.services.retrieval_service.LocalLoggingRepository.log_event")
+    @patch("src.services.retrieval_service.LoggingRepository.log_event")
     @patch("src.services.retrieval_service.OpenAIEmbeddingsRepository.generate_embeddings")
     def test_missing_question_logs_error_without_embedding(self, generate_embeddings, log_event_mock):
         result = run_retrieval({"facts_chroma_path": "facts", "corpus_chroma_path": "corpus"}, str(uuid4()))

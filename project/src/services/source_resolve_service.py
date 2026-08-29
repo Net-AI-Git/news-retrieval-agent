@@ -1,7 +1,7 @@
 from ..conts import SOURCE_RESOLVE_MIN_MARGIN, SOURCE_RESOLVE_MIN_SIMILARITY
 from ..repositories.embeddings_repository import OpenAIEmbeddingsRepository
 from ..repositories.facts_chroma_repository import FactsChromaRepository
-from ..repositories.local_logging_repository import LocalLoggingRepository
+from ..repositories.logging_repository import LoggingRepository
 
 
 def exact_source_match(task_data, catalog):
@@ -67,7 +67,7 @@ def accepted_source_name(scored_names):
 
 
 def run_resolve_source(task_data, flow_id):
-    LocalLoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
+    LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
     resolved_source = None
     try:
         catalog = FactsChromaRepository.read_source_catalog({**task_data, "chroma_path": task_data["facts_chroma_path"]}, flow_id)
@@ -78,6 +78,6 @@ def run_resolve_source(task_data, flow_id):
             scored_names = ranked_source_scores(task_data, catalog, flow_id)
             resolved_source = accepted_source_name(scored_names)
     except Exception as err:
-        LocalLoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
-    LocalLoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
+        LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
+    LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return resolved_source
