@@ -14,7 +14,8 @@ Generate a self-contained Plotly HTML dashboard from local logs and OTLP spans. 
 - Latency comes only from span `startTimeUnixNano` and `endTimeUnixNano`. Do not compute duration from STARTING/FINISHED logs.
 - Join logs and spans on `flow_id` and `trace_id`.
 - Bound large span payloads in tables. Do not render embedding vectors.
-- Keep Logging and Telemetry on separate tabs with different panel layouts. Overview, Question flows, and GT comparison are additional tabs.
+- Keep six tabs with separate jobs: Overview (health), Errors (failures), Agents (latency and outcomes), Questions (one `flow_id` at a time), Cost (estimated USD only), GT comparison (exam CSV). Do not mix those jobs on the same tab.
+- Every chart needs axis units and a caption that states what it measures in plain language. Cost charts must say whether a bar is the sum of all questions or one question.
 - Agent labels come from `langgraph_node` or the span name. Do not invent agent names.
 - Billed tokens use numeric `gen_ai.usage.*` when present, otherwise `characters / 4`. Estimated USD is a labeled dashboard calculation from a local rate table, not an emitted telemetry field.
 - The GT comparison tab reads the latest `tests/live_e2e_gt/outputs/metrics_*.csv` and `src/data/ground_truth/Q*.json`. Label it as evaluation output, not as a log or span field. Missing metrics produce empty GT panels; malformed CSV or GT JSON fails visibly.

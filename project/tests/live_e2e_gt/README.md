@@ -24,7 +24,7 @@ uv sync
 uv run python -m tests.live_e2e_gt.run_live_e2e_gt --smoke
 ```
 
-Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_EMBEDDING_MODEL`, `OPENAI_GATHER_AGENT_MODEL`, `OPENAI_GRADE_AGENT_MODEL`, `OPENAI_ANSWER_AGENT_MODEL`, `OPENAI_RETRIEVE_AGENT_MODEL`) and `vector_stores/facts_chroma`. The runner starts a live uvicorn process, leaves OpenTelemetry enabled, and does not print. If `DOCS_USER` / `DOCS_PASS` are unset it supplies local docs credentials so `Settings()` can boot. Success is a new `outputs/metrics_*.csv` and a regenerated `observability/logging_dashboard/dashboard.html`.
+Needs `.env` (`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_EMBEDDING_MODEL`, `OPENAI_GATHER_AGENT_MODEL`, `OPENAI_GRADE_AGENT_MODEL`, `OPENAI_ANSWER_AGENT_MODEL`, `OPENAI_RETRIEVE_AGENT_MODEL`) and `vector_stores/facts_chroma`. The runner starts a live uvicorn process, leaves OpenTelemetry enabled, and does not print. If `DOCS_USER` / `DOCS_PASS` are unset it supplies local docs credentials so `Settings()` can boot. Success is a new `outputs/metrics_*.csv` and a regenerated `observability/logging_dashboard/dashboard.html` plus the copy at `output_for_mission/dashboard.html`.
 
 ## Inputs
 
@@ -40,8 +40,8 @@ No files in `inputs/`. The runner loads `src/data/questions.json` and the matchi
 
 `TOTAL.task_success` is the task success rate across the 11 questions.
 
-After the last question the runner writes `outputs/metrics_<timestamp>.csv` and rebuilds `observability/logging_dashboard/dashboard.html`, including the GT comparison tab.
+After the last question the runner writes `outputs/metrics_<timestamp>.csv` and rebuilds `observability/logging_dashboard/dashboard.html`, including the GT comparison tab, then copies it to `output_for_mission/dashboard.html`.
 
 ## Status
 
-Passing — 2026-08-29. Latest live run: `outputs/metrics_2026-08-29_14-56-05.csv`.
+Passing — 2026-08-29. Latest live run: `outputs/metrics_2026-08-29_15-15-15.csv`.

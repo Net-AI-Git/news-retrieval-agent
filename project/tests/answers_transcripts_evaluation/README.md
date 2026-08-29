@@ -6,7 +6,7 @@ Produce the assignment `answers.json` and tool-call transcripts through root `so
 
 ## Scope
 
-Exercises root `solution.py`, `src/orchestration/grounded_answering_workflow.py`, and `src/schemas/agent.py`. `python solution.py` writes `answers.json` and `transcripts.json` through `answer` / `recorded_answer`. Live calls use the existing Facts Chroma handle when present, otherwise `build_index`. Questions run one at a time.
+Exercises root `solution.py`, `src/orchestration/grounded_answering_workflow.py`, and `src/schemas/agent.py`. `python solution.py` writes `output_for_mission/answers.json` and `output_for_mission/transcripts.json`. Live calls use the existing Facts Chroma handle when present, otherwise `build_index`. Questions run one at a time.
 
 ## How to run
 
@@ -23,8 +23,8 @@ No files in `inputs/`. The runner loads `src/data/questions.json` and `src/data/
 
 ## Expected outcome
 
-- Root `answers.json` contains all eleven IDs in the public schema.
-- Root `transcripts.json` contains gather/retrieve/tools/grade/answer turns and retrieved evidence for each question.
+- `output_for_mission/answers.json` contains all eleven IDs in the public schema.
+- `output_for_mission/transcripts.json` contains gather/retrieve/tools/grade/answer turns and retrieved evidence for each question.
 - `outputs/evaluation.md` records contract checks and GT match from the public `solution.py` path.
 
 ## Status

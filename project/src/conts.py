@@ -23,8 +23,10 @@ OPENAI_EMBEDDING_MAX_RETRIES = 3
 REQUIRED_SOLUTION_ENV_VARS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_EMBEDDING_MODEL", "OPENAI_GATHER_AGENT_MODEL", "OPENAI_GRADE_AGENT_MODEL", "OPENAI_ANSWER_AGENT_MODEL", "OPENAI_RETRIEVE_AGENT_MODEL")
 
 DATA_DIR = str(Path(__file__).resolve().parent / "data")
-ANSWERS_PATH = str(Path(__file__).resolve().parents[1] / "answers.json")
-TRANSCRIPTS_PATH = str(Path(__file__).resolve().parents[1] / "transcripts.json")
+MISSION_OUTPUT_DIRECTORY = str(Path(__file__).resolve().parents[1] / "output_for_mission")
+ANSWERS_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "answers.json")
+TRANSCRIPTS_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "transcripts.json")
+MISSION_DASHBOARD_PATH = str(Path(MISSION_OUTPUT_DIRECTORY) / "dashboard.html")
 FACTS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "facts_chroma")
 CORPUS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "corpus_chroma")
 

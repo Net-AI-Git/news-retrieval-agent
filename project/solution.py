@@ -23,30 +23,51 @@ def recorded_answer(index, question_id, question):
     flow_id = str(uuid4())
     task_data = {**index, "question_id": question_id, "question": question}
     public = SolutionAnswer.model_validate(run_grounded_answering(task_data, flow_id)).model_dump()
-    return {"id": question_id, "question": question, "flow_id": flow_id, "turns": task_data.get("transcript_turns") or [], "evidence": task_data.get("evidence") or [], "answer_result": task_data.get("answer_result"), "public": public}
+    record = {"id": question_id, "question": question, "flow_id": flow_id, "turns": task_data.get("transcript_turns") or [], "evidence": task_data.get("evidence") or [], "answer_result": task_data.get("answer_result"), "public": public}
+    write_assignment_file(ANSWERS_PATH, upsert_by_id(load_json_array(ANSWERS_PATH), {"id": record["id"], "answer": record["public"]["answer"], "citations": record["public"]["citations"]}))
+    write_assignment_file(TRANSCRIPTS_PATH, upsert_by_id(load_json_array(TRANSCRIPTS_PATH), record))
+    return record
 
 
 def answer(index, question_id, question):
     return recorded_answer(index, question_id, question)["public"]
 
 
+def load_json_array(path):
+    file_path = Path(path)
+    if not file_path.is_file():
+        return []
+    payload = json.loads(file_path.read_text(encoding="utf-8") or "[]")
+    if isinstance(payload, list):
+        return payload
+    return []
+
+
+def upsert_by_id(rows, row):
+    updated = []
+    found = False
+    for entry in rows:
+        if entry.get("id") == row["id"]:
+            updated.append(row)
+            found = True
+            continue
+        updated.append(entry)
+    if not found:
+        updated.append(row)
+    question_order = [question_data["id"] for question_data in json.loads((Path(DATA_DIR) / "questions.json").read_text(encoding="utf-8"))]
+    return sorted(updated, key=lambda entry: question_order.index(entry["id"]) if entry.get("id") in question_order else len(question_order))
+
+
 def write_assignment_file(path, payload):
-    Path(path).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    file_path = Path(path)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def write_assignment_artifacts():
-    print("build_index", DATA_DIR, flush=True)
     index = build_index(DATA_DIR)
-    print("index", index, flush=True)
-    transcripts = []
-    answers = []
     for question_data in json.loads((Path(DATA_DIR) / "questions.json").read_text(encoding="utf-8")):
-        record = recorded_answer(index, question_data["id"], question_data["question"])
-        print(record["id"], record["public"]["answer"], flush=True)
-        transcripts.append(record)
-        answers.append({"id": record["id"], "answer": record["public"]["answer"], "citations": record["public"]["citations"]})
-    write_assignment_file(ANSWERS_PATH, answers)
-    write_assignment_file(TRANSCRIPTS_PATH, transcripts)
+        recorded_answer(index, question_data["id"], question_data["question"])
 
 
 if __name__ == "__main__":

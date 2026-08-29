@@ -369,15 +369,17 @@ def build_cost_totals_figure(dashboard_data):
     figure.add_trace(colored_indicator(total_estimated_usd(dashboard_data["cost_rows"]), "Total est. USD (all questions)", False, "$.4f"), row=1, col=1)
     figure.add_trace(colored_indicator(total_billed_tokens(dashboard_data["cost_rows"]), "Billed tokens (count)", False), row=1, col=2)
     figure.add_trace(colored_indicator(len(dashboard_data["flow_usd"]), "Questions with cost (count)", False), row=1, col=3)
-    return dark_layout(figure, "Cost totals · last 20 minutes", 280)
+    return dark_layout(figure, f"Cost totals · last {dashboard_data['lookback_minutes']} minutes", 280)
 
 
 def build_cost_figure(dashboard_data):
     figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}]], subplot_titles=["USD summed across all questions, by agent", "USD for one question each"])
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_usd"]], y=[row[1] for row in dashboard_data["agent_usd"]], marker_color="#22c55e", name="USD", hovertemplate="%{x}<br>$%{y:.4f} (sum of questions)<extra></extra>"), row=1, col=1)
-    figure.add_trace(go.Bar(x=question_cost_labels(dashboard_data), y=[row[1] for row in dashboard_data["flow_usd"]], marker_color="#38bdf8", name="USD", hovertemplate="%{x}<br>$%{y:.4f} per question<extra></extra>"), row=1, col=2)
-    xy_titles(figure, "Agent", "Estimated USD", 1, 1)
-    xy_titles(figure, "Question or flow", "Estimated USD", 1, 2)
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_usd"]], y=[row[1] for row in dashboard_data["agent_usd"]], marker_color="#22c55e", name="USD", hovertemplate="%{x}<br>$%{y:.4f} summed over all questions<extra></extra>"), row=1, col=1)
+    figure.add_trace(go.Bar(x=question_cost_labels(dashboard_data), y=[row[1] for row in dashboard_data["flow_usd"]], marker_color="#38bdf8", name="USD", hovertemplate="%{x}<br>$%{y:.4f} for this one question<extra></extra>"), row=1, col=2)
+    xy_titles(figure, "Agent (sum of every question)", "Estimated USD", 1, 1)
+    xy_titles(figure, "Question id (one bar = one question)", "Estimated USD", 1, 2)
+    figure.update_yaxes(ticksuffix=" USD", tickformat=".4f", row=1, col=1)
+    figure.update_yaxes(ticksuffix=" USD", tickformat=".4f", row=1, col=2)
     return dark_layout(figure, "Estimated USD", 520)
 
 
@@ -390,7 +392,7 @@ def build_cost_table_figure(dashboard_data):
 
 def build_flow_table_figure(dashboard_data):
     figure = make_subplots(rows=1, cols=2, specs=[[{"type": "table"}, {"type": "table"}]], subplot_titles=["One row = one question", "Routing events for those questions"])
-    figure.add_trace(go.Table(header={"values": ["Flow", "Trace", "Log events (count)", "Log errors (count)", "Spans (count)", "Span errors (count)", "Duration (ms)", "GT id", "Task success (%)", "Fail agent", "GT answer", "Predicted", "Est. USD"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["correlated_flows"]] for column_index in range(13)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=1)
+    figure.add_trace(go.Table(header={"values": ["Flow", "Trace", "Log events (count)", "Log errors (count)", "Spans (count)", "Span errors (count)", "Duration (ms)", "GT id", "Task success (%)", "Fail agent", "GT answer", "Predicted"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["correlated_flows"]] for column_index in range(12)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=1)
     figure.add_trace(go.Table(header={"values": ["Event", "Details", "Flow", "Trace"], "fill_color": "#1e3a8a", "font": {"color": "#dbeafe"}}, cells={"values": [[row[column_index] for row in dashboard_data["span_events"]] for column_index in range(4)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=2)
     return dark_layout(figure, "Question index", 620)
 
@@ -401,6 +403,7 @@ def build_one_flow_figure(question_flow):
     figure.add_trace(go.Bar(base=offsets, x=durations, y=names, orientation="h", marker_color=colors, name="ms", hovertemplate="%{y}<br>%{x:.1f} ms<extra></extra>"), row=1, col=1)
     figure.add_trace(go.Table(header={"values": ["Time (UTC)", "Status", "Process", "Level"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in question_flow["logs"]] for column_index in range(4)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=1)
     xy_titles(figure, "Elapsed time (milliseconds)", "Agent · span name", 1, 1)
+    figure.update_xaxes(ticksuffix=" ms", row=1, col=1)
     return dark_layout(figure, question_flow["preview"] or question_flow["trace_id"], 760)
 
 
@@ -424,9 +427,10 @@ def build_gt_question_figure(dashboard_data):
     figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}]], subplot_titles=["Task success by question (%)", "Questions by first failing agent (count)"])
     figure.add_trace(go.Bar(x=gt_column(rows, "question_id"), y=gt_column(rows, "task_success"), marker_color=[status_color(row["task_success"] != 100) for row in rows], name="Task %", hovertemplate="%{x}<br>%{y}% task success<extra></extra>"), row=1, col=1)
     figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["gt_failures"]], y=[row[1] for row in dashboard_data["gt_failures"]], marker_color=[status_color(row[0] not in ("none", "")) for row in dashboard_data["gt_failures"]], name="Count", hovertemplate="%{x}<br>%{y} questions<extra></extra>"), row=1, col=2)
-    figure.update_layout(yaxis={"range": [0, 100]})
     xy_titles(figure, "Question id", "Task success (%)", 1, 1)
     xy_titles(figure, "Failure agent", "Questions (count)", 1, 2)
+    figure.update_yaxes(range=[0, 100], ticksuffix=" %", row=1, col=1)
+    figure.update_yaxes(ticksuffix=" questions", row=1, col=2)
     return dark_layout(figure, "GT question outcomes", 520)
 
 
@@ -442,6 +446,33 @@ def build_gt_compare_table_figure(dashboard_data):
     return dark_layout(figure, "GT vs predicted answers", 760)
 
 
+def overview_tab(dashboard_data):
+    return ("overview", "Overview", "Green is healthy. Red means open Errors or GT. This window is the last 20 minutes of local logs and spans. GT percent is from the latest exam CSV, not this window. Agent, question, and cost detail live on their own tabs.", [(build_overview_figure(dashboard_data), "Log-error count, span-error count, latest GT task-success percent, question count, average workflow duration in milliseconds, and estimated USD for every question in the window. Red tiles need action."), (build_overview_volume_figure(dashboard_data), "Count of log events per UTC minute. A spike is more activity, not automatically a failure.")])
+
+
+def errors_tab(dashboard_data):
+    return ("errors", "Errors", "Failures only. Successful work is not listed here.", [(build_error_status_figure(dashboard_data), "Left: every log event counted by STARTING, FINISHED, or ERROR. Right: ERROR log events counted by process name."), (build_error_process_figure(dashboard_data), "Stacked counts of FINISHED versus ERROR lifecycle events per process. Red height is the failure volume."), (build_recent_errors_figure(dashboard_data), "Latest ERROR log rows: UTC time, process, flow, trace, and content."), (build_error_spans_figure(dashboard_data), "Spans whose OpenTelemetry status is ERROR. Duration is milliseconds from span timestamps.")])
+
+
+def agents_tab(dashboard_data):
+    return ("agents", "Agents", "Latency and success per agent. Money is on the Cost tab.", [(build_agent_latency_figure(dashboard_data), "Average and maximum span duration in milliseconds for each agent. A much taller max than avg means one slow call."), (build_agent_outcome_figure(dashboard_data), "Count of OK spans versus error spans per agent. Red means that agent failed at least once."), (build_agent_table_figure(dashboard_data), "Numeric agent totals plus the latest tool-call spans. Duration is milliseconds.")])
+
+
+def questions_tab(dashboard_data):
+    charts = [(build_flow_table_figure(dashboard_data), "Left: one row is one question (flow_id). Duration is milliseconds for the root span. GT columns appear only when this flow is in the latest exam CSV. Right: routing, budget, interrupt, and exception events.")]
+    for question_flow in dashboard_data["question_flows"]:
+        charts.append((build_one_flow_figure(question_flow), "Waterfall: x is elapsed milliseconds from the first span in this trace. Bar length is that span duration. Red bars are error spans. Table below is this question lifecycle logs."))
+    return ("questions", "Questions", "One question means one flow_id. Use this tab to see how a single question ran. Cost for a question is on the Cost tab.", charts)
+
+
+def cost_tab(dashboard_data):
+    return ("cost", "Cost", "Estimated USD for the last 20 minutes, not an invoice. Left chart sums every question by agent. Right chart is one bar per question.", [(build_cost_totals_figure(dashboard_data), "Total estimated USD across all questions, billed-token count, and how many questions have a cost row."), (build_cost_figure(dashboard_data), "Left Y-axis: estimated USD summed across all questions for that agent. Right Y-axis: estimated USD for that one question only. Question labels use GT id when known, otherwise the first 8 characters of flow_id."), (build_cost_table_figure(dashboard_data), "Left: tokens and USD grouped by agent and model (sums all questions). Right: tokens and USD grouped by question flow_id and model.")])
+
+
+def gt_tab(dashboard_data):
+    return ("gt", "GT comparison", "Latest live_e2e_gt CSV versus ground-truth JSON. 100 percent is a pass. This is not the 20-minute operations window.", [(build_gt_overview_figure(dashboard_data), "Success percent for the whole exam set. Red means that rate is below 100 percent."), (build_gt_question_figure(dashboard_data), "Left: task-success percent per question id, from 0 to 100. Right: how many questions first failed at each agent."), (build_gt_score_table_figure(dashboard_data), "Full exam scorecard. Percent columns are 0 to 100. Duration is milliseconds."), (build_gt_compare_table_figure(dashboard_data), "Ground-truth answer versus predicted answer for each exam question.")])
+
+
 def write_tabbed_html(tab_figures, lookback_minutes, gt_metrics_name):
     html_parts = [f"<!DOCTYPE html><html><head><meta charset='utf-8'><title>Local logs and telemetry dashboard</title><style>{DASHBOARD_STYLE}</style></head><body><div class='nav'>"]
     for tab_index, tab_spec in enumerate(tab_figures):
@@ -449,23 +480,25 @@ def write_tabbed_html(tab_figures, lookback_minutes, gt_metrics_name):
     html_parts.append(f"</div><p class='note'>Local logs and telemetry dashboard (last {lookback_minutes} minutes). Latency from span timestamps. Tokens from gen_ai.usage when numeric, otherwise characters/{CHARS_PER_TOKEN}. USD is estimated from listed model rates. GT comparison is the latest live_e2e_gt CSV ({gt_metrics_name or 'none'}), not span fields.</p>")
     include_plotlyjs = True
     for tab_index, tab_spec in enumerate(tab_figures):
-        html_parts.append(f"<div class='panel{' active' if tab_index == 0 else ''}' id='{tab_spec[0]}'><h2>{tab_spec[1]}</h2>")
-        for figure in tab_spec[2]:
+        html_parts.append(f"<div class='panel{' active' if tab_index == 0 else ''}' id='{tab_spec[0]}'><h2>{tab_spec[1]}</h2><p class='purpose'>{tab_spec[2]}</p>")
+        for figure, caption in tab_spec[3]:
+            html_parts.append(f"<p class='caption'>{caption}</p><div class='chart'>")
             html_parts.append(figure.to_html(full_html=False, include_plotlyjs=include_plotlyjs, config={"responsive": True}))
+            html_parts.append("</div>")
             include_plotlyjs = False
         html_parts.append("</div>")
     html_parts.append(f"<script>{DASHBOARD_SCRIPT}</script></body></html>")
     DASHBOARD_PATH.write_text("".join(html_parts), encoding="utf-8")
+    mission_dashboard = Path(__file__).resolve().parents[2] / "output_for_mission" / "dashboard.html"
+    mission_dashboard.parent.mkdir(parents=True, exist_ok=True)
+    mission_dashboard.write_bytes(DASHBOARD_PATH.read_bytes())
     return DASHBOARD_PATH
 
 
 def build_dashboard(lookback_minutes=None, log_file_path=None, telemetry_directory_path=None, metrics_directory_path=None, ground_truth_directory_path=None):
     with DASHBOARD_LOCK:
         dashboard_data = load_dashboard_data(lookback_minutes, log_file_path, telemetry_directory_path, metrics_directory_path, ground_truth_directory_path)
-        flow_figures = []
-        for question_flow in dashboard_data["question_flows"]:
-            flow_figures.append(build_one_flow_figure(question_flow))
-        return write_tabbed_html([("overview", "Overview", [build_overview_figure(dashboard_data), build_agent_health_figure(dashboard_data)]), ("logging", "Logging", [build_log_figure(dashboard_data), build_log_process_figure(dashboard_data)]), ("telemetry", "Telemetry", [build_agent_latency_figure(dashboard_data), build_cost_figure(dashboard_data), build_span_figure(dashboard_data), build_waterfall_figure(dashboard_data)]), ("flows", "Question flows", [build_flow_table_figure(dashboard_data)] + flow_figures), ("gt", "GT comparison", [build_gt_overview_figure(dashboard_data), build_gt_question_figure(dashboard_data), build_gt_score_table_figure(dashboard_data), build_gt_compare_table_figure(dashboard_data)])], dashboard_data["lookback_minutes"], dashboard_data["gt_metrics_name"])
+        return write_tabbed_html([overview_tab(dashboard_data), errors_tab(dashboard_data), agents_tab(dashboard_data), questions_tab(dashboard_data), cost_tab(dashboard_data), gt_tab(dashboard_data)], dashboard_data["lookback_minutes"], dashboard_data["gt_metrics_name"])
 
 
 if __name__ == "__main__":
