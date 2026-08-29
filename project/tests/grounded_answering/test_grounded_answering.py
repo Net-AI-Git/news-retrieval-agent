@@ -103,6 +103,15 @@ class GroundedAnsweringTests(unittest.TestCase):
         self.assertEqual(["A"], workflow.cleaned_sub_questions(["A", "B"], 1))
         self.assertEqual([], workflow.cleaned_sub_questions(["A"], 0))
 
+    @patch("src.orchestration.grounded_answering_workflow.run_retrieve")
+    def test_retrieve_node_keeps_hop_order_and_isolation(self, run_retrieve):
+        run_retrieve.side_effect = lambda task_data, flow_id: SimpleNamespace(tool_calls=[{"name": "search_facts", "args": {"question": task_data["sub_question"]}, "id": task_data["sub_question"], "type": "tool_call"}])
+        result = workflow.retrieve_node({"sub_questions": ["Who won?", "Who lost?"], "gather_count": 1, "tool_count": 0}, {"question": "Who won and who lost?"}, str(uuid4()))
+        self.assertEqual(["Who won?", "Who lost?"], [call.args[0]["sub_question"] for call in run_retrieve.call_args_list])
+        self.assertNotIn("Who lost?", run_retrieve.call_args_list[0].args[0]["sub_question"])
+        self.assertEqual(["Who won?", "Who lost?"], [tool_call["args"]["question"] for tool_call in result["messages"][0].tool_calls])
+        self.assertEqual(1, len(result["messages"]))
+
     def test_agents_do_not_import_services_or_repositories(self):
         self.assertNotIn("services", inspect.getsource(gather_agent))
         self.assertNotIn("repositories", inspect.getsource(gather_agent))

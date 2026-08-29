@@ -26,8 +26,7 @@ class FactsChromaRepository:
         LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         stored = False
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(FACTS_STAGING_COLLECTION, embedding_function=None)
-            collection.upsert(ids=[record["id"] for record in task_data["records"]], documents=[record["document"] for record in task_data["records"]], metadatas=[record["metadata"] for record in task_data["records"]], embeddings=task_data["embeddings"])
+            chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(FACTS_STAGING_COLLECTION, embedding_function=None).upsert(ids=[record["id"] for record in task_data["records"]], documents=[record["document"] for record in task_data["records"]], metadatas=[record["metadata"] for record in task_data["records"]], embeddings=task_data["embeddings"])
             stored = True
         except Exception as err:
             LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")

@@ -23,8 +23,7 @@ class CorpusChromaRepository:
         LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         stored = False
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_STAGING_COLLECTION, embedding_function=None)
-            collection.upsert(ids=[record["id"] for record in task_data["records"]], documents=[record["document"] for record in task_data["records"]], metadatas=[record["metadata"] for record in task_data["records"]], embeddings=task_data["embeddings"])
+            chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_STAGING_COLLECTION, embedding_function=None).upsert(ids=[record["id"] for record in task_data["records"]], documents=[record["document"] for record in task_data["records"]], metadatas=[record["metadata"] for record in task_data["records"]], embeddings=task_data["embeddings"])
             stored = True
         except Exception as err:
             LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
@@ -81,8 +80,7 @@ class CorpusChromaRepository:
         LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         query_result = None
         try:
-            collection = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_ACTIVE_COLLECTION, embedding_function=None)
-            query_result = collection.query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=CHROMA_QUERY_INCLUDE)
+            query_result = chromadb.PersistentClient(path=task_data["chroma_path"]).get_collection(CORPUS_ACTIVE_COLLECTION, embedding_function=None).query(query_embeddings=[query_embedding], n_results=task_data["top_k"], where=task_data.get("where"), include=CHROMA_QUERY_INCLUDE)
         except Exception as err:
             LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
         LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")

@@ -1,5 +1,7 @@
 import operator
 import os
+from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from typing import Annotated, Optional, TypedDict
 
 from langchain_core.messages import AIMessage, HumanMessage
@@ -12,10 +14,14 @@ from ..agents.answer_agent import run_answer
 from ..agents.gather_agent import run_gather
 from ..agents.grade_agent import run_grade
 from ..agents.retrieve_agent import build_retrieve_tools, run_retrieve
-from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_CONTINUE_VERDICTS, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS, TELEMETRY_WORKFLOW_NAME, TELEMETRY_WORKFLOW_OPERATION_NAME
+from ..conts import ANSWER_STATUS_ANSWERED, ANSWER_STATUS_REFUSED, GATHER_MAX_LLM_TURNS, GATHER_MAX_TOOL_CALLS, GRADE_CONTINUE_VERDICTS, GRADE_VERDICT_EMPTY_STOP, GRADE_VERDICT_ENOUGH, GRADE_VERDICT_MISSING_HOP, GROUNDED_ANSWERING_RECURSION_LIMIT, REQUIRED_SOLUTION_ENV_VARS, TELEMETRY_WORKFLOW_NAME, TELEMETRY_WORKFLOW_OPERATION_NAME, WORKERS
 from ..repositories.logging_repository import LoggingRepository
 from ..repositories.telemetry_repository import TelemetryRepository
 from ..schemas.agent import AnswerResult, SearchEvidenceOutput
+from ..services.logging_dashboard_service import run_logging_dashboard
+
+
+QUESTION_WORKERS = ThreadPoolExecutor(max_workers=WORKERS)
 
 
 class GroundedAnsweringState(TypedDict):
@@ -72,8 +78,7 @@ def route_after_gather(state):
 def route_after_retrieve(state):
     if state.get("gather_count", 0) >= GATHER_MAX_LLM_TURNS or state.get("tool_count", 0) >= GATHER_MAX_TOOL_CALLS:
         return "answer"
-    last_message = state["messages"][-1]
-    pending_tool_calls = getattr(last_message, "tool_calls", None) or []
+    pending_tool_calls = getattr(state["messages"][-1], "tool_calls", None) or []
     if pending_tool_calls and len(pending_tool_calls) <= GATHER_MAX_TOOL_CALLS - state.get("tool_count", 0):
         return "tools"
     return "answer"
@@ -127,14 +132,16 @@ def retrieve_node(state, task_data, flow_id):
     limit = GATHER_MAX_TOOL_CALLS - state.get("tool_count", 0)
     sub_questions = cleaned_sub_questions(state.get("sub_questions"), limit)
     tool_calls = []
-    for sub_question in sub_questions:
-        if len(tool_calls) >= limit:
-            break
-        message = run_retrieve({**task_data, "sub_question": sub_question}, flow_id)
-        for tool_call in getattr(message, "tool_calls", None) or []:
-            if len(tool_calls) >= limit:
-                break
-            tool_calls.append(tool_call)
+    if sub_questions:
+        with ThreadPoolExecutor(max_workers=len(sub_questions)) as pool:
+            futures = [pool.submit(copy_context().run, run_retrieve, {**task_data, "sub_question": sub_question}, flow_id) for sub_question in sub_questions]
+            for future in futures:
+                for tool_call in getattr(future.result(), "tool_calls", None) or []:
+                    if len(tool_calls) >= limit:
+                        break
+                    tool_calls.append(tool_call)
+                if len(tool_calls) >= limit:
+                    break
     retrieve_message = AIMessage(content="", tool_calls=tool_calls)
     task_data["tool_calls"] = extract_tool_calls(retrieve_message)
     task_data["next_route"] = route_after_retrieve({"messages": [retrieve_message], "gather_count": state.get("gather_count", 0), "tool_count": state.get("tool_count", 0)})
@@ -201,15 +208,14 @@ def raise_if_missing_solution_env(task_data):
             raise ValueError(f"{env_name} is missing")
 
 
-def run_grounded_answering(task_data, flow_id):
+def execute_grounded_answering(task_data, flow_id):
     answer_result = AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
     with TelemetryRepository.start_span(TELEMETRY_WORKFLOW_OPERATION_NAME, TELEMETRY_WORKFLOW_NAME, flow_id, task_data) as workflow_span:
         task_data["trace_id"] = LoggingRepository.current_trace_id()
         LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         try:
             raise_if_missing_solution_env(task_data)
-            graph_state = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT, "metadata": {"flow_id": flow_id}})
-            answer_result = graph_state.get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
+            answer_result = build_grounded_answering_graph(task_data, flow_id).invoke({"question": task_data["question"], "messages": [HumanMessage(task_data["question"])], "evidence": [], "prior_queries": [], "sub_questions": [], "gather_count": 0, "tool_count": 0, "grade_verdict": None, "grade_note": None, "answer_result": None}, {"recursion_limit": GROUNDED_ANSWERING_RECURSION_LIMIT, "metadata": {"flow_id": flow_id}}).get("answer_result") or AnswerResult(status=ANSWER_STATUS_REFUSED, answer="", citations=[])
             task_data["answer_result"] = answer_result.model_dump()
             TelemetryRepository.record_output(workflow_span, task_data)
         except Exception as err:
@@ -220,3 +226,9 @@ def run_grounded_answering(task_data, flow_id):
             LoggingRepository.log_event(status="ERROR", content={"error": repr(err), "task_data": task_data}, flow_id=flow_id, level="ERROR")
         LoggingRepository.log_event(status="FINISHED", content=task_data, flow_id=flow_id, level="INFO")
     return answer_result.model_dump()
+
+
+def run_grounded_answering(task_data, flow_id):
+    answer_result = QUESTION_WORKERS.submit(execute_grounded_answering, task_data, flow_id).result()
+    run_logging_dashboard(task_data, flow_id)
+    return answer_result

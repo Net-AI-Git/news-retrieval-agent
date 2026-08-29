@@ -36,8 +36,7 @@ def query_facts(task_data, flow_id, query_embedding, where_filter):
     if not query_result or not query_result.get("documents") or not query_result["documents"][0]:
         return results
     for document, metadata, distance in zip(query_result["documents"][0], query_result["metadatas"][0], query_result["distances"][0]):
-        similarity = max(0.0, min(1.0, 1.0 - distance))
-        results.append({"article_title": metadata["article_title"], "snippet": document, "url": metadata.get("url"), "published_at": metadata.get("published_at"), "match_percentage": round(similarity * RETRIEVAL_PERCENT_SCALE, 2)})
+        results.append({"article_title": metadata["article_title"], "snippet": document, "url": metadata.get("url"), "published_at": metadata.get("published_at"), "match_percentage": round(max(0.0, min(1.0, 1.0 - distance)) * RETRIEVAL_PERCENT_SCALE, 2)})
     return results
 
 
@@ -78,7 +77,8 @@ def run_retrieval(task_data, flow_id):
         LoggingRepository.log_event(status="STARTING", content=task_data, flow_id=flow_id, level="INFO")
         try:
             validate_question(task_data)
-            retrieval_task = {**task_data, "resolved_source": run_resolve_source(task_data, flow_id)}
+            resolved_source = run_resolve_source(task_data, flow_id)
+            retrieval_task = {**task_data, "resolved_source": resolved_source}
             where_filter = build_where_filter(retrieval_task)
             query_embedding = create_query_embedding(retrieval_task, flow_id)
             facts = query_facts(retrieval_task, flow_id, query_embedding, where_filter)

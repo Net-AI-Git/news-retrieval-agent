@@ -32,8 +32,7 @@ def run_log_query(query):
     connection = open_logs()
     try:
         query_result = connection.execute(query)
-        field_names = [field[0] for field in query_result.description]
-        return [dict(zip(field_names, row)) for row in query_result.fetchall()]
+        return [dict(zip([field[0] for field in query_result.description], row)) for row in query_result.fetchall()]
     finally:
         connection.close()
 

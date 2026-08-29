@@ -1,6 +1,6 @@
 # TASK 04 — Decision Log
 
-**Status:** In progress — first-hop Gather gold coverage closed 2026-08-29; Grade stop / e2e still open  
+**Status:** In progress — first-hop Gather gold coverage closed 2026-08-29; Gate 5 e2e 11/11 closed; Q09 Grade `too_late` accepted; tool cap 5  
 **Scope:** Agentic grounded answering loop. Tool contracts stay as TASK 03. This loop binds `search_facts` only.
 
 Closed decisions stay here with the trade-off that justified them. Open items stay listed until chosen.
@@ -138,7 +138,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Hard cap then Answer, not a crash
 
-**Choice:** Orchestration counts Gather LLM visits and tool executions. Caps: 6 Gather LLM runs, 8 tool calls (`conts.py`). Hitting either cap routes to Answer with current `evidence`. Answer may refuse. No dollar/token budget. LangGraph `recursion_limit` is a backstop, not the user-facing stop.
+**Choice:** Orchestration counts Gather LLM visits and tool executions. Caps: 6 Gather LLM runs, 5 tool calls (`GATHER_MAX_TOOL_CALLS` in `conts.py`). Lowered from 8 on 2026-08-29: Q09 Grade `too_late` is accepted; extra empty facts calls after the two required hops are bounded at 5 instead of chasing `empty_stop`. Hitting either cap routes to Answer with current `evidence`. Answer may refuse. No dollar/token budget. LangGraph `recursion_limit` is a backstop, not the user-facing stop.
 
 **Chosen over:**
 
@@ -293,7 +293,7 @@ Closed decisions stay here with the trade-off that justified them. Open items st
 
 ### Isolated retrieve hop (Gate 4, 2026-08-28)
 
-**Choice:** Split first-hop work into two agents. Gather emits a structured list of standalone sub-questions and has no tools. Orchestration fans those strings into retrieve, one invoke per sub-question, with only that string as the user message (no parent question, no sibling hops). Retrieve binds `search_facts` (`tool_choice` forced), copies a short outlet token into `source` when this sub-question names a news outlet, fills `published_from` / `published_to` when it names a publication window, and must not answer. Source catalog resolve stays inside `run_resolve_source` (exact → unique substring → embedding only on those substring hits, or the full catalog when substring is empty; drop the filter below similarity 0.5 or a 0.05 margin). Graph: Gather → retrieve → tools → Grade → Gather | Answer. Caps unchanged (6 Gather LLM turns, 8 tool calls). Same `openai/gpt-4o-mini` for all agents.
+**Choice:** Split first-hop work into two agents. Gather emits a structured list of standalone sub-questions and has no tools. Orchestration fans those strings into retrieve, one invoke per sub-question, with only that string as the user message (no parent question, no sibling hops). Retrieve binds `search_facts` (`tool_choice` forced), copies a short outlet token into `source` when this sub-question names a news outlet, fills `published_from` / `published_to` when it names a publication window, and must not answer. Source catalog resolve stays inside `run_resolve_source` (exact → unique substring → embedding only on those substring hits, or the full catalog when substring is empty; drop the filter below similarity 0.5 or a 0.05 margin). Graph: Gather → retrieve → tools → Grade → Gather | Answer. Caps at the split were 6 Gather LLM turns and 8 tool calls; the tool cap is now 5 (see Hard cap). Same `openai/gpt-4o-mini` for all agents.
 
 **Chosen over:**
 

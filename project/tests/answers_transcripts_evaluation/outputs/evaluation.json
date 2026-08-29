@@ -1,9 +1,9 @@
 {
   "question_count": 11,
   "contract_pass_count": 11,
-  "gt_match_count": 6,
+  "gt_match_count": 11,
   "failures": [],
-  "known_quality_limitations": "GT match is deferred. This run records schema, transcripts, citation traceability, and tool-only evidence.",
+  "known_quality_limitations": "GT match is recorded from the public solution.py path. Schema, transcripts, citation traceability, and tool-only evidence remain the assignment contract.",
   "questions": [
     {
       "id": "Q01",
@@ -31,9 +31,9 @@
         "temporal",
         "cross-article"
       ],
-      "answer": "Insufficient information",
+      "answer": "Yes",
       "gt_answer": "Yes",
-      "gt_match": false,
+      "gt_match": true,
       "contract": {
         "schema_answer_is_string": true,
         "non_refusal_has_citation": true,
@@ -78,7 +78,7 @@
         "non_refusal_has_citation": true,
         "citations_traced_to_evidence": true,
         "tool_calls_present": true,
-        "tool_call_count": 4,
+        "tool_call_count": 2,
         "ungrounded_citations": []
       },
       "contract_passed": true
@@ -97,7 +97,7 @@
         "non_refusal_has_citation": true,
         "citations_traced_to_evidence": true,
         "tool_calls_present": true,
-        "tool_call_count": 5,
+        "tool_call_count": 3,
         "ungrounded_citations": []
       },
       "contract_passed": true
@@ -108,9 +108,9 @@
         "yes-no",
         "cross-article"
       ],
-      "answer": "Insufficient information",
+      "answer": "No",
       "gt_answer": "No",
-      "gt_match": false,
+      "gt_match": true,
       "contract": {
         "schema_answer_is_string": true,
         "non_refusal_has_citation": true,
@@ -147,15 +147,15 @@
         "temporal",
         "cross-article"
       ],
-      "answer": "Insufficient information",
+      "answer": "Yes",
       "gt_answer": "Yes",
-      "gt_match": false,
+      "gt_match": true,
       "contract": {
         "schema_answer_is_string": true,
         "non_refusal_has_citation": true,
         "citations_traced_to_evidence": true,
         "tool_calls_present": true,
-        "tool_call_count": 8,
+        "tool_call_count": 2,
         "ungrounded_citations": []
       },
       "contract_passed": true
@@ -175,7 +175,7 @@
         "non_refusal_has_citation": true,
         "citations_traced_to_evidence": true,
         "tool_calls_present": true,
-        "tool_call_count": 8,
+        "tool_call_count": 4,
         "ungrounded_citations": []
       },
       "contract_passed": true
@@ -186,15 +186,15 @@
         "yes-no",
         "cross-article"
       ],
-      "answer": "Insufficient information",
+      "answer": "No",
       "gt_answer": "No",
-      "gt_match": false,
+      "gt_match": true,
       "contract": {
         "schema_answer_is_string": true,
         "non_refusal_has_citation": true,
         "citations_traced_to_evidence": true,
         "tool_calls_present": true,
-        "tool_call_count": 8,
+        "tool_call_count": 2,
         "ungrounded_citations": []
       },
       "contract_passed": true
@@ -206,15 +206,15 @@
         "temporal",
         "cross-article"
       ],
-      "answer": "Insufficient information",
+      "answer": "No",
       "gt_answer": "No",
-      "gt_match": false,
+      "gt_match": true,
       "contract": {
         "schema_answer_is_string": true,
         "non_refusal_has_citation": true,
         "citations_traced_to_evidence": true,
         "tool_calls_present": true,
-        "tool_call_count": 8,
+        "tool_call_count": 2,
         "ungrounded_citations": []
       },
       "contract_passed": true

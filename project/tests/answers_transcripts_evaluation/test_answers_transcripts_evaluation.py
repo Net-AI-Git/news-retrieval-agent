@@ -2,22 +2,19 @@ import json
 import unittest
 from pathlib import Path
 
-from src.conts import ANSWER_REFUSAL_TEXT
+from src.conts import ANSWER_REFUSAL_TEXT, ANSWERS_PATH, DATA_DIR, TRANSCRIPTS_PATH
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-ANSWERS_PATH = PROJECT_ROOT / "answers.json"
-TRANSCRIPTS_PATH = PROJECT_ROOT / "transcripts.json"
-QUESTIONS = json.loads((PROJECT_ROOT / "src" / "data" / "questions.json").read_text(encoding="utf-8"))
+QUESTIONS = json.loads((Path(DATA_DIR) / "questions.json").read_text(encoding="utf-8"))
 
 
 class AnswersTranscriptsEvaluationTests(unittest.TestCase):
 
     def setUp(self):
-        self.assertTrue(ANSWERS_PATH.is_file(), "answers.json is missing; run the evaluation runner first")
-        self.assertTrue(TRANSCRIPTS_PATH.is_file(), "transcripts.json is missing; run the evaluation runner first")
-        self.answers = json.loads(ANSWERS_PATH.read_text(encoding="utf-8"))
-        self.transcripts = json.loads(TRANSCRIPTS_PATH.read_text(encoding="utf-8"))
+        self.assertTrue(Path(ANSWERS_PATH).is_file(), "answers.json is missing; run python solution.py first")
+        self.assertTrue(Path(TRANSCRIPTS_PATH).is_file(), "transcripts.json is missing; run python solution.py first")
+        self.answers = json.loads(Path(ANSWERS_PATH).read_text(encoding="utf-8"))
+        self.transcripts = json.loads(Path(TRANSCRIPTS_PATH).read_text(encoding="utf-8"))
 
     def test_answers_have_all_question_ids(self):
         self.assertEqual([entry["id"] for entry in self.answers], [question["id"] for question in QUESTIONS])

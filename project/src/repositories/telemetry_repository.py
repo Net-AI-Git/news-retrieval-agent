@@ -71,19 +71,15 @@ class TelemetryRepository:
 
     @staticmethod
     def redact_span(span):
-        events = [Event(event.name, TelemetryRepository.redact_attributes(event.attributes), event.timestamp) for event in span.events]
-        links = [Link(link.context, TelemetryRepository.redact_attributes(link.attributes)) for link in span.links]
-        resource = Resource(TelemetryRepository.redact_attributes(span.resource.attributes), span.resource.schema_url)
-        return ReadableSpan(name=span.name, context=span.context, parent=span.parent, resource=resource, attributes=TelemetryRepository.redact_attributes(span.attributes), events=events, links=links, kind=span.kind, status=Status(span.status.status_code), start_time=span.start_time, end_time=span.end_time, instrumentation_scope=span.instrumentation_scope)
+        return ReadableSpan(name=span.name, context=span.context, parent=span.parent, resource=Resource(TelemetryRepository.redact_attributes(span.resource.attributes), span.resource.schema_url), attributes=TelemetryRepository.redact_attributes(span.attributes), events=[Event(event.name, TelemetryRepository.redact_attributes(event.attributes), event.timestamp) for event in span.events], links=[Link(link.context, TelemetryRepository.redact_attributes(link.attributes)) for link in span.links], kind=span.kind, status=Status(span.status.status_code), start_time=span.start_time, end_time=span.end_time, instrumentation_scope=span.instrumentation_scope)
 
     @staticmethod
     def create_provider():
         from opentelemetry.exporter.otlp.json.file import FileSpanExporter
         Path(TELEMETRY_DIRECTORY_PATH).mkdir(parents=True, exist_ok=True)
-        telemetry_file_path = Path(TELEMETRY_DIRECTORY_PATH) / f"{TELEMETRY_FILE_PREFIX}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}-{os.getpid()}.jsonl"
         provider = TracerProvider(sampler=ParentBased(ALWAYS_ON), resource=Resource.create({ResourceAttributes.SERVICE_NAME: OTEL_SERVICE_NAME}))
         provider.add_span_processor(FlowIdSpanProcessor())
-        provider.add_span_processor(SimpleSpanProcessor(RedactingSpanExporter(FileSpanExporter(telemetry_file_path))))
+        provider.add_span_processor(SimpleSpanProcessor(RedactingSpanExporter(FileSpanExporter(Path(TELEMETRY_DIRECTORY_PATH) / f"{TELEMETRY_FILE_PREFIX}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}-{os.getpid()}.jsonl"))))
         trace.set_tracer_provider(provider)
         return provider
 
@@ -108,11 +104,10 @@ class TelemetryRepository:
 
     @staticmethod
     def start_span(operation_name, entity_name, flow_id, task_data):
-        span_context = baggage.set_baggage(TELEMETRY_FLOW_ID_ATTRIBUTE, flow_id) if operation_name == TELEMETRY_WORKFLOW_OPERATION_NAME else None
         attributes = {GEN_AI_OPERATION_NAME: operation_name, GEN_AI_INPUT_MESSAGES: TelemetryRepository.serialize_data(task_data), TELEMETRY_FLOW_ID_ATTRIBUTE: flow_id}
         if operation_name == TELEMETRY_WORKFLOW_OPERATION_NAME:
             attributes[GEN_AI_AGENT_NAME] = entity_name
-        return TelemetryRepository.initialize().start_as_current_span(f"{operation_name} {entity_name}", context=span_context, attributes=attributes, record_exception=False, set_status_on_exception=False)
+        return TelemetryRepository.initialize().start_as_current_span(f"{operation_name} {entity_name}", context=(baggage.set_baggage(TELEMETRY_FLOW_ID_ATTRIBUTE, flow_id) if operation_name == TELEMETRY_WORKFLOW_OPERATION_NAME else None), attributes=attributes, record_exception=False, set_status_on_exception=False)
 
     @staticmethod
     def record_output(span, output):

@@ -8,9 +8,8 @@ def exact_source_match(task_data, catalog):
     source_query = (task_data.get("source") or "").strip()
     if not source_query or not catalog:
         return None
-    needle = " ".join(source_query.lower().split())
     for item in catalog.get("sources") or []:
-        if " ".join((item.get("name") or "").lower().split()) == needle:
+        if " ".join((item.get("name") or "").lower().split()) == " ".join(source_query.lower().split()):
             return item["name"]
     return None
 
@@ -19,10 +18,9 @@ def unique_substring_source(task_data, catalog):
     source_query = (task_data.get("source") or "").strip()
     if not source_query or not catalog:
         return None
-    needle = " ".join(source_query.lower().split())
     substring_matches = []
     for item in catalog.get("sources") or []:
-        if needle in " ".join((item.get("name") or "").lower().split()):
+        if " ".join(source_query.lower().split()) in " ".join((item.get("name") or "").lower().split()):
             substring_matches.append(item["name"])
     if len(substring_matches) == 1:
         return substring_matches[0]
