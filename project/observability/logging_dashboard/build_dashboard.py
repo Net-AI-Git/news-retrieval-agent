@@ -22,7 +22,7 @@ MODEL_USD_PER_MILLION = (("gpt-4.1-mini", 0.4, 1.6), ("gpt-4.1", 2.0, 8.0), ("gp
 STATUS_COLORS = {"FINISHED": "#22c55e", "ERROR": "#ef4444", "STARTING": "#38bdf8"}
 BILLED_INPUT_SQL = f"COALESCE(input_tokens, input_chars * 1.0 / {CHARS_PER_TOKEN})"
 BILLED_OUTPUT_SQL = f"COALESCE(output_tokens, output_chars * 1.0 / {CHARS_PER_TOKEN})"
-DASHBOARD_STYLE = "html,body{margin:0;width:100%;background:#0b1220;color:#e5e7eb;font-family:Segoe UI,sans-serif}h2{margin:8px 0 12px;font-size:20px;color:#86efac}.nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:14px;padding:18px 24px;background:#111827;position:sticky;top:0;z-index:5;border-bottom:1px solid #1f2937}.tab{background:#1f2937;color:#e5e7eb;border:0;padding:14px 28px;border-radius:10px;cursor:pointer;font-weight:700;font-size:18px;min-width:180px}.tab.active{background:#22c55e;color:#052e16}.panel{display:none;width:100%;box-sizing:border-box;padding:12px 16px 32px}.panel.active{display:block}.note{color:#94a3b8;padding:0 18px 8px;font-size:13px;line-height:1.45;text-align:center}.js-plotly-plot,.plotly-graph-div{width:100%!important}"
+DASHBOARD_STYLE = "html,body{margin:0;width:100%;background:#0b1220;color:#e5e7eb;font-family:Segoe UI,sans-serif}h2{margin:8px 0 4px;font-size:22px;color:#86efac}.nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px;padding:18px 24px;background:#111827;position:sticky;top:0;z-index:5;border-bottom:1px solid #1f2937}.tab{background:#1f2937;color:#e5e7eb;border:0;padding:14px 24px;border-radius:10px;cursor:pointer;font-weight:700;font-size:18px;min-width:140px}.tab.active{background:#22c55e;color:#052e16}.panel{display:none;width:100%;box-sizing:border-box;padding:12px 16px 32px}.panel.active{display:block}.note{padding:0 18px 8px;font-size:13px;text-align:center;color:#94a3b8;line-height:1.45}.purpose{margin:0 0 20px;max-width:1100px;font-size:16px;color:#e2e8f0;line-height:1.5}.caption{margin:16px 0 6px;font-size:14px;color:#cbd5e1;line-height:1.45}.chart{width:100%;margin:0 0 28px}.js-plotly-plot,.plotly-graph-div{width:100%!important}"
 DASHBOARD_SCRIPT = "function resizePlots(root){root.querySelectorAll('.js-plotly-plot').forEach(function(plot){Plotly.Plots.resize(plot)})}function showTab(id){document.querySelectorAll('.panel').forEach(function(panel){panel.classList.remove('active')});document.querySelectorAll('.tab').forEach(function(tab){tab.classList.remove('active')});document.getElementById(id).classList.add('active');document.getElementById('btn-'+id).classList.add('active');resizePlots(document.getElementById(id))}window.addEventListener('resize',function(){document.querySelectorAll('.panel.active').forEach(function(panel){resizePlots(panel)})})"
 
 
@@ -87,6 +87,34 @@ def colored_indicator(value, title, has_problem, valueformat=None):
 def dark_layout(figure, title, height, showlegend=False):
     figure.update_layout(title=title, height=height, showlegend=showlegend, template="plotly_dark", paper_bgcolor="#111827", plot_bgcolor="#0b1220", autosize=True)
     return figure
+
+
+def xy_titles(figure, x_title, y_title, row=None, col=None):
+    if row is None:
+        figure.update_xaxes(title_text=x_title)
+        figure.update_yaxes(title_text=y_title)
+        return figure
+    figure.update_xaxes(title_text=x_title, row=row, col=col)
+    figure.update_yaxes(title_text=y_title, row=row, col=col)
+    return figure
+
+
+def workflow_avg_ms(agent_health):
+    for row in agent_health:
+        if row[0] == "workflow":
+            return round(row[4] or 0, 1)
+    return 0.0
+
+
+def question_cost_labels(dashboard_data):
+    question_ids = {}
+    for row in dashboard_data["gt_rows"]:
+        if row["flow_id"]:
+            question_ids[row["flow_id"]] = row["question_id"]
+    labels = []
+    for row in dashboard_data["flow_usd"]:
+        labels.append(question_ids.get(row[0]) or (row[0] or "")[:8])
+    return labels
 
 
 def metric_number(value):
@@ -185,12 +213,12 @@ def load_log_panels(connection, cutoff_time):
 
 
 def load_log_health(connection, cutoff_time):
-    return {"log_health": connection.execute("SELECT process, COALESCE(sum(CASE WHEN status = 'FINISHED' THEN 1 ELSE 0 END), 0) AS finished, COALESCE(sum(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END), 0) AS errors, count(*) AS events FROM logs WHERE time >= ? GROUP BY process ORDER BY errors DESC, events DESC LIMIT 20", (cutoff_time,)).fetchall(), "recent_events": connection.execute("SELECT time, status, process, flow_id, level FROM logs WHERE time >= ? ORDER BY time DESC LIMIT 25", (cutoff_time,)).fetchall()}
+    return {"log_health": connection.execute("SELECT process, COALESCE(sum(CASE WHEN status = 'FINISHED' THEN 1 ELSE 0 END), 0) AS finished, COALESCE(sum(CASE WHEN status = 'ERROR' THEN 1 ELSE 0 END), 0) AS errors, count(*) AS events FROM logs WHERE time >= ? GROUP BY process ORDER BY errors DESC, events DESC LIMIT 20", (cutoff_time,)).fetchall()}
 
 
 def load_span_panels(connection, cutoff_ns):
-    totals = connection.execute("SELECT count(*) AS total, COALESCE(sum(CASE WHEN status_code = 2 THEN 1 ELSE 0 END), 0) AS errors, count(DISTINCT trace_id) AS traces, count(DISTINCT CASE WHEN coalesce(flow_id, '') != '' THEN flow_id END) AS questions FROM spans WHERE start_time_unix_nano >= ?", (cutoff_ns,)).fetchone()
-    return {"span_total": totals[0], "span_errors": totals[1], "traces": totals[2], "questions": totals[3], "span_names": connection.execute("SELECT name, count(*) AS spans FROM spans WHERE start_time_unix_nano >= ? GROUP BY name ORDER BY spans DESC LIMIT 15", (cutoff_ns,)).fetchall(), "span_durations": connection.execute("SELECT name, avg(duration_ms) AS avg_ms, max(duration_ms) AS max_ms FROM spans WHERE start_time_unix_nano >= ? GROUP BY name ORDER BY avg_ms DESC LIMIT 15", (cutoff_ns,)).fetchall(), "error_spans": connection.execute("SELECT name, error_type, flow_id, trace_id, duration_ms, input_preview FROM spans WHERE status_code = 2 AND start_time_unix_nano >= ? ORDER BY duration_ms DESC LIMIT 20", (cutoff_ns,)).fetchall(), "tool_spans": connection.execute("SELECT name, tool_name, task_status, duration_ms, flow_id, trace_id FROM spans WHERE tool_name IS NOT NULL AND start_time_unix_nano >= ? ORDER BY start_time_unix_nano DESC LIMIT 20", (cutoff_ns,)).fetchall(), "span_events": connection.execute("SELECT span_events.name, span_events.details, spans.flow_id, spans.trace_id FROM span_events JOIN spans ON spans.span_id = span_events.span_id AND spans.trace_id = span_events.trace_id WHERE span_events.name IN ('routing_decision', 'budget_update', 'workflow_interrupt', 'exception') AND spans.start_time_unix_nano >= ? ORDER BY span_events.time_unix_nano DESC LIMIT 30", (cutoff_ns,)).fetchall()}
+    totals = connection.execute("SELECT COALESCE(sum(CASE WHEN status_code = 2 THEN 1 ELSE 0 END), 0) AS errors, count(DISTINCT CASE WHEN coalesce(flow_id, '') != '' THEN flow_id END) AS questions FROM spans WHERE start_time_unix_nano >= ?", (cutoff_ns,)).fetchone()
+    return {"span_errors": totals[0], "questions": totals[1], "error_spans": connection.execute("SELECT name, error_type, flow_id, trace_id, duration_ms, input_preview FROM spans WHERE status_code = 2 AND start_time_unix_nano >= ? ORDER BY duration_ms DESC LIMIT 20", (cutoff_ns,)).fetchall(), "tool_spans": connection.execute("SELECT name, tool_name, task_status, duration_ms, flow_id, trace_id FROM spans WHERE tool_name IS NOT NULL AND start_time_unix_nano >= ? ORDER BY start_time_unix_nano DESC LIMIT 20", (cutoff_ns,)).fetchall(), "span_events": connection.execute("SELECT span_events.name, span_events.details, spans.flow_id, spans.trace_id FROM span_events JOIN spans ON spans.span_id = span_events.span_id AND spans.trace_id = span_events.trace_id WHERE span_events.name IN ('routing_decision', 'budget_update', 'workflow_interrupt', 'exception') AND spans.start_time_unix_nano >= ? ORDER BY span_events.time_unix_nano DESC LIMIT 30", (cutoff_ns,)).fetchall()}
 
 
 def load_agent_panels(connection, cutoff_ns):
@@ -203,13 +231,6 @@ def load_cost_rows(connection, cutoff_ns):
 
 def load_flow_cost_rows(connection, cutoff_ns):
     return connection.execute(f"SELECT COALESCE(flow_id, ''), COALESCE(model, ''), COALESCE(sum({BILLED_INPUT_SQL}), 0), COALESCE(sum({BILLED_OUTPUT_SQL}), 0) FROM spans WHERE start_time_unix_nano >= ? AND coalesce(flow_id, '') != '' GROUP BY flow_id, model ORDER BY 3 DESC LIMIT 40", (cutoff_ns,)).fetchall()
-
-
-def load_waterfall(connection, cutoff_ns):
-    selected = connection.execute("SELECT trace_id FROM spans WHERE status_code = 2 AND start_time_unix_nano >= ? ORDER BY duration_ms DESC LIMIT 1", (cutoff_ns,)).fetchone() or connection.execute("SELECT trace_id FROM spans WHERE start_time_unix_nano >= ? ORDER BY duration_ms DESC LIMIT 1", (cutoff_ns,)).fetchone()
-    if not selected:
-        return {"waterfall_trace_id": None, "waterfall": []}
-    return {"waterfall_trace_id": selected[0], "waterfall": connection.execute("SELECT name, start_time_unix_nano, duration_ms, agent, status_code FROM spans WHERE trace_id = ? AND start_time_unix_nano >= ? ORDER BY start_time_unix_nano LIMIT 40", (selected[0], cutoff_ns)).fetchall()}
 
 
 def load_correlated_flows(logs_connection, spans_connection, cutoff_time, cutoff_ns):
@@ -245,7 +266,6 @@ def load_dashboard_data(lookback_minutes=None, log_file_path=None, telemetry_dir
         dashboard_data["flow_cost_rows"] = costed_rows(load_flow_cost_rows(spans_connection, cutoff_ns))
         dashboard_data["agent_usd"] = totaled_by_first_column(dashboard_data["cost_rows"])
         dashboard_data["flow_usd"] = totaled_by_first_column(dashboard_data["flow_cost_rows"])
-        dashboard_data.update(load_waterfall(spans_connection, cutoff_ns))
         dashboard_data.update(load_gt_metrics(metrics_directory_path, ground_truth_directory_path))
         dashboard_data["correlated_flows"] = correlated_flows_with_gt(load_correlated_flows(logs_connection, spans_connection, cutoff_time, cutoff_ns), dashboard_data["gt_rows"])
         dashboard_data["question_flows"] = load_question_flows(spans_connection, logs_connection, cutoff_ns, cutoff_time)
@@ -267,87 +287,120 @@ def waterfall_bars(waterfall):
 
 
 def build_overview_figure(dashboard_data):
-    figure = make_subplots(rows=2, cols=4, specs=[[{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}], [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}]])
-    figure.add_trace(colored_indicator(dashboard_data["log_total"], "Log events", False), row=1, col=1)
-    figure.add_trace(colored_indicator(dashboard_data["log_errors"], "Log errors", dashboard_data["log_errors"] > 0), row=1, col=2)
-    figure.add_trace(colored_indicator(dashboard_data["span_total"], "Spans", False), row=1, col=3)
-    figure.add_trace(colored_indicator(dashboard_data["span_errors"], "Span errors", dashboard_data["span_errors"] > 0), row=1, col=4)
-    figure.add_trace(colored_indicator(dashboard_data["traces"], "Traces", False), row=2, col=1)
-    figure.add_trace(colored_indicator(dashboard_data["questions"], "Questions", False), row=2, col=2)
-    figure.add_trace(colored_indicator(total_billed_tokens(dashboard_data["cost_rows"]), "Billed tokens", False), row=2, col=3)
-    figure.add_trace(colored_indicator(total_estimated_usd(dashboard_data["cost_rows"]), "Estimated USD", False, "$.4f"), row=2, col=4)
-    return dark_layout(figure, f"Local logs and telemetry dashboard (last {dashboard_data['lookback_minutes']} minutes)", 420)
+    scored = bool(dashboard_data["gt_rows"])
+    gt_success = metric_number(dashboard_data["gt_total"].get("task_success"))
+    figure = make_subplots(rows=2, cols=3, specs=[[{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}], [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}]])
+    figure.add_trace(colored_indicator(dashboard_data["log_errors"], "Log errors (count)", dashboard_data["log_errors"] > 0), row=1, col=1)
+    figure.add_trace(colored_indicator(dashboard_data["span_errors"], "Span errors (count)", dashboard_data["span_errors"] > 0), row=1, col=2)
+    figure.add_trace(colored_indicator(gt_success, "GT task success (%)", scored and gt_success < 100, ".1f"), row=1, col=3)
+    figure.add_trace(colored_indicator(dashboard_data["questions"], "Questions (count)", False), row=2, col=1)
+    figure.add_trace(colored_indicator(workflow_avg_ms(dashboard_data["agent_health"]), "Workflow latency (ms)", False, ",.1f"), row=2, col=2)
+    figure.add_trace(colored_indicator(total_estimated_usd(dashboard_data["cost_rows"]), "Est. USD (all questions)", False, "$.4f"), row=2, col=3)
+    return dark_layout(figure, f"Health · last {dashboard_data['lookback_minutes']} minutes", 420)
 
 
-def build_agent_health_figure(dashboard_data):
-    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "table"}]], subplot_titles=["Agent latency (avg ms)", "Agent successes and failures"], column_widths=[0.42, 0.58])
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_health"]], y=[row[4] for row in dashboard_data["agent_health"]], marker_color=[status_color(row[2]) for row in dashboard_data["agent_health"]], name="Avg ms"), row=1, col=1)
-    figure.add_trace(go.Table(header={"values": ["Agent", "Spans", "Errors", "OK", "Avg ms", "Max ms"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["agent_health"]] for column_index in range(6)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=2)
-    return dark_layout(figure, "Agent monitoring", 560)
+def build_overview_volume_figure(dashboard_data):
+    figure = go.Figure(go.Scatter(x=[row[0] for row in dashboard_data["timeline"]], y=[row[1] for row in dashboard_data["timeline"]], mode="lines+markers", line={"color": "#38bdf8"}, name="Events", hovertemplate="%{x}<br>%{y} events<extra></extra>"))
+    xy_titles(figure, "Time (UTC minute)", "Log events (count)")
+    figure.update_yaxes(ticksuffix=" events")
+    return dark_layout(figure, "Activity volume", 420)
 
 
-def build_log_figure(dashboard_data):
-    figure = make_subplots(rows=2, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}], [{"type": "xy"}, {"type": "table"}]], subplot_titles=["Events by status", "Errors by process", "Events over time", "Recent errors"], vertical_spacing=0.14)
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["statuses"]], y=[row[1] for row in dashboard_data["statuses"]], marker_color=[STATUS_COLORS.get(row[0], "#64748b") for row in dashboard_data["statuses"]], name="Events"), row=1, col=1)
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["error_processes"]], y=[row[1] for row in dashboard_data["error_processes"]], marker_color="#ef4444", name="Errors"), row=1, col=2)
-    figure.add_trace(go.Scatter(x=[row[0] for row in dashboard_data["timeline"]], y=[row[1] for row in dashboard_data["timeline"]], mode="lines+markers", line={"color": "#38bdf8"}, name="Events"), row=2, col=1)
-    figure.add_trace(go.Table(header={"values": ["Time", "Process", "Flow", "Trace", "Content"], "fill_color": "#7f1d1d", "font": {"color": "#fecaca"}}, cells={"values": [[row[column_index] for row in dashboard_data["recent_errors"]] for column_index in range(5)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=2)
-    return dark_layout(figure, "Logs", 900)
+def build_error_status_figure(dashboard_data):
+    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}]], subplot_titles=["Log events by status (count)", "Log ERROR events by process (count)"])
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["statuses"]], y=[row[1] for row in dashboard_data["statuses"]], marker_color=[STATUS_COLORS.get(row[0], "#64748b") for row in dashboard_data["statuses"]], name="Events", hovertemplate="%{x}<br>%{y} events<extra></extra>"), row=1, col=1)
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["error_processes"]], y=[row[1] for row in dashboard_data["error_processes"]], marker_color="#ef4444", name="Errors", hovertemplate="%{x}<br>%{y} errors<extra></extra>"), row=1, col=2)
+    xy_titles(figure, "Status", "Events (count)", 1, 1)
+    xy_titles(figure, "Process", "ERROR events (count)", 1, 2)
+    figure.update_yaxes(ticksuffix=" events", row=1, col=1)
+    figure.update_yaxes(ticksuffix=" errors", row=1, col=2)
+    return dark_layout(figure, "Log failures", 520)
 
 
-def build_log_process_figure(dashboard_data):
-    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "table"}]], subplot_titles=["Process finished vs errors", "Recent events"])
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["log_health"]], y=[row[1] for row in dashboard_data["log_health"]], name="FINISHED", marker_color="#22c55e"), row=1, col=1)
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["log_health"]], y=[row[2] for row in dashboard_data["log_health"]], name="ERROR", marker_color="#ef4444"), row=1, col=1)
-    figure.add_trace(go.Table(header={"values": ["Time", "Status", "Process", "Flow", "Level"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["recent_events"]] for column_index in range(5)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=2)
+def build_error_process_figure(dashboard_data):
+    figure = go.Figure()
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["log_health"]], y=[row[1] for row in dashboard_data["log_health"]], name="FINISHED (count)", marker_color="#22c55e", hovertemplate="%{x}<br>%{y} FINISHED<extra></extra>"))
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["log_health"]], y=[row[2] for row in dashboard_data["log_health"]], name="ERROR (count)", marker_color="#ef4444", hovertemplate="%{x}<br>%{y} ERROR<extra></extra>"))
     figure.update_layout(barmode="stack")
-    return dark_layout(figure, "Logging process health", 560, True)
+    xy_titles(figure, "Process", "Lifecycle events (count)")
+    figure.update_yaxes(ticksuffix=" events")
+    return dark_layout(figure, "FINISHED vs ERROR by process", 520, True)
+
+
+def build_recent_errors_figure(dashboard_data):
+    figure = go.Figure(go.Table(header={"values": ["Time (UTC)", "Process", "Flow", "Trace", "Content"], "fill_color": "#7f1d1d", "font": {"color": "#fecaca"}}, cells={"values": [[row[column_index] for row in dashboard_data["recent_errors"]] for column_index in range(5)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}))
+    return dark_layout(figure, "Recent errors", 560)
+
+
+def build_error_spans_figure(dashboard_data):
+    figure = go.Figure(go.Table(header={"values": ["Span name", "Error type", "Flow", "Trace", "Duration (ms)", "Input"], "fill_color": "#7f1d1d", "font": {"color": "#fecaca"}}, cells={"values": [[row[column_index] for row in dashboard_data["error_spans"]] for column_index in range(6)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}))
+    return dark_layout(figure, "Span errors", 560)
 
 
 def build_agent_latency_figure(dashboard_data):
     figure = go.Figure()
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_health"]], y=[row[4] for row in dashboard_data["agent_health"]], name="Avg ms", marker_color="#22c55e"))
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_health"]], y=[row[5] for row in dashboard_data["agent_health"]], name="Max ms", marker_color="#f59e0b"))
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_health"]], y=[row[4] for row in dashboard_data["agent_health"]], name="Average (ms)", marker_color="#22c55e", hovertemplate="%{x}<br>avg %{y:.1f} ms<extra></extra>"))
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_health"]], y=[row[5] for row in dashboard_data["agent_health"]], name="Maximum (ms)", marker_color="#f59e0b", hovertemplate="%{x}<br>max %{y:.1f} ms<extra></extra>"))
     figure.update_layout(barmode="group")
+    xy_titles(figure, "Agent", "Duration (milliseconds)")
+    figure.update_yaxes(ticksuffix=" ms")
     return dark_layout(figure, "Latency by agent", 520, True)
 
 
+def build_agent_outcome_figure(dashboard_data):
+    figure = go.Figure()
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_health"]], y=[row[3] for row in dashboard_data["agent_health"]], name="OK spans (count)", marker_color="#22c55e", hovertemplate="%{x}<br>%{y} OK<extra></extra>"))
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_health"]], y=[row[2] for row in dashboard_data["agent_health"]], name="Error spans (count)", marker_color="#ef4444", hovertemplate="%{x}<br>%{y} errors<extra></extra>"))
+    figure.update_layout(barmode="stack")
+    xy_titles(figure, "Agent", "Spans (count)")
+    figure.update_yaxes(ticksuffix=" spans")
+    return dark_layout(figure, "OK vs error spans by agent", 520, True)
+
+
+def build_agent_table_figure(dashboard_data):
+    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "table"}, {"type": "table"}]], subplot_titles=["Agent totals", "Recent tool calls"])
+    figure.add_trace(go.Table(header={"values": ["Agent", "Spans (count)", "Errors (count)", "OK (count)", "Avg (ms)", "Max (ms)"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["agent_health"]] for column_index in range(6)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=1)
+    figure.add_trace(go.Table(header={"values": ["Span name", "Tool", "Status", "Duration (ms)", "Flow", "Trace"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["tool_spans"]] for column_index in range(6)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=2)
+    return dark_layout(figure, "Agent detail", 560)
+
+
+def build_cost_totals_figure(dashboard_data):
+    figure = make_subplots(rows=1, cols=3, specs=[[{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}]])
+    figure.add_trace(colored_indicator(total_estimated_usd(dashboard_data["cost_rows"]), "Total est. USD (all questions)", False, "$.4f"), row=1, col=1)
+    figure.add_trace(colored_indicator(total_billed_tokens(dashboard_data["cost_rows"]), "Billed tokens (count)", False), row=1, col=2)
+    figure.add_trace(colored_indicator(len(dashboard_data["flow_usd"]), "Questions with cost (count)", False), row=1, col=3)
+    return dark_layout(figure, "Cost totals · last 20 minutes", 280)
+
+
 def build_cost_figure(dashboard_data):
-    figure = make_subplots(rows=2, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}], [{"type": "table"}, {"type": "table"}]], subplot_titles=["Estimated USD by agent", "Estimated USD by question", "Cost by agent and model", "Cost by question and model"], vertical_spacing=0.14)
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_usd"]], y=[row[1] for row in dashboard_data["agent_usd"]], marker_color="#22c55e", name="USD"), row=1, col=1)
-    figure.add_trace(go.Bar(x=[(row[0] or "")[:8] for row in dashboard_data["flow_usd"]], y=[row[1] for row in dashboard_data["flow_usd"]], marker_color="#38bdf8", name="USD"), row=1, col=2)
-    figure.add_trace(go.Table(header={"values": ["Agent", "Model", "Input tokens", "Output tokens", "Est. USD"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["cost_rows"]] for column_index in range(5)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=1)
-    figure.add_trace(go.Table(header={"values": ["Flow", "Model", "Input tokens", "Output tokens", "Est. USD"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["flow_cost_rows"]] for column_index in range(5)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=2)
-    return dark_layout(figure, "Estimated model cost", 900)
+    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}]], subplot_titles=["USD summed across all questions, by agent", "USD for one question each"])
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["agent_usd"]], y=[row[1] for row in dashboard_data["agent_usd"]], marker_color="#22c55e", name="USD", hovertemplate="%{x}<br>$%{y:.4f} (sum of questions)<extra></extra>"), row=1, col=1)
+    figure.add_trace(go.Bar(x=question_cost_labels(dashboard_data), y=[row[1] for row in dashboard_data["flow_usd"]], marker_color="#38bdf8", name="USD", hovertemplate="%{x}<br>$%{y:.4f} per question<extra></extra>"), row=1, col=2)
+    xy_titles(figure, "Agent", "Estimated USD", 1, 1)
+    xy_titles(figure, "Question or flow", "Estimated USD", 1, 2)
+    return dark_layout(figure, "Estimated USD", 520)
 
 
-def build_span_figure(dashboard_data):
-    figure = make_subplots(rows=2, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}], [{"type": "table"}, {"type": "table"}]], subplot_titles=["Spans by name", "Avg duration by name (ms)", "Tool calls", "Error spans"], vertical_spacing=0.16)
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["span_names"]], y=[row[1] for row in dashboard_data["span_names"]], marker_color="#38bdf8", name="Spans"), row=1, col=1)
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["span_durations"]], y=[row[1] for row in dashboard_data["span_durations"]], marker_color="#f59e0b", name="Avg ms"), row=1, col=2)
-    figure.add_trace(go.Table(header={"values": ["Name", "Tool", "Status", "Duration ms", "Flow", "Trace"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["tool_spans"]] for column_index in range(6)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=1)
-    figure.add_trace(go.Table(header={"values": ["Name", "Error", "Flow", "Trace", "Duration ms", "Input"], "fill_color": "#7f1d1d", "font": {"color": "#fecaca"}}, cells={"values": [[row[column_index] for row in dashboard_data["error_spans"]] for column_index in range(6)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=2)
-    return dark_layout(figure, "Telemetry", 900)
-
-
-def build_waterfall_figure(dashboard_data):
-    names, offsets, durations, colors = waterfall_bars(dashboard_data["waterfall"])
-    figure = go.Figure(go.Bar(base=offsets, x=durations, y=names, orientation="h", marker_color=colors, name="ms", hovertemplate="%{y}<br>%{x:.1f} ms<extra></extra>"))
-    return dark_layout(figure, f"Trace waterfall {dashboard_data['waterfall_trace_id'] or ''}".strip(), 560)
+def build_cost_table_figure(dashboard_data):
+    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "table"}, {"type": "table"}]], subplot_titles=["Tokens and USD by agent + model", "Tokens and USD by question + model"])
+    figure.add_trace(go.Table(header={"values": ["Agent", "Model", "Input tokens", "Output tokens", "Est. USD"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["cost_rows"]] for column_index in range(5)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=1)
+    figure.add_trace(go.Table(header={"values": ["Flow", "Model", "Input tokens", "Output tokens", "Est. USD"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["flow_cost_rows"]] for column_index in range(5)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=2)
+    return dark_layout(figure, "Cost tables", 640)
 
 
 def build_flow_table_figure(dashboard_data):
-    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "table"}, {"type": "table"}]], subplot_titles=["Flows joined on flow_id / trace_id", "Routing and budget events"])
-    figure.add_trace(go.Table(header={"values": ["Flow", "Trace", "Log events", "Log errors", "Spans", "Span errors", "Duration ms", "GT id", "Task %", "Fail agent", "GT answer", "Predicted"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["correlated_flows"]] for column_index in range(12)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=1)
+    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "table"}, {"type": "table"}]], subplot_titles=["One row = one question", "Routing events for those questions"])
+    figure.add_trace(go.Table(header={"values": ["Flow", "Trace", "Log events (count)", "Log errors (count)", "Spans (count)", "Span errors (count)", "Duration (ms)", "GT id", "Task success (%)", "Fail agent", "GT answer", "Predicted", "Est. USD"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in dashboard_data["correlated_flows"]] for column_index in range(13)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=1)
     figure.add_trace(go.Table(header={"values": ["Event", "Details", "Flow", "Trace"], "fill_color": "#1e3a8a", "font": {"color": "#dbeafe"}}, cells={"values": [[row[column_index] for row in dashboard_data["span_events"]] for column_index in range(4)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=1, col=2)
-    return dark_layout(figure, "Question flow index", 560)
+    return dark_layout(figure, "Question index", 620)
 
 
 def build_one_flow_figure(question_flow):
     names, offsets, durations, colors = waterfall_bars(question_flow["waterfall"])
-    figure = make_subplots(rows=2, cols=1, specs=[[{"type": "xy"}], [{"type": "table"}]], subplot_titles=[f"Trace waterfall · {question_flow['flow_id']} · {question_flow['span_errors']} span errors · {round(question_flow['duration_ms'] or 0, 1)} ms", "Lifecycle logs"], row_heights=[0.65, 0.35], vertical_spacing=0.12)
+    figure = make_subplots(rows=2, cols=1, specs=[[{"type": "xy"}], [{"type": "table"}]], subplot_titles=[f"Trace waterfall · {question_flow['flow_id']} · {question_flow['span_errors']} span errors · {round(question_flow['duration_ms'] or 0, 1)} ms", "Lifecycle logs for this question"], row_heights=[0.65, 0.35], vertical_spacing=0.12)
     figure.add_trace(go.Bar(base=offsets, x=durations, y=names, orientation="h", marker_color=colors, name="ms", hovertemplate="%{y}<br>%{x:.1f} ms<extra></extra>"), row=1, col=1)
-    figure.add_trace(go.Table(header={"values": ["Time", "Status", "Process", "Level"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in question_flow["logs"]] for column_index in range(4)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=1)
+    figure.add_trace(go.Table(header={"values": ["Time (UTC)", "Status", "Process", "Level"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [[row[column_index] for row in question_flow["logs"]] for column_index in range(4)], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}), row=2, col=1)
+    xy_titles(figure, "Elapsed time (milliseconds)", "Agent · span name", 1, 1)
     return dark_layout(figure, question_flow["preview"] or question_flow["trace_id"], 760)
 
 
@@ -355,29 +408,31 @@ def build_gt_overview_figure(dashboard_data):
     total = dashboard_data["gt_total"]
     scored = bool(dashboard_data["gt_rows"])
     figure = make_subplots(rows=2, cols=4, specs=[[{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}], [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}]])
-    figure.add_trace(colored_indicator(metric_number(total.get("task_success")), "Task success %", scored and metric_number(total.get("task_success")) < 100, ".1f"), row=1, col=1)
-    figure.add_trace(colored_indicator(metric_number(total.get("gather_success")), "Gather %", scored and metric_number(total.get("gather_success")) < 100, ".1f"), row=1, col=2)
-    figure.add_trace(colored_indicator(metric_number(total.get("retrieve_success")), "Retrieve %", scored and metric_number(total.get("retrieve_success")) < 100, ".1f"), row=1, col=3)
-    figure.add_trace(colored_indicator(metric_number(total.get("retrieval_success")), "Retrieval %", scored and metric_number(total.get("retrieval_success")) < 100, ".1f"), row=1, col=4)
-    figure.add_trace(colored_indicator(metric_number(total.get("grade_success")), "Grade %", scored and metric_number(total.get("grade_success")) < 100, ".1f"), row=2, col=1)
-    figure.add_trace(colored_indicator(metric_number(total.get("answer_success")), "Answer %", scored and metric_number(total.get("answer_success")) < 100, ".1f"), row=2, col=2)
-    figure.add_trace(colored_indicator(metric_number(total.get("citation_success")), "Citation %", scored and metric_number(total.get("citation_success")) < 100, ".1f"), row=2, col=3)
-    figure.add_trace(colored_indicator(metric_number(total.get("orchestration_success")), "Orchestration %", scored and metric_number(total.get("orchestration_success")) < 100, ".1f"), row=2, col=4)
+    figure.add_trace(colored_indicator(metric_number(total.get("task_success")), "Task success (%)", scored and metric_number(total.get("task_success")) < 100, ".1f"), row=1, col=1)
+    figure.add_trace(colored_indicator(metric_number(total.get("gather_success")), "Gather success (%)", scored and metric_number(total.get("gather_success")) < 100, ".1f"), row=1, col=2)
+    figure.add_trace(colored_indicator(metric_number(total.get("retrieve_success")), "Retrieve success (%)", scored and metric_number(total.get("retrieve_success")) < 100, ".1f"), row=1, col=3)
+    figure.add_trace(colored_indicator(metric_number(total.get("retrieval_success")), "Retrieval success (%)", scored and metric_number(total.get("retrieval_success")) < 100, ".1f"), row=1, col=4)
+    figure.add_trace(colored_indicator(metric_number(total.get("grade_success")), "Grade success (%)", scored and metric_number(total.get("grade_success")) < 100, ".1f"), row=2, col=1)
+    figure.add_trace(colored_indicator(metric_number(total.get("answer_success")), "Answer success (%)", scored and metric_number(total.get("answer_success")) < 100, ".1f"), row=2, col=2)
+    figure.add_trace(colored_indicator(metric_number(total.get("citation_success")), "Citation success (%)", scored and metric_number(total.get("citation_success")) < 100, ".1f"), row=2, col=3)
+    figure.add_trace(colored_indicator(metric_number(total.get("orchestration_success")), "Orchestration success (%)", scored and metric_number(total.get("orchestration_success")) < 100, ".1f"), row=2, col=4)
     return dark_layout(figure, f"GT success rates · {dashboard_data['gt_metrics_name'] or 'no metrics CSV'}", 420)
 
 
 def build_gt_question_figure(dashboard_data):
     rows = dashboard_data["gt_rows"]
-    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}]], subplot_titles=["Task success by question", "Failure agent counts"])
-    figure.add_trace(go.Bar(x=gt_column(rows, "question_id"), y=gt_column(rows, "task_success"), marker_color=[status_color(row["task_success"] != 100) for row in rows], name="Task %"), row=1, col=1)
-    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["gt_failures"]], y=[row[1] for row in dashboard_data["gt_failures"]], marker_color=[status_color(row[0] not in ("none", "")) for row in dashboard_data["gt_failures"]], name="Count"), row=1, col=2)
-    figure.update_layout(yaxis={"range": [0, 100]}, yaxis2={"rangemode": "tozero"})
+    figure = make_subplots(rows=1, cols=2, specs=[[{"type": "xy"}, {"type": "xy"}]], subplot_titles=["Task success by question (%)", "Questions by first failing agent (count)"])
+    figure.add_trace(go.Bar(x=gt_column(rows, "question_id"), y=gt_column(rows, "task_success"), marker_color=[status_color(row["task_success"] != 100) for row in rows], name="Task %", hovertemplate="%{x}<br>%{y}% task success<extra></extra>"), row=1, col=1)
+    figure.add_trace(go.Bar(x=[row[0] for row in dashboard_data["gt_failures"]], y=[row[1] for row in dashboard_data["gt_failures"]], marker_color=[status_color(row[0] not in ("none", "")) for row in dashboard_data["gt_failures"]], name="Count", hovertemplate="%{x}<br>%{y} questions<extra></extra>"), row=1, col=2)
+    figure.update_layout(yaxis={"range": [0, 100]})
+    xy_titles(figure, "Question id", "Task success (%)", 1, 1)
+    xy_titles(figure, "Failure agent", "Questions (count)", 1, 2)
     return dark_layout(figure, "GT question outcomes", 520)
 
 
 def build_gt_score_table_figure(dashboard_data):
     rows = dashboard_data["gt_rows"]
-    figure = go.Figure(go.Table(header={"values": ["Q", "HTTP", "Task %", "Fail", "Gather", "Retrieve", "Retrieval", "Grade", "Answer", "Citation", "Orch", "URL recall", "Snippet recall", "Cite recall", "Hop", "Source fill", "Date fill", "Waste", "Stop", "Error", "Turns", "Tools", "ms"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [gt_column(rows, "question_id"), gt_column(rows, "http_status"), gt_column(rows, "task_success"), gt_column(rows, "failure_agent"), gt_column(rows, "gather_success"), gt_column(rows, "retrieve_success"), gt_column(rows, "retrieval_success"), gt_column(rows, "grade_success"), gt_column(rows, "answer_success"), gt_column(rows, "citation_success"), gt_column(rows, "orchestration_success"), gt_column(rows, "gold_url_recall_pct"), gt_column(rows, "gold_snippet_recall_pct"), gt_column(rows, "citation_title_recall_pct"), gt_column(rows, "hop_coverage_pct"), gt_column(rows, "source_fill_pct"), gt_column(rows, "date_fill_pct"), gt_column(rows, "wasted_call_pct"), gt_column(rows, "stop_verdict"), gt_column(rows, "answer_error_type"), gt_column(rows, "gather_turns"), gt_column(rows, "tool_count"), gt_column(rows, "duration_ms")], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}))
+    figure = go.Figure(go.Table(header={"values": ["Q", "HTTP", "Task %", "Fail", "Gather %", "Retrieve %", "Retrieval %", "Grade %", "Answer %", "Citation %", "Orch %", "URL recall %", "Snippet recall %", "Cite recall %", "Hop %", "Source fill %", "Date fill %", "Waste %", "Stop", "Error", "Turns", "Tools", "Duration (ms)"], "fill_color": "#14532d", "font": {"color": "#dcfce7"}}, cells={"values": [gt_column(rows, "question_id"), gt_column(rows, "http_status"), gt_column(rows, "task_success"), gt_column(rows, "failure_agent"), gt_column(rows, "gather_success"), gt_column(rows, "retrieve_success"), gt_column(rows, "retrieval_success"), gt_column(rows, "grade_success"), gt_column(rows, "answer_success"), gt_column(rows, "citation_success"), gt_column(rows, "orchestration_success"), gt_column(rows, "gold_url_recall_pct"), gt_column(rows, "gold_snippet_recall_pct"), gt_column(rows, "citation_title_recall_pct"), gt_column(rows, "hop_coverage_pct"), gt_column(rows, "source_fill_pct"), gt_column(rows, "date_fill_pct"), gt_column(rows, "wasted_call_pct"), gt_column(rows, "stop_verdict"), gt_column(rows, "answer_error_type"), gt_column(rows, "gather_turns"), gt_column(rows, "tool_count"), gt_column(rows, "duration_ms")], "fill_color": "#1f2937", "font": {"color": "#e5e7eb"}}))
     return dark_layout(figure, "GT scorecard", 640)
 
 

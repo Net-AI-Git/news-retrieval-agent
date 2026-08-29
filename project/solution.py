@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 load_dotenv(PROJECT_ROOT / ".env")
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.conts import ANSWERS_PATH, DATA_DIR, FACTS_CHROMA_PATH, TRANSCRIPTS_PATH
+from src.conts import ANSWERS_PATH, DATA_DIR, TRANSCRIPTS_PATH
 from src.orchestration.grounded_answering_workflow import run_grounded_answering
 from src.schemas.agent import SolutionAnswer
 from src.services.solution_index_service import run_solution_index
@@ -35,11 +35,14 @@ def write_assignment_file(path, payload):
 
 
 def write_assignment_artifacts():
-    index = {"facts_chroma_path": FACTS_CHROMA_PATH} if Path(FACTS_CHROMA_PATH).is_dir() else build_index(DATA_DIR)
+    print("build_index", DATA_DIR, flush=True)
+    index = build_index(DATA_DIR)
+    print("index", index, flush=True)
     transcripts = []
     answers = []
     for question_data in json.loads((Path(DATA_DIR) / "questions.json").read_text(encoding="utf-8")):
         record = recorded_answer(index, question_data["id"], question_data["question"])
+        print(record["id"], record["public"]["answer"], flush=True)
         transcripts.append(record)
         answers.append({"id": record["id"], "answer": record["public"]["answer"], "citations": record["public"]["citations"]})
     write_assignment_file(ANSWERS_PATH, answers)

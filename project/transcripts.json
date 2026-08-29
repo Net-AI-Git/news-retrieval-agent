@@ -2,7 +2,7 @@
   {
     "id": "Q01",
     "question": "Did the Sporting News report a victory for the Dallas Cowboys over the Seattle Seahawks in Week 13 of the NFL season, and did the same source also report a win for the Detroit Lions against the Green Bay Packers?",
-    "flow_id": "d53895ed-4d1e-4108-a8f1-4943ee95f79d",
+    "flow_id": "9789a8fe-f4a3-4f70-8a28-7b5fe1fa94df",
     "turns": [
       {
         "stage": "gather",
@@ -145,7 +145,7 @@
   {
     "id": "Q02",
     "question": "Did TechCrunch report on Flipboard's integration of the ActivityPub protocol before The Verge discussed the structure of the ActivityPub protocol in social media contexts?",
-    "flow_id": "50cb4c2d-862b-4bb5-a3c0-5e121746d321",
+    "flow_id": "79a44ae9-4a88-444b-b36e-410c9c975f92",
     "turns": [
       {
         "stage": "gather",
@@ -288,7 +288,7 @@
   {
     "id": "Q03",
     "question": "Who is the individual implicated in the FTX collapse for instructing Caroline Ellison to use $14 billion of customer funds to repay debts, alleged to have committed fraud for personal gain, and also persuaded a former colleague from Jane Street to join his ventures at Alameda and FTX?",
-    "flow_id": "b2dc8c58-3fb5-4e6c-859a-51c8d81a32b4",
+    "flow_id": "58373d88-65a0-4fde-acb7-4d8bbf61dd9b",
     "turns": [
       {
         "stage": "gather",
@@ -468,7 +468,7 @@
   {
     "id": "Q04",
     "question": "Considering the information from an article in the New York Times and another in the Wall Street Journal about Pets Best, which company, known for its insurance products and mentioned in both articles, has a CEO with the initial 'M'?",
-    "flow_id": "c9335463-0494-41fa-b1a2-6911d98f8b05",
+    "flow_id": "b76a9738-a954-4634-ab12-f66222680adb",
     "turns": [
       {
         "stage": "gather",
@@ -587,7 +587,7 @@
   {
     "id": "Q05",
     "question": "Which company is at the center of concerns from news publishers for anticompetitive practices, has been compared to OpenAI's GPT-3.5 in terms of product performance, and is also suspected by the public of potential foul play according to a report by 'The Age'?",
-    "flow_id": "92401f0b-5051-482c-b743-3b0fa53cc57c",
+    "flow_id": "2c2c6210-a1f0-41db-96aa-210914901cec",
     "turns": [
       {
         "stage": "gather",
@@ -595,7 +595,7 @@
         "sub_questions": [
           "Which company is at the center of concerns from news publishers for anticompetitive practices?",
           "Which company has been compared to OpenAI's GPT-3.5 in terms of product performance?",
-          "What did The Age report about public suspicion of potential foul play by a company?"
+          "What did The Age report about public suspicion of potential foul play by the company?"
         ],
         "tool_calls": [],
         "next_route": "retrieve"
@@ -619,7 +619,7 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "What did The Age report about public suspicion of potential foul play by a company?",
+              "question": "What did The Age report about public suspicion of potential foul play by the company?",
               "source": "The Age"
             }
           }
@@ -645,7 +645,7 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "What did The Age report about public suspicion of potential foul play by a company?",
+              "question": "What did The Age report about public suspicion of potential foul play by the company?",
               "source": "The Age"
             }
           }
@@ -670,7 +670,7 @@
             "snippet": "Wired removed the article for not meeting its standards, but the degree to which it was shared on social media and boosted in write-ups at other outlets shows just how willing people are to accept foul play on Google’s part.",
             "url": "https://www.theage.com.au/technology/is-google-search-better-than-the-rest-and-is-that-fair-20231012-p5ebsk.html?ref=rss&utm_medium=rss&utm_source=rss_technology",
             "published_at": "2023-10-22T18:00:00+00:00",
-            "match_percentage": 25.84
+            "match_percentage": 25.83
           }
         ]
       },
@@ -724,7 +724,7 @@
         "snippet": "Wired removed the article for not meeting its standards, but the degree to which it was shared on social media and boosted in write-ups at other outlets shows just how willing people are to accept foul play on Google’s part.",
         "url": "https://www.theage.com.au/technology/is-google-search-better-than-the-rest-and-is-that-fair-20231012-p5ebsk.html?ref=rss&utm_medium=rss&utm_source=rss_technology",
         "published_at": "2023-10-22T18:00:00+00:00",
-        "match_percentage": 25.84
+        "match_percentage": 25.83
       }
     ],
     "answer_result": {
@@ -769,7 +769,7 @@
   {
     "id": "Q06",
     "question": "Does the article from The Age suggest that 'People with an Aboriginal ancestor' have the same process to identify with their Aboriginal heritage compared to the stance of 'Indigenous people' on cultural identity as presented by The Guardian?",
-    "flow_id": "776bf72a-f7d6-4490-a90c-b9be7466e907",
+    "flow_id": "130c67d8-24b5-4a7c-a797-cc806c4dd476",
     "turns": [
       {
         "stage": "gather",
@@ -912,7 +912,7 @@
   {
     "id": "Q07",
     "question": "What is the name of the general-purpose chatbot developed by OpenAI, featured in TechCrunch and Engadget articles, that can generate text, debug code, and even compose music, and has celebrated its first anniversary since its release?",
-    "flow_id": "b8158875-5e98-42a0-b3cf-7750a7bc92c4",
+    "flow_id": "bdcbf6c7-4cdc-40fb-8d7f-5ffcf172e16a",
     "turns": [
       {
         "stage": "gather",
@@ -1098,7 +1098,7 @@
   {
     "id": "Q08",
     "question": "Did the coverage of ski resorts by 'The Independent - Travel' change after their report on the 'Swiss slopes of Zermatt and pistes of Vail in Colorado' on October 13th, 2023, compared to their subsequent report on 'Tremblant Ski Resort' on October 25th, 2023?",
-    "flow_id": "080d4ee2-c7f6-46e8-823e-f735b440be3a",
+    "flow_id": "6c6eb191-cd12-4bd4-ae2f-38b10c7f424f",
     "turns": [
       {
         "stage": "gather",
@@ -1127,9 +1127,9 @@
             "name": "search_facts",
             "args": {
               "question": "What did The Independent - Travel report on October 25th, 2023 about Tremblant Ski Resort?",
-              "source": "The Independent - Travel",
               "published_from": "2023-10-25T00:00:00+00:00",
-              "published_to": "2023-10-25T23:59:59+00:00"
+              "published_to": "2023-10-25T23:59:59+00:00",
+              "source": "The Independent - Travel"
             }
           }
         ],
@@ -1152,9 +1152,9 @@
             "name": "search_facts",
             "args": {
               "question": "What did The Independent - Travel report on October 25th, 2023 about Tremblant Ski Resort?",
-              "source": "The Independent - Travel",
               "published_from": "2023-10-25T00:00:00+00:00",
-              "published_to": "2023-10-25T23:59:59+00:00"
+              "published_to": "2023-10-25T23:59:59+00:00",
+              "source": "The Independent - Travel"
             }
           }
         ],
@@ -1249,7 +1249,7 @@
   {
     "id": "Q09",
     "question": "Considering the information from a BBC News article detailing the latest advancements in space technology by Forerunner and a Forbes article discussing the financial growth and market expansion of Forerunner, which CEO, known for leading the innovative charge in space exploration and also recognized for significant company valuation increase, has been featured in both publications?",
-    "flow_id": "42708e67-d065-4610-bd75-5ee98a5209a8",
+    "flow_id": "637ad2c4-687f-47e9-8985-569995d81f3f",
     "turns": [
       {
         "stage": "gather",
@@ -1321,13 +1321,13 @@
       {
         "stage": "grade",
         "verdict": "missing_hop",
-        "note": "No prior query specifically asks for the CEO's name featured in both BBC News and Forbes articles about Forerunner's space technology advancements and financial growth."
+        "note": "Search for the CEO's name featured in both BBC News and Forbes articles about Forerunner's space technology advancements and financial growth."
       },
       {
         "stage": "gather",
         "gather_count": 2,
         "sub_questions": [
-          "Which CEO, known for leading the innovative charge in space exploration and recognized for significant company valuation increase, has been featured in both BBC News and Forbes articles about Forerunner?"
+          "Which CEO was featured in both BBC News and Forbes articles about Forerunner's space technology advancements and financial growth?"
         ],
         "tool_calls": [],
         "next_route": "retrieve"
@@ -1339,7 +1339,7 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "Which CEO, known for leading the innovative charge in space exploration and recognized for significant company valuation increase, has been featured in both BBC News and Forbes articles about Forerunner?",
+              "question": "Which CEO was featured in both BBC News and Forbes articles about Forerunner's space technology advancements and financial growth?",
               "source": "BBC News"
             }
           }
@@ -1353,7 +1353,7 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "Which CEO, known for leading the innovative charge in space exploration and recognized for significant company valuation increase, has been featured in both BBC News and Forbes articles about Forerunner?",
+              "question": "Which CEO was featured in both BBC News and Forbes articles about Forerunner's space technology advancements and financial growth?",
               "source": "BBC News"
             }
           }
@@ -1364,57 +1364,7 @@
             "snippet": "\"It was almost like this very strange, subtle clue to the media that they don't know everything that happened in that relationship, and I can have something really major and traumatic happen to me and they don't know about it,\" she told NPR.",
             "url": "https://www.bbc.co.uk/news/entertainment-arts-66910595?at_medium=RSS&at_campaign=KARANGA",
             "published_at": "2023-10-13T23:00:08+00:00",
-            "match_percentage": 8.65
-          }
-        ]
-      },
-      {
-        "stage": "grade",
-        "verdict": "missing_hop",
-        "note": "Need a prior query searching Forbes for the CEO featured in the article about Forerunner's financial growth and market expansion."
-      },
-      {
-        "stage": "gather",
-        "gather_count": 3,
-        "sub_questions": [
-          "Which CEO, known for leading the innovative charge in space exploration and recognized for significant company valuation increase, has been featured in the Forbes article about Forerunner's financial growth and market expansion?"
-        ],
-        "tool_calls": [],
-        "next_route": "retrieve"
-      },
-      {
-        "stage": "retrieve",
-        "gather_count": 3,
-        "tool_calls": [
-          {
-            "name": "search_facts",
-            "args": {
-              "question": "Which CEO, known for leading the innovative charge in space exploration and recognized for significant company valuation increase, has been featured in the Forbes article about Forerunner's financial growth and market expansion?",
-              "source": "Forbes"
-            }
-          }
-        ],
-        "next_route": "tools"
-      },
-      {
-        "stage": "tools",
-        "tool_count": 4,
-        "tool_calls": [
-          {
-            "name": "search_facts",
-            "args": {
-              "question": "Which CEO, known for leading the innovative charge in space exploration and recognized for significant company valuation increase, has been featured in the Forbes article about Forerunner's financial growth and market expansion?",
-              "source": "Forbes"
-            }
-          }
-        ],
-        "evidence": [
-          {
-            "article_title": "OpenAI's ex-chairman accuses board of going rogue in firing Altman: 'Sam and I are shocked and saddened by what the board did'",
-            "snippet": "In the year since Altman catapulted ChatGPT to global fame, he has become Silicon Valley’s sought-after voice on the promise and potential dangers of artificial intelligence and his sudden and mostly unexplained exit brought uncertainty to the industry’s future.",
-            "url": "https://fortune.com/2023/11/18/how-did-openai-fire-sam-altman-greg-brockman-rogue-board/",
-            "published_at": "2023-11-18T15:33:09+00:00",
-            "match_percentage": 17.76
+            "match_percentage": 10.24
           }
         ]
       },
@@ -1452,14 +1402,7 @@
         "snippet": "\"It was almost like this very strange, subtle clue to the media that they don't know everything that happened in that relationship, and I can have something really major and traumatic happen to me and they don't know about it,\" she told NPR.",
         "url": "https://www.bbc.co.uk/news/entertainment-arts-66910595?at_medium=RSS&at_campaign=KARANGA",
         "published_at": "2023-10-13T23:00:08+00:00",
-        "match_percentage": 8.65
-      },
-      {
-        "article_title": "OpenAI's ex-chairman accuses board of going rogue in firing Altman: 'Sam and I are shocked and saddened by what the board did'",
-        "snippet": "In the year since Altman catapulted ChatGPT to global fame, he has become Silicon Valley’s sought-after voice on the promise and potential dangers of artificial intelligence and his sudden and mostly unexplained exit brought uncertainty to the industry’s future.",
-        "url": "https://fortune.com/2023/11/18/how-did-openai-fire-sam-altman-greg-brockman-rogue-board/",
-        "published_at": "2023-11-18T15:33:09+00:00",
-        "match_percentage": 17.76
+        "match_percentage": 10.24
       }
     ],
     "answer_result": {
@@ -1475,14 +1418,14 @@
   {
     "id": "Q10",
     "question": "Does the TechCrunch article claim that \"Microsoft's investment in OpenAI\" is unspecified, while The Age article focuses on the \"founding of OpenAI\" without specifying financial figures?",
-    "flow_id": "b7e7e242-2bae-4713-b7f2-49a62321d8d7",
+    "flow_id": "e4288b15-6ed0-4ffd-88ab-b8dabb981e21",
     "turns": [
       {
         "stage": "gather",
         "gather_count": 1,
         "sub_questions": [
-          "What figure did the TechCrunch article state for Microsoft's investment in OpenAI?",
-          "What figure did The Age article state for the founding of OpenAI?"
+          "What did the TechCrunch article state about Microsoft's investment in OpenAI?",
+          "What did The Age article report about the founding of OpenAI and what financial figures did it specify?"
         ],
         "tool_calls": [],
         "next_route": "retrieve"
@@ -1494,14 +1437,14 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "What figure did the TechCrunch article state for Microsoft's investment in OpenAI?",
+              "question": "What did the TechCrunch article state about Microsoft's investment in OpenAI?",
               "source": "TechCrunch"
             }
           },
           {
             "name": "search_facts",
             "args": {
-              "question": "What figure did The Age article state for the founding of OpenAI?",
+              "question": "What did The Age article report about the founding of OpenAI and what financial figures did it specify?",
               "source": "The Age"
             }
           }
@@ -1515,14 +1458,14 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "What figure did the TechCrunch article state for Microsoft's investment in OpenAI?",
+              "question": "What did the TechCrunch article state about Microsoft's investment in OpenAI?",
               "source": "TechCrunch"
             }
           },
           {
             "name": "search_facts",
             "args": {
-              "question": "What figure did The Age article state for the founding of OpenAI?",
+              "question": "What did The Age article report about the founding of OpenAI and what financial figures did it specify?",
               "source": "The Age"
             }
           }
@@ -1533,20 +1476,20 @@
             "snippet": "The size of Microsoft’s investment is believed to be around $10 billion, a figure we confirmed with our source.",
             "url": "https://techcrunch.com/2023/09/28/chatgpt-everything-to-know-about-the-ai-chatbot/",
             "published_at": "2023-09-28T20:03:39+00:00",
-            "match_percentage": 59.0
+            "match_percentage": 53.58
           },
           {
             "article_title": "How ego and fear fuelled the rise of artificial intelligence",
             "snippet": "OpenAI was founded in late 2015, just a few months after he met with Altman at the Rosewood hotel in Silicon Valley.",
             "url": "https://www.theage.com.au/business/entrepreneurship/how-ego-and-fear-fuelled-the-rise-of-artificial-intelligence-20231205-p5ep7j.html?ref=rss&utm_medium=rss&utm_source=rss_business",
             "published_at": "2023-12-09T18:30:00+00:00",
-            "match_percentage": 50.98
+            "match_percentage": 48.21
           }
         ]
       },
       {
         "stage": "grade",
-        "verdict": "empty_stop",
+        "verdict": "enough",
         "note": ""
       },
       {
@@ -1575,14 +1518,14 @@
         "snippet": "The size of Microsoft’s investment is believed to be around $10 billion, a figure we confirmed with our source.",
         "url": "https://techcrunch.com/2023/09/28/chatgpt-everything-to-know-about-the-ai-chatbot/",
         "published_at": "2023-09-28T20:03:39+00:00",
-        "match_percentage": 59.0
+        "match_percentage": 53.58
       },
       {
         "article_title": "How ego and fear fuelled the rise of artificial intelligence",
         "snippet": "OpenAI was founded in late 2015, just a few months after he met with Altman at the Rosewood hotel in Silicon Valley.",
         "url": "https://www.theage.com.au/business/entrepreneurship/how-ego-and-fear-fuelled-the-rise-of-artificial-intelligence-20231205-p5ep7j.html?ref=rss&utm_medium=rss&utm_source=rss_business",
         "published_at": "2023-12-09T18:30:00+00:00",
-        "match_percentage": 50.98
+        "match_percentage": 48.21
       }
     ],
     "answer_result": {
@@ -1618,14 +1561,14 @@
   {
     "id": "Q11",
     "question": "Did TechCrunch report on DeepMind's expected release of a next-generation chatbot named Gemini after TechCrunch reported that Google released only a \"lite\" version of the Gemini model known as Gemini Pro?",
-    "flow_id": "b6af46f5-0990-4fa7-9b87-a91d72366150",
+    "flow_id": "261b4ec2-ee76-46e2-ab45-a36679060250",
     "turns": [
       {
         "stage": "gather",
         "gather_count": 1,
         "sub_questions": [
-          "What did TechCrunch report about DeepMind's expected release of a next-generation chatbot named Gemini?",
-          "What did TechCrunch report about Google releasing only a \"lite\" version of the Gemini model known as Gemini Pro before reporting on DeepMind's expected release?"
+          "Did TechCrunch report on DeepMind's expected release of a next-generation chatbot named Gemini?",
+          "Did TechCrunch report that Google released only a \"lite\" version of the Gemini model known as Gemini Pro?"
         ],
         "tool_calls": [],
         "next_route": "retrieve"
@@ -1637,14 +1580,14 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "What did TechCrunch report about DeepMind's expected release of a next-generation chatbot named Gemini?",
+              "question": "Did TechCrunch report on DeepMind's expected release of a next-generation chatbot named Gemini?",
               "source": "TechCrunch"
             }
           },
           {
             "name": "search_facts",
             "args": {
-              "question": "What did TechCrunch report about Google releasing only a \"lite\" version of the Gemini model known as Gemini Pro before reporting on DeepMind's expected release?",
+              "question": "Did TechCrunch report that Google released only a \"lite\" version of the Gemini model known as Gemini Pro?",
               "source": "TechCrunch"
             }
           }
@@ -1658,14 +1601,14 @@
           {
             "name": "search_facts",
             "args": {
-              "question": "What did TechCrunch report about DeepMind's expected release of a next-generation chatbot named Gemini?",
+              "question": "Did TechCrunch report on DeepMind's expected release of a next-generation chatbot named Gemini?",
               "source": "TechCrunch"
             }
           },
           {
             "name": "search_facts",
             "args": {
-              "question": "What did TechCrunch report about Google releasing only a \"lite\" version of the Gemini model known as Gemini Pro before reporting on DeepMind's expected release?",
+              "question": "Did TechCrunch report that Google released only a \"lite\" version of the Gemini model known as Gemini Pro?",
               "source": "TechCrunch"
             }
           }
@@ -1676,14 +1619,14 @@
             "snippet": "DeepMind, Google’s premier AI research lab, is expected to debut a next-gen chatbot, Gemini, before the end of the year.",
             "url": "https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/",
             "published_at": "2023-11-30T14:10:43+00:00",
-            "match_percentage": 74.38
+            "match_percentage": 71.97
           },
           {
             "article_title": "Google fakes an AI demo, Grand Theft Auto VI goes viral and Spotify cuts jobs",
             "snippet": "But it didn’t release the full model, Gemini Ultra — only a “lite” version called Gemini Pro.",
             "url": "https://techcrunch.com/2023/12/09/google-fakes-an-ai-demo-grand-theft-auto-vi-goes-viral-and-spotify-cuts-jobs/",
             "published_at": "2023-12-09T21:16:17+00:00",
-            "match_percentage": 63.18
+            "match_percentage": 70.48
           }
         ]
       },
@@ -1718,14 +1661,14 @@
         "snippet": "DeepMind, Google’s premier AI research lab, is expected to debut a next-gen chatbot, Gemini, before the end of the year.",
         "url": "https://techcrunch.com/2023/11/30/one-year-later-chatgpt-is-still-alive-and-kicking/",
         "published_at": "2023-11-30T14:10:43+00:00",
-        "match_percentage": 74.38
+        "match_percentage": 71.97
       },
       {
         "article_title": "Google fakes an AI demo, Grand Theft Auto VI goes viral and Spotify cuts jobs",
         "snippet": "But it didn’t release the full model, Gemini Ultra — only a “lite” version called Gemini Pro.",
         "url": "https://techcrunch.com/2023/12/09/google-fakes-an-ai-demo-grand-theft-auto-vi-goes-viral-and-spotify-cuts-jobs/",
         "published_at": "2023-12-09T21:16:17+00:00",
-        "match_percentage": 63.18
+        "match_percentage": 70.48
       }
     ],
     "answer_result": {
