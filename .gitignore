@@ -71,6 +71,7 @@ Pipfile.lock
 project/observability/logging_audit/audit_log/*
 !project/observability/logging_audit/audit_log/.gitkeep
 project/observability/logging_dashboard/dashboard.html
+project/output_for_mission/dashboard.html
 project/observability/telemetry/*.jsonl
 
 # Local Chroma vector stores (rebuildable; HNSW bins exceed Git size limits)
