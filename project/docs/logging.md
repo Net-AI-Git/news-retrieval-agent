@@ -54,6 +54,6 @@ Run from `project/`:
 uv run python -m observability.logging_dashboard.build_dashboard
 ```
 
-The command writes a self-contained `observability/logging_dashboard/dashboard.html` with total events, errors, status counts, errors by process, events over time, and recent errors. The HTML embeds Plotly and requires no running server or internet connection.
+The command writes a self-contained `observability/logging_dashboard/dashboard.html` from both `events.jsonl` and `observability/telemetry/spans-*.jsonl`, limited to the last 20 minutes, plus the latest `tests/live_e2e_gt/outputs/metrics_*.csv` on the GT comparison tab. `run_grounded_answering` rebuilds that file after each completed question. The live E2E runner rebuilds it again after writing the metrics CSV. The HTML has separate Logging and Telemetry tabs, plus Overview, Question flows, and GT comparison. Log panels stay on the six-field event contract. Span panels use emitted OTLP fields; duration comes from span timestamps, not STARTING/FINISHED logs. Flows are joined on `flow_id` and `trace_id`. Billed tokens use numeric `gen_ai.usage` when present, otherwise characters / 4. Estimated USD is a labeled dashboard calculation from a local rate table. GT rates come from the scored CSV, not from invented span fields. The HTML embeds Plotly and requires no running server or internet connection.
 
 Generated JSONL, audit snapshots, and dashboard HTML are artifacts and are not committed.

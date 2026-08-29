@@ -1,11 +1,12 @@
 # observability/ — Agent Guide
 
 ## Purpose
-Offline observability tooling and local artifact output. The microservice never reads this directory at runtime.
+Offline observability tooling and local artifact output. Runtime writers stay in [`../src/repositories/`](../src/repositories/). After each completed grounded-answering question, [`../src/services/logging_dashboard_service.py`](../src/services/logging_dashboard_service.py) rebuilds the dashboard. FastAPI routes do not import this directory. Dashboard and audit tools still must not import application code.
 
 ## Contains
 - [`logging_audit/`](logging_audit/) — SQL audit queries over the local JSONL log.
-- [`logging_dashboard/`](logging_dashboard/) — standalone Plotly dashboard generated from those events.
+- [`telemetry_audit/`](telemetry_audit/) — SQL loader for local OTLP JSONL spans.
+- [`logging_dashboard/`](logging_dashboard/) — standalone Plotly dashboard generated from logs, spans, and the latest live E2E GT metrics CSV.
 - [`telemetry/`](telemetry/) — local OTLP JSONL span files written by `TelemetryRepository`.
 
 ## Coding Rules

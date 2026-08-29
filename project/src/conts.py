@@ -23,6 +23,8 @@ OPENAI_EMBEDDING_MAX_RETRIES = 3
 REQUIRED_SOLUTION_ENV_VARS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_EMBEDDING_MODEL", "OPENAI_GATHER_AGENT_MODEL", "OPENAI_GRADE_AGENT_MODEL", "OPENAI_ANSWER_AGENT_MODEL", "OPENAI_RETRIEVE_AGENT_MODEL")
 
 DATA_DIR = str(Path(__file__).resolve().parent / "data")
+ANSWERS_PATH = str(Path(__file__).resolve().parents[1] / "answers.json")
+TRANSCRIPTS_PATH = str(Path(__file__).resolve().parents[1] / "transcripts.json")
 FACTS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "facts_chroma")
 CORPUS_CHROMA_PATH = str(Path(__file__).resolve().parents[1] / "vector_stores" / "corpus_chroma")
 
@@ -71,10 +73,10 @@ ANSWER_STATUS_REFUSED = "refused"
 ANSWER_REFUSAL_TEXT = "Insufficient information"
 
 GATHER_MAX_LLM_TURNS = 6
-GATHER_MAX_TOOL_CALLS = 8
+GATHER_MAX_TOOL_CALLS = 5
 GRADE_VERDICT_ENOUGH = "enough"
 GRADE_VERDICT_MISSING_HOP = "missing_hop"
 GRADE_VERDICT_EMPTY_STOP = "empty_stop"
 GRADE_CONTINUE_VERDICTS = (GRADE_VERDICT_MISSING_HOP,)
 GROUNDED_ANSWERING_RECURSION_LIMIT = 32
-WORKERS = 1
+WORKERS = 2

@@ -24,11 +24,11 @@ First live first-hop score on the split: 8/11 (`tests/live_gather_first_hop` `me
 
 The isolated Retrieve tool-fill contract is closed independently of Gather and Chroma (`tests/live_retrieve_gt`, 11/11 twice, `metrics_2026-08-28_18-12-29.csv` + `18-18-29`). That proves the LLM can fill typed TASK 03 `search_facts` arguments from isolated hop context (ASSIGNMENT sections B/C).
 
-First-hop **gold `facts` coverage** on the joint Gather → isolated Retrieve → tools batch is closed 2026-08-29: 11/11 twice, same Gather prompt, Retrieve unchanged (`tests/live_gather_first_hop` `metrics_2026-08-29_11-16-45.csv`, `11-19-10.csv`). Production Gather: [`src/prompts/gather_agent.md`](../../src/prompts/gather_agent.md). Experiment record: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Gather first-hop gold chunks”. Spec: [`gate4-gather-gold-chunks-prompt-goal.md`](../gate4-gather-gold-chunks-prompt-goal.md). This does not close Grade stop vs rewrite, citations/refusal, or Gate 5 e2e.
+First-hop **gold `facts` coverage** on the joint Gather → isolated Retrieve → tools batch is closed 2026-08-29: 11/11 twice, same Gather prompt, Retrieve unchanged (`tests/live_gather_first_hop` `metrics_2026-08-29_11-16-45.csv`, `11-19-10.csv`). Production Gather: [`src/prompts/gather_agent.md`](../../src/prompts/gather_agent.md). Experiment record: [`TASK-04-decisions.md`](TASK-04-decisions.md) “Gather first-hop gold chunks”. Spec: [`gate4-gather-gold-chunks-prompt-goal.md`](../gate4-gather-gold-chunks-prompt-goal.md). Live e2e 11/11 is closed. Q09 Grade `too_late` is accepted; tool cap is 5.
 
 The full Retrieve prompt experiment path remains under [`TASK-04-decisions.md`](TASK-04-decisions.md) “Retrieve-only prompt evaluation and final prompt”. The production Retrieve prompt is [`src/prompts/retrieve_agent.md`](../../src/prompts/retrieve_agent.md).
 
-Follow-up is Grade/stop and e2e, not merging Gather and retrieve. Details: [`TASK-04-decisions.md`](TASK-04-decisions.md). Local-GT ladder: [`TASK-06-answers-transcripts-and-evaluation.md`](TASK-06-answers-transcripts-and-evaluation.md) Phase D.
+Follow-up is TASK 07 packaging, not merging Gather and retrieve. Details: [`TASK-04-decisions.md`](TASK-04-decisions.md). Local-GT ladder: [`TASK-06-answers-transcripts-and-evaluation.md`](TASK-06-answers-transcripts-and-evaluation.md) (Done).
 
 This remains TASK 04 work: the LLM still directs tool arguments; orchestration still owns budgets; `search_corpus` stays unbound.
 

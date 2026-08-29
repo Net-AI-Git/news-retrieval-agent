@@ -23,6 +23,7 @@ dependencies = [
     "chromadb>=1.5.9",
     "pysbd>=0.3.4",
     "tiktoken>=0.14.0",
+    "plotly==7.0.0",
     "langchain-core>=0.3.0",
     "langchain-openai>=0.2.0",
     "langgraph>=0.2.0",
