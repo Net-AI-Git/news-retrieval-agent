@@ -9,10 +9,6 @@ dependencies = [
     "pydantic-settings==2.3.4",
     "uvicorn==0.30.1",
     "python-dotenv>=1.0.1,<2.0.0",
-    "redis==7.0.1",
-    "requests>=2.32.5,<3.0.0",
-    "sqlalchemy>=2.0.0,<3.0.0",
-    "oracledb>=2.0.0,<3.0.0",
     "opentelemetry-api==1.44.0",
     "opentelemetry-sdk==1.44.0",
     "opentelemetry-exporter-otlp-json-file==0.65b0",
@@ -27,11 +23,6 @@ dependencies = [
     "langchain-core>=0.3.0",
     "langchain-openai>=0.2.0",
     "langgraph>=0.2.0",
-]
-
-[dependency-groups]
-dev = [
-    "openpyxl==3.1.5",
 ]
 
 [tool.uv]

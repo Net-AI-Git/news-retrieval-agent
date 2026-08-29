@@ -1,9 +1,9 @@
 # TASK 07 — Documentation and Delivery Readiness
 
-**Status:** Draft  
+**Status:** Done  
 **Author:** N/A  
 **Created:** 2026-08-23  
-**Target Completion:** TBD  
+**Target Completion:** 2026-08-29  
 **Branch:** `feature/pda-7-documentation-delivery-readiness`
 
 ## Goal
@@ -55,22 +55,24 @@ The developer chooses documentation structure, dependency format, commands, and 
 
 ## Definition of Done
 
-- [ ] README quickstart is executed from a clean environment or equivalently isolated setup.
-- [ ] Input choice and retrieval-layer reasoning are documented.
-- [ ] Tool-surface and agent-loop decisions are documented.
-- [ ] Refusal logic and known failure modes are documented honestly.
-- [ ] The 100-times-scale design discussion identifies concrete bottlenecks and changes.
-- [ ] The two-more-days section prioritizes specific follow-up work.
-- [ ] Index rebuild instructions and environment variables are documented.
-- [ ] The cost-aware LLM budget strategy is documented in the README.
-- [ ] Dependencies are complete, minimal, and installable on Python 3.11+.
-- [ ] Required deliverables and schemas pass a final end-to-end check.
-- [ ] Repository-wide secret scanning finds no committed credentials.
-- [ ] The branch is independently reviewable and ready to merge.
+- [x] README quickstart is executed from a clean environment or equivalently isolated setup. Deleted `project/.venv`, then `uv sync` and `uv run python solution.py` (2026-08-29, exit 0).
+- [x] Input choice and retrieval-layer reasoning are documented. `project/README.md` Selected inputs + Retrieval layer.
+- [x] Tool-surface and agent-loop decisions are documented. `project/README.md` Tool surface + Agent loop.
+- [x] Refusal logic and known failure modes are documented honestly. `project/README.md` How refusal works + Known failure modes (Q09 extra hops).
+- [x] The 100-times-scale design discussion identifies concrete bottlenecks and changes. `project/README.md` Working at 100× scale.
+- [x] The two-more-days section prioritizes specific follow-up work. `project/README.md` What I'd do with two more days.
+- [x] Index rebuild instructions and environment variables are documented. `project/README.md` Quickstart env table + Rebuild from scratch; `project/.env.example`.
+- [x] The cost-aware LLM budget strategy is documented in the README. `project/README.md` Cost-aware LLM usage.
+- [x] Dependencies are complete, minimal, and installable on Python 3.12 (`project/pyproject.toml` `>=3.12,<4.0`; `uv sync` on 3.11 is rejected).
+- [x] Required deliverables and schemas pass a final end-to-end check. `tests/answers_transcripts_evaluation` 2026-08-29: contract 11/11, GT match 11/11, unittest 5/5.
+- [x] Repository-wide secret scanning finds no committed credentials under `project/` (`.env` gitignored; `.env.example` uses `<FILL_ME>`). Probe JSON with a key prefix was removed from this branch’s history.
+- [x] The assignment package is independently reviewable. Git commit/merge is a separate step.
 
 ## Final Deliverable
 
 A self-contained repository or zip-ready package that a reviewer can understand, install, run, evaluate, and extend without undocumented assumptions.
+
+Shipped: [`../../README.md`](../../README.md), [`../../pyproject.toml`](../../pyproject.toml), [`../../solution.py`](../../solution.py). No SDD.
 
 ## SDD(s) Impacted
 
