@@ -79,3 +79,8 @@ project/vector_stores/**
 project/output_for_mission/facts_chroma/**
 !project/output_for_mission/facts_chroma/
 !project/output_for_mission/facts_chroma/source_catalog.json
+
+# Workspace tooling at repo root — assignment package is project/ only
+/*
+!/.gitignore
+!/project/
